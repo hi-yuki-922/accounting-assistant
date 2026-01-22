@@ -1,14 +1,15 @@
+use std::fs;
 pub mod db;
 use db::connection;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 async fn greet(name: String) -> Result<String, String> {
-    // Initialize database connection if not already done
-    if connection::get_or_init_db().await.is_ok() {
+    // Check if database connection is available
+    if connection::get_db().is_some() {
         println!("Database connected successfully");
     } else {
-        eprintln!("Failed to initialize database connection");
+        eprintln!("Database not initialized yet");
     }
 
     Ok(format!("Hello, {}! You've been greeted from Rust!", name))
@@ -19,6 +20,12 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // Get the app data directory path
+            let app_data_dir = app.path().app_data_dir().expect("Failed to get app data directory");
+
+            // Ensure the app data directory exists
+            fs::create_dir_all(&app_data_dir).expect("Failed to create app data directory");
+
             // Initialize the database connection when app starts
             #[cfg(desktop)]
             {
@@ -26,7 +33,7 @@ pub fn run() {
                 std::thread::spawn(move || {
                     let rt = tokio::runtime::Runtime::new().unwrap();
                     rt.block_on(async move {
-                        match connection::init_db().await {
+                        match connection::init_db(&app_data_dir).await {
                             Ok(_) => println!("Database initialized successfully"),
                             Err(e) => eprintln!("Failed to initialize database: {}", e),
                         }
@@ -39,7 +46,7 @@ pub fn run() {
             {
                 let _handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
-                    match connection::init_db().await {
+                    match connection::init_db(&app_data_dir).await {
                         Ok(_) => println!("Database initialized successfully"),
                         Err(e) => eprintln!("Failed to initialize database: {}", e),
                     }
