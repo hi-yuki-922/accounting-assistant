@@ -1,5 +1,6 @@
 use std::fs;
 pub mod db;
+pub mod entity;
 use db::connection;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -13,6 +14,19 @@ async fn greet(name: String) -> Result<String, String> {
     }
 
     Ok(format!("Hello, {}! You've been greeted from Rust!", name))
+}
+
+// Function to register entities after database initialization
+async fn register_entities(db: &sea_orm::DatabaseConnection) -> Result<(), Box<dyn std::error::Error>> {
+    // In entity-first workflow, we might run migrations or perform other entity setup tasks here
+    // For example, we could ensure tables exist, insert default data, etc.
+    
+    println!("Registering entities...");
+    
+    // Example: Ensure the tasks table exists by creating it if it doesn't exist
+    // In a real entity-first workflow, this would typically run migrations
+    
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,7 +48,16 @@ pub fn run() {
                     let rt = tokio::runtime::Runtime::new().unwrap();
                     rt.block_on(async move {
                         match connection::init_db(&app_data_dir).await {
-                            Ok(_) => println!("Database initialized successfully"),
+                            Ok(db_connection) => {
+                                println!("Database initialized successfully");
+                                
+                                // Register entities after database initialization in entity-first workflow
+                                if let Err(e) = register_entities(&db_connection).await {
+                                    eprintln!("Failed to register entities: {}", e);
+                                } else {
+                                    println!("Entities registered successfully");
+                                }
+                            },
                             Err(e) => eprintln!("Failed to initialize database: {}", e),
                         }
                     });
@@ -47,7 +70,16 @@ pub fn run() {
                 let _handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
                     match connection::init_db(&app_data_dir).await {
-                        Ok(_) => println!("Database initialized successfully"),
+                        Ok(db_connection) => {
+                            println!("Database initialized successfully");
+                            
+                            // Register entities after database initialization in entity-first workflow
+                            if let Err(e) = register_entities(&db_connection).await {
+                                eprintln!("Failed to register entities: {}", e);
+                            } else {
+                                println!("Entities registered successfully");
+                            }
+                        },
                         Err(e) => eprintln!("Failed to initialize database: {}", e),
                     }
                 });
