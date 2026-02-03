@@ -23,7 +23,14 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
+pub enum Relation {
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        panic!("No relations defined") // Since there are no relations defined for this entity
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
@@ -41,16 +48,6 @@ impl ActiveModelBehavior for ActiveModel {
             write_off_id: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
         }
-    }
-
-    fn before_save(mut self, _insert: bool) -> Result<Self, sea_orm::DbErr> {
-        if !self.create_at.is_set() {
-            use chrono::Local;
-            let now = Local::now().naive_local();
-            self.create_at = sea_orm::ActiveValue::Set(now);
-        }
-
-        Ok(self)
     }
 }
 

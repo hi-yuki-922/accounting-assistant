@@ -6,6 +6,7 @@ pub mod db;
 pub mod entity;
 pub mod enums;
 use db::connection;
+use sea_orm::ActiveModelTrait;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
