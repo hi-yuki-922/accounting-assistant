@@ -74,24 +74,20 @@ impl AccountingChannel {
 
 // Implement SeaORM conversion traits for AccountingType
 impl TryGetable for AccountingType {
-    fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
+    fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
+        let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<AccountingType>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingType"))))
     }
 
-    fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
+    fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
+        let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<AccountingType>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingType"))))
     }
 }
 
 impl sea_orm::sea_query::ValueType for AccountingType {
-    fn type_name() -> String {
-        stringify!(AccountingType).to_owned()
-    }
-
     fn try_from(v: Value) -> Result<Self, sea_orm::sea_query::ValueTypeErr> {
         match v {
             Value::String(Some(s)) => {
@@ -100,6 +96,10 @@ impl sea_orm::sea_query::ValueType for AccountingType {
             },
             _ => Err(sea_orm::sea_query::ValueTypeErr),
         }
+    }
+
+    fn type_name() -> String {
+        stringify!(AccountingType).to_owned()
     }
 
     fn array_type() -> sea_orm::sea_query::ArrayType {
@@ -118,31 +118,27 @@ impl From<AccountingType> for Value {
 }
 
 impl sea_orm::TryFromU64 for AccountingType {
-    fn try_from_u64(_n: u64) -> Result<Self, sea_orm::DbErr> {
+    fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
         Err(DbErr::Type(String::from("Cannot convert u64 to AccountingType")))
     }
 }
 
 // Implement SeaORM conversion traits for AccountingChannel
 impl TryGetable for AccountingChannel {
-    fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
+    fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
+        let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<AccountingChannel>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingChannel"))))
     }
 
-    fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
+    fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
+        let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<AccountingChannel>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingChannel"))))
     }
 }
 
 impl sea_orm::sea_query::ValueType for AccountingChannel {
-    fn type_name() -> String {
-        stringify!(AccountingChannel).to_owned()
-    }
-
     fn try_from(v: Value) -> Result<Self, sea_orm::sea_query::ValueTypeErr> {
         match v {
             Value::String(Some(s)) => {
@@ -151,6 +147,10 @@ impl sea_orm::sea_query::ValueType for AccountingChannel {
             },
             _ => Err(sea_orm::sea_query::ValueTypeErr),
         }
+    }
+
+    fn type_name() -> String {
+        stringify!(AccountingChannel).to_owned()
     }
 
     fn array_type() -> sea_orm::sea_query::ArrayType {
@@ -169,7 +169,7 @@ impl From<AccountingChannel> for Value {
 }
 
 impl sea_orm::TryFromU64 for AccountingChannel {
-    fn try_from_u64(_n: u64) -> Result<Self, sea_orm::DbErr> {
+    fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
         Err(DbErr::Type(String::from("Cannot convert u64 to AccountingChannel")))
     }
 }
