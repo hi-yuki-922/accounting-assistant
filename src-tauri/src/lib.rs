@@ -1,8 +1,10 @@
 use std::fs;
+use chrono::Local;
 use tauri::Manager;
 
 pub mod db;
 pub mod entity;
+pub mod enums;
 use db::connection;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -17,6 +19,8 @@ async fn greet(name: String) -> Result<String, String> {
 
   Ok(format!("Hello, {}! You've been greeted from Rust!", name))
 }
+
+use entity::accounting_record;
 
 // Function to register entities after database initialization
 async fn register_entities(
@@ -33,6 +37,21 @@ async fn register_entities(
   // In a real entity-first workflow, this would typically run migrations
 
   Ok(())
+}
+
+// Helper function to create a new accounting record with auto-generated ID
+pub async fn create_accounting_record(
+    db: &sea_orm::DatabaseConnection,
+    mut record: accounting_record::ActiveModel
+) -> Result<accounting_record::Model, Box<dyn std::error::Error>> {
+    // Generate a unique ID for the record
+    let new_id = accounting_record::Model::generate_id(db).await?;
+    record.id = sea_orm::ActiveValue::Set(new_id);
+
+    // Insert the record into the database
+    // The create_at timestamp will be automatically set by ActiveModelBehavior
+    let result = record.insert(db).await?;
+    Ok(result)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

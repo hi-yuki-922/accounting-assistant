@@ -1,6 +1,5 @@
-// SeaORM Entity Definitions
-// This module contains all the entity definitions for the application
+pub mod accounting_record;
+pub mod accounting_record_seq;
 
-pub mod prelude;
-// Add entity modules here as they are created
-// pub mod some_entity;
+pub use accounting_record::*;
+pub use accounting_record_seq::*;
