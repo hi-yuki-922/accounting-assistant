@@ -12,7 +12,7 @@ static DB_INSTANCE: OnceCell<Arc<DatabaseConnection>> = OnceCell::const_new();
 pub async fn init_db(app_data_dir: &Path) -> Result<Arc<DatabaseConnection>, Box<dyn std::error::Error>> {
     // Construct the database path in the app data directory
     let db_path = app_data_dir.join("core.sqlite");
-    let db_url = format!("sqlite:{}?mode=rwc&auto_vacuum=full", db_path.to_str().ok_or("Invalid database path")?);
+    let db_url = format!("sqlite:{}?mode=rwc", db_path.to_str().ok_or("Invalid database path")?);
 
     let db = Database::connect(&db_url).await?;
 
