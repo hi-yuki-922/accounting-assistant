@@ -5,23 +5,11 @@ use tauri::Manager;
 pub mod db;
 pub mod entity;
 pub mod enums;
+pub mod commands;
 use db::connection;
 use sea_orm::ActiveModelTrait;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-async fn greet(name: String) -> Result<String, String> {
-  // Check if database connection is available
-  if connection::get_db().is_some() {
-    println!("Database connected successfully");
-  } else {
-    eprintln!("Database not initialized yet");
-  }
-
-  Ok(format!("Hello, {}! You've been greeted from Rust!", name))
-}
-
 use entity::accounting_record;
+use commands::with_install_tauri_commands;
 
 // Function to register entities after database initialization
 async fn register_entities(
@@ -57,7 +45,7 @@ pub async fn create_accounting_record(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let mut builder = tauri::Builder::default()
       .plugin(tauri_plugin_opener::init())
       .setup(|app| {
         // Get the app data directory path
@@ -115,8 +103,9 @@ pub fn run() {
         }
 
         Ok(())
-      })
-      .invoke_handler(tauri::generate_handler![greet])
-      .run(tauri::generate_context!())
+      });
+  builder = with_install_tauri_commands(builder);
+  builder.run(tauri::generate_context!())
       .expect("error while running tauri application");
+
 }
