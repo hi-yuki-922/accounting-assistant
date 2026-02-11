@@ -1,49 +1,12 @@
 use std::fs;
-use chrono::Local;
 use tauri::Manager;
-
 pub mod db;
 pub mod entity;
 pub mod enums;
 pub mod commands;
 pub mod services;
 use db::connection;
-use sea_orm::ActiveModelTrait;
-use entity::accounting_record;
 use commands::with_install_tauri_commands;
-
-// Function to register entities after database initialization
-async fn register_entities(
-  db: &sea_orm::DatabaseConnection,
-) -> Result<(), Box<dyn std::error::Error>> {
-  // In entity-first workflow, we might run migrations or perform other entity setup tasks here
-  // For example, we could ensure tables exist, insert default data, etc.
-
-  println!("Registering entities...");
-  db.get_schema_registry("accounting-assistant::entity::*")
-      .sync(db)
-      .await?;
-  // Example: Ensure the tasks table exists by creating it if it doesn't exist
-  // In a real entity-first workflow, this would typically run migrations
-
-  Ok(())
-}
-
-// Helper function to create a new accounting record with auto-generated ID
-pub async fn create_accounting_record(
-    db: &sea_orm::DatabaseConnection,
-    mut record: accounting_record::ActiveModel
-) -> Result<accounting_record::Model, Box<dyn std::error::Error>> {
-    // Generate a unique ID for the record
-    let new_id = accounting_record::Model::generate_id(db).await?;
-    record.id = sea_orm::ActiveValue::Set(new_id);
-
-    // Insert the record into the database
-    // The create_at timestamp will be automatically set by ActiveModelBehavior
-    let result = record.insert(db).await?;
-    Ok(result)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   let mut builder = tauri::Builder::default()
@@ -70,7 +33,7 @@ pub fn run() {
                   println!("Database initialized successfully");
 
                   // Register entities after database initialization in entity-first workflow
-                  if let Err(e) = register_entities(&db_connection).await {
+                  if let Err(e) = entity::with_install_entities(&db_connection).await {
                     eprintln!("Failed to register entities: {}", e);
                   } else {
                     println!("Entities registered successfully");
@@ -92,7 +55,7 @@ pub fn run() {
                 println!("Database initialized successfully");
 
                 // Register entities after database initialization in entity-first workflow
-                if let Err(e) = register_entities(&db_connection).await {
+                if let Err(e) = entity::with_install_entities(&db_connection).await {
                   eprintln!("Failed to register entities: {}", e);
                 } else {
                   println!("Entities registered successfully");
@@ -105,6 +68,7 @@ pub fn run() {
 
         Ok(())
       });
+
   builder = with_install_tauri_commands(builder);
   builder.run(tauri::generate_context!())
       .expect("error while running tauri application");
