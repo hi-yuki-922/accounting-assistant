@@ -1,6 +1,6 @@
 use crate::entity::accounting_record::{self, ActiveModel};
 use crate::db::connection;
-use crate::enums::{AccountingType, AccountingChannel};
+use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 use chrono::{NaiveDateTime, Local};
 use rust_decimal::Decimal;
 use sea_orm::ActiveModelTrait;
@@ -29,6 +29,7 @@ pub async fn add_accounting_record(
         remark: sea_orm::ActiveValue::Set(remark),
         write_off_id: sea_orm::ActiveValue::Set(write_off_id),
         create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
+        state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
     };
 
     let inserted_record = new_record.insert(&*db).await?;

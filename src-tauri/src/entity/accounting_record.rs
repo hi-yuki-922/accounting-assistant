@@ -2,7 +2,7 @@ use chrono::{NaiveDateTime};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
-use crate::enums::{AccountingType, AccountingChannel};
+use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[sea_orm(table_name = "accounting_record")]
@@ -20,6 +20,7 @@ pub struct Model {
     pub remark: Option<String>,
     pub write_off_id: Option<i64>,
     pub create_at: NaiveDateTime,
+    pub state: AccountingRecordState,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -47,6 +48,7 @@ impl ActiveModelBehavior for ActiveModel {
             remark: sea_orm::ActiveValue::NotSet,
             write_off_id: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
+            state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
         }
     }
 }
