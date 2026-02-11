@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Local};
+use chrono::{NaiveDateTime};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
@@ -53,7 +53,7 @@ impl ActiveModelBehavior for ActiveModel {
 
 impl Model {
     // Generate a unique ID in the format YYYYMMDDNNNNN
-    pub async fn generate_id(db: &sea_orm::DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
+    pub async fn generate_id(db: &DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
         let date_str = now.format("%Y%m%d").to_string();
