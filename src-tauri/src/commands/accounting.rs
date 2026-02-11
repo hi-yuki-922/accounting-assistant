@@ -17,21 +17,21 @@ pub struct AddAccountingRecordDto {
 }
 
 #[command]
-pub async fn add_accounting_record(dto: AddAccountingRecordDto) -> Result<crate::entity::accounting_record::Model, String> {
+pub async fn add_accounting_record(input: AddAccountingRecordDto) -> Result<crate::entity::accounting_record::Model, String> {
     // Convert f64 to Decimal
-    let amount_decimal = Decimal::from_f64_retain(dto.amount)
+    let amount_decimal = Decimal::from_f64_retain(input.amount)
         .ok_or_else(|| "Invalid amount provided".to_string())?;
 
     // Parse date string to NaiveDateTime
-    let parsed_datetime = NaiveDateTime::parse_from_str(&dto.record_time, "%Y-%m-%d %H:%M:%S")
+    let parsed_datetime = NaiveDateTime::parse_from_str(&input.record_time, "%Y-%m-%d %H:%M:%S")
         .map_err(|_| "Invalid date format, expected YYYY-MM-DD HH:MM:SS".to_string())?;
 
     // Parse accounting type
-    let parsed_accounting_type = dto.accounting_type.parse::<AccountingType>()
+    let parsed_accounting_type = input.accounting_type.parse::<AccountingType>()
         .map_err(|_| "Invalid accounting type".to_string())?;
 
     // Parse channel
-    let parsed_channel = dto.channel.parse::<AccountingChannel>()
+    let parsed_channel = input.channel.parse::<AccountingChannel>()
         .map_err(|_| "Invalid accounting channel".to_string())?;
 
     // Call the service function
@@ -39,10 +39,10 @@ pub async fn add_accounting_record(dto: AddAccountingRecordDto) -> Result<crate:
         amount_decimal,
         parsed_datetime,
         parsed_accounting_type,
-        dto.title,
+        input.title,
         parsed_channel,
-        dto.remark,
-        dto.write_off_id,
+        input.remark,
+        input.write_off_id,
     )
     .await
     .map_err(|e| e.to_string())
