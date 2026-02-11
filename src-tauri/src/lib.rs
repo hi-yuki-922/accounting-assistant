@@ -6,6 +6,7 @@ pub mod db;
 pub mod entity;
 pub mod enums;
 pub mod commands;
+pub mod services;
 use db::connection;
 use sea_orm::ActiveModelTrait;
 use entity::accounting_record;
