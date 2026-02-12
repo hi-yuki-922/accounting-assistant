@@ -5,16 +5,17 @@ use chrono::{NaiveDateTime, Local};
 use rust_decimal::Decimal;
 use sea_orm::{ActiveModelTrait, EntityTrait, QuerySelect, QueryFilter, sea_query::Expr, ColumnTrait};
 
+pub mod dto;
+
+use self::dto::{AddAccountingRecordDto, ModifyAccountingRecordDto};
+
 pub async fn add_accounting_record(
-    amount: Decimal,
-    record_time: NaiveDateTime,
-    accounting_type: AccountingType,
-    title: String,
-    channel: AccountingChannel,
-    remark: Option<String>,
-    write_off_id: Option<i64>,
+    input: AddAccountingRecordDto,
 ) -> Result<accounting_record::Model, Box<dyn std::error::Error>> {
     let db = connection::get_or_init_db().await?;
+
+    // Convert DTO fields to internal types
+    let (amount, record_time, accounting_type, channel) = input.to_internal_types()?;
 
     // Generate a unique ID for the record
     let id = accounting_record::Model::generate_id(&*db).await?;
@@ -24,10 +25,10 @@ pub async fn add_accounting_record(
         amount: sea_orm::ActiveValue::Set(amount),
         record_time: sea_orm::ActiveValue::Set(record_time),
         accounting_type: sea_orm::ActiveValue::Set(accounting_type),
-        title: sea_orm::ActiveValue::Set(title),
+        title: sea_orm::ActiveValue::Set(input.title),
         channel: sea_orm::ActiveValue::Set(channel),
-        remark: sea_orm::ActiveValue::Set(remark),
-        write_off_id: sea_orm::ActiveValue::Set(write_off_id),
+        remark: sea_orm::ActiveValue::Set(input.remark),
+        write_off_id: sea_orm::ActiveValue::Set(input.write_off_id),
         create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
         state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
     };
@@ -37,20 +38,18 @@ pub async fn add_accounting_record(
 }
 
 pub async fn modify_accounting_record(
-    id: i64,
-    amount: Option<Decimal>,
-    record_time: Option<NaiveDateTime>,
-    accounting_type: Option<AccountingType>,
-    title: Option<String>,
-    remark: Option<Option<String>>,
+    input: ModifyAccountingRecordDto,
 ) -> Result<Model, Box<dyn std::error::Error>> {
     let db = connection::get_or_init_db().await?;
 
+    // Convert DTO fields to internal types
+    let (amount, record_time, accounting_type) = input.to_internal_types()?;
+
     // First, fetch the current record to check its state
-    let record = accounting_record::Entity::find_by_id(id)
+    let record = accounting_record::Entity::find_by_id(input.id)
         .one(&*db)
         .await?
-        .ok_or("Accounting record not found")?;
+        .ok_or("Accounting record not found".into())?;
 
     // Check if the record is in PendingPosting state
     if record.state != AccountingRecordState::PendingPosting {
@@ -72,11 +71,11 @@ pub async fn modify_accounting_record(
         active_model.accounting_type = sea_orm::ActiveValue::Set(new_accounting_type);
     }
 
-    if let Some(new_title) = title {
+    if let Some(new_title) = input.title {
         active_model.title = sea_orm::ActiveValue::Set(new_title);
     }
 
-    if let Some(new_remark) = remark {
+    if let Some(new_remark) = input.remark {
         active_model.remark = sea_orm::ActiveValue::Set(new_remark);
     }
 
@@ -94,7 +93,7 @@ pub async fn post_accounting_record(
     let record = accounting_record::Entity::find_by_id(id)
         .one(&*db)
         .await?
-        .ok_or("Accounting record not found")?;
+        .ok_or("Accounting record not found".into())?;
 
     // Update the state to Posted
     let mut active_model: ActiveModel = record.into();
