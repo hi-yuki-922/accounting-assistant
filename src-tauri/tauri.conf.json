@@ -30,6 +30,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "externalBin": [
+      "bin/bun-sidecar-x86_64-pc-windows-mscv.exe"
     ]
   }
 }
