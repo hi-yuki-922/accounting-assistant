@@ -1,9 +1,8 @@
-use crate::entity::accounting_record::{self, ActiveModel, Model};
 use crate::db::connection;
-use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
-use chrono::{NaiveDateTime, Local};
-use rust_decimal::Decimal;
-use sea_orm::{ActiveModelTrait, EntityTrait, QuerySelect, QueryFilter, sea_query::Expr, ColumnTrait};
+use crate::entity::accounting_record::{self, ActiveModel, Model};
+use crate::enums::AccountingRecordState;
+use chrono::Local;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
 
 pub mod dto;
 
@@ -11,14 +10,14 @@ use self::dto::{AddAccountingRecordDto, ModifyAccountingRecordDto};
 
 pub async fn add_accounting_record(
     input: AddAccountingRecordDto,
-) -> Result<accounting_record::Model, Box<dyn std::error::Error>> {
+) -> Result<Model, Box<dyn std::error::Error>> {
     let db = connection::get_or_init_db().await?;
 
     // Convert DTO fields to internal types
     let (amount, record_time, accounting_type, channel) = input.to_internal_types()?;
 
     // Generate a unique ID for the record
-    let id = accounting_record::Model::generate_id(&*db).await?;
+    let id = Model::generate_id(&*db).await?;
 
     let new_record = ActiveModel {
         id: sea_orm::ActiveValue::Set(id),
@@ -84,9 +83,7 @@ pub async fn modify_accounting_record(
     Ok(updated_record)
 }
 
-pub async fn post_accounting_record(
-    id: i64,
-) -> Result<Model, Box<dyn std::error::Error>> {
+pub async fn post_accounting_record(id: i64) -> Result<Model, Box<dyn std::error::Error>> {
     let db = connection::get_or_init_db().await?;
 
     // First, fetch the current record
@@ -103,4 +100,3 @@ pub async fn post_accounting_record(
     let updated_record = active_model.update(&*db).await?;
     Ok(updated_record)
 }
-

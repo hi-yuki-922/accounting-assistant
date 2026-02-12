@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
+use crate::enums::{AccountingType, AccountingChannel};
 use rust_decimal::Decimal;
 use chrono::NaiveDateTime;
 
