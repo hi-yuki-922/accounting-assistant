@@ -58,7 +58,7 @@ impl ModifyAccountingRecordDto {
         };
 
         // Parse optional date string to NaiveDateTime if provided
-        let parsed_datetime = if let Some(date_str) = self.record_time {
+        let parsed_datetime = if let Some(date_str) = self.record_time.as_ref() {
             Some(NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
                 .map_err(|_| "Invalid date format, expected YYYY-MM-DD HH:MM:SS".to_string())?)
         } else {
@@ -66,7 +66,7 @@ impl ModifyAccountingRecordDto {
         };
 
         // Parse optional accounting type if provided
-        let parsed_accounting_type = if let Some(type_str) = self.accounting_type {
+        let parsed_accounting_type = if let Some(type_str) = self.accounting_type.as_ref() {
             Some(type_str.parse::<AccountingType>()
                 .map_err(|_| "Invalid accounting type".to_string())?)
         } else {

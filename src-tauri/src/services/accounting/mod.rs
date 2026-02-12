@@ -49,7 +49,7 @@ pub async fn modify_accounting_record(
     let record = accounting_record::Entity::find_by_id(input.id)
         .one(&*db)
         .await?
-        .ok_or("Accounting record not found".into())?;
+        .ok_or::<String>("Accounting record not found".into())?;
 
     // Check if the record is in PendingPosting state
     if record.state != AccountingRecordState::PendingPosting {
@@ -93,7 +93,7 @@ pub async fn post_accounting_record(
     let record = accounting_record::Entity::find_by_id(id)
         .one(&*db)
         .await?
-        .ok_or("Accounting record not found".into())?;
+        .ok_or::<String>("Accounting record not found".into())?;
 
     // Update the state to Posted
     let mut active_model: ActiveModel = record.into();
