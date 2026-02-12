@@ -5,8 +5,9 @@ pub mod entity;
 pub mod enums;
 pub mod commands;
 pub mod services;
+pub mod sidecar;
 use db::connection;
-use commands::with_install_tauri_commands;
+use commands::{with_install_tauri_commands, sidecar::SidecarState};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   let mut builder = tauri::Builder::default()
@@ -20,6 +21,25 @@ pub fn run() {
 
         // Ensure the app data directory exists
         fs::create_dir_all(&app_data_dir).expect("Failed to create app data directory");
+
+        // Initialize the sidecar client
+        let sidecar_state: SidecarState = match SidecarState::new() {
+            Ok(state) => {
+                // Try to start the sidecar process
+                match state.client().start() {
+                    Ok(_) => {}
+                    Err(e) => eprintln!("Warning: Failed to start sidecar process: {}", e),
+                }
+                state
+            }
+            Err(e) => {
+                eprintln!("Warning: Failed to initialize sidecar client: {}", e);
+                // Create a fallback state
+                SidecarState::new().unwrap()
+            }
+        };
+
+        app.manage(sidecar_state);
 
         // Initialize the database connection when app starts
         #[cfg(desktop)]
