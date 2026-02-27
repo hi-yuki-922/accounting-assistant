@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.34",
     "@tailwindcss/vite": "^4.1.18",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
@@ -18,7 +19,7 @@
     "@vue-flow/core": "^1.48.1",
     "@vue-flow/node-toolbar": "^1.1.1",
     "@vueuse/core": "^14.1.0",
-    "ai": "^6.0.37",
+    "ai": "^6.0.101",
     "effect": "^3.19.14",
     "embla-carousel-vue": "^8.6.0",
     "lucide-vue-next": "^0.562.0",

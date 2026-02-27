@@ -32,4 +32,11 @@ async-trait = "0.1.83"
 tauri-plugin-shell = "2.3.5"
 uuid = { version = "1.0", features = ["v4"] }
 thiserror = "1.0"
+reqwest = { version = "0.13.2", features = ["stream"] }
+futures = "0.3"
+async-stream = "0.3"
+bytes = "1"
 
+[env]
+SILICONFLOW_API_KEY = { value = "", unset = "remove" }
+SILICONFLOW_BASE_URL = { value = "https://api.siliconflow.cn/v1", unset = "remove" }
