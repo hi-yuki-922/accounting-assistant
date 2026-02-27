@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Desktop Accounting Assistant Application** built with Tauri 2.0, combining a Vue 3 + TypeScript frontend with a Rust backend. It's a cross-platform desktop app for personal/small business financial tracking with income, expense, and investment recording features.
 
+## Language Guidelines
+- All conversations, documentation, and comments **must use Simplified Chinese**
+- Technical documentation shall be formatted in Markdown with consistent Chinese terminology
+- Code comments shall prioritize Chinese, with detailed explanations for critical logic
+
 ## Development Commands
 
 ### Full Application
