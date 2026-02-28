@@ -16,9 +16,9 @@ impl AttachmentStorage {
 
     /// 获取 app_data_dir 路径
     fn get_app_data_dir(&self) -> Result<PathBuf, String> {
-        dirs::data_dir()
+        Ok(dirs::data_dir()
             .ok_or("无法获取数据目录")?
-            .join("accounting-assistant")
+            .join("accounting-assistant"))
     }
 
     /// 获取基础存储目录

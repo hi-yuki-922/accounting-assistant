@@ -34,19 +34,6 @@ export async function getLLMConfig(): Promise<LLMConfig> {
 }
 
 /**
- * Test LLM connection
- */
-export async function testLLMConnection(): Promise<boolean> {
-  try {
-    await invoke('test_llm_connection');
-    return true;
-  } catch (error) {
-    console.error('LLM connection test failed:', error);
-    return false;
-  }
-}
-
-/**
  * Send a chat completion request (non-streaming)
  */
 export async function chatCompletion(request: LLMRequest): Promise<LLMResponse> {
