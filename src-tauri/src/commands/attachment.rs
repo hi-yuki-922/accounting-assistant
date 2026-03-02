@@ -1,37 +1,9 @@
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
-
 use crate::db::connection;
 use crate::entity::attachment;
 use crate::services::attachment::AttachmentService;
-
-/// 附件信息响应
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AttachmentInfo {
-    pub id: i64,
-    pub master_id: i64,
-    pub path: String,
-    pub file_name: String,
-    pub file_suffix: String,
-    pub file_size: String,
-    pub create_at: String,
-}
-
-impl From<attachment::Model> for AttachmentInfo {
-    fn from(model: attachment::Model) -> Self {
-        Self {
-            id: model.id,
-            master_id: model.master_id,
-            path: model.path,
-            file_name: model.file_name,
-            file_suffix: model.file_suffix,
-            file_size: model.file_size,
-            create_at: model.create_at.to_string(),
-        }
-    }
-}
+use crate::services::attachment::dto::AttachmentInfo;
+use chrono::{DateTime, Utc};
+use tauri::AppHandle;
 
 /// 创建附件
 #[tauri::command]
@@ -108,7 +80,7 @@ pub async fn query_attachments(
         None
     };
 
-    let attachments = service
+    let attachments: Vec<attachment::Model> = service
         .query_attachments(
             page,
             page_size,

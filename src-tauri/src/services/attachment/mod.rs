@@ -7,7 +7,11 @@ use std::path::Path;
 use tauri::AppHandle;
 
 use crate::entity::attachment;
-use crate::services::attachment_storage::AttachmentStorage;
+
+pub mod dto;
+pub mod storage;
+
+use storage::AttachmentStorage;
 
 /// 附件服务
 pub struct AttachmentService {
