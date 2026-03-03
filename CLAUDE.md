@@ -112,22 +112,6 @@ Database Layer (SQLite via Sea-ORM)
 - Chrono for date/time
 - Serde for JSON serialization
 
-## Database Schema
-
-### AccountingRecord Entity
-- `id`: String (format: YYYYMMDDNNNNN)
-- `amount`: Decimal (precise financial calculations)
-- `record_time`: DateTime
-- `accounting_type`: Enum (Income, Expenditure, InvestmentIncome, InvestmentLoss)
-- `channel`: Enum (Cash, AliPay, Wechat, BankCard, Unknown)
-- `title`: String
-- `remark`: Option<String>
-- `write_off_id`: Option<String>
-- `create_at`: DateTime
-- `state`: Enum (PendingPosting, Posted)
-
-All enum types are defined in `src-tauri/src/enums/` with Chinese labels.
-
 ## Important Notes
 
 - **Development**: CSP is disabled in tauri.conf.json for development
@@ -138,9 +122,6 @@ All enum types are defined in `src-tauri/src/enums/` with Chinese labels.
 - **Entity registration**: Must happen after database initialization due to entity-first workflow
 - **Financial precision**: Always use `rust_decimal` for monetary values, never floating point
 
-## IDE Setup
+## Development Specifications
 
-Install these VS Code extensions:
-- [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
-- [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
-- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+Tauri Rust backend development must adhere to the backend coding standards tauri-rust-backend-code-standard
