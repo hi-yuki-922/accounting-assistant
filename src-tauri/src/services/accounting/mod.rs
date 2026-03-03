@@ -3,6 +3,7 @@ use crate::entity::accounting_record::{self, ActiveModel, Model};
 use crate::enums::AccountingRecordState;
 use chrono::Local;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use crate::services::accounting_book::DEFAULT_BOOK_ID;
 
 pub mod dto;
 
@@ -30,6 +31,7 @@ pub async fn add_accounting_record(
         write_off_id: sea_orm::ActiveValue::Set(input.write_off_id),
         create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
         state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
+        book_id: sea_orm::ActiveValue::Set(Option::from(input.book_id.unwrap_or(DEFAULT_BOOK_ID))),
     };
 
     let inserted_record = new_record.insert(&*db).await?;

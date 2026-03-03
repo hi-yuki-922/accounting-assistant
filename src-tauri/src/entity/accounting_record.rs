@@ -21,15 +21,22 @@ pub struct Model {
     pub write_off_id: Option<i64>,
     pub create_at: NaiveDateTime,
     pub state: AccountingRecordState,
+    pub book_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
+    AccountingBook,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
-        panic!("No relations defined") // Since there are no relations defined for this entity
+        match self {
+            Self::AccountingBook => Entity::belongs_to(super::accounting_book::Entity)
+                .from(Column::BookId)
+                .to(super::accounting_book::Column::Id)
+                .into(),
+        }
     }
 }
 
@@ -49,6 +56,7 @@ impl ActiveModelBehavior for ActiveModel {
             write_off_id: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
+            book_id: sea_orm::ActiveValue::NotSet,
         }
     }
 }
