@@ -1,9 +1,9 @@
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait};
 use crate::entity::{accounting_book, accounting_record};
 
 pub mod dto;
 
-use self::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse};
+use self::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
 
 /// 默认账本 ID
 pub const DEFAULT_BOOK_ID: i64 = 10000001;
@@ -200,7 +200,7 @@ pub async fn get_books_paginated(
 pub async fn get_records_by_book_id_paginated(
     db: &DatabaseConnection,
     input: GetRecordsByBookIdPaginatedDto,
-) -> Result<PaginatedResponse<accounting_record::Model>, Box<dyn std::error::Error>> {
+) -> Result<PaginatedResponse<RecordWithCountDto>, Box<dyn std::error::Error>> {
     // 验证账本是否存在
     let book_exists = accounting_book::Entity::find()
         .filter(accounting_book::Column::Id.eq(input.book_id))
@@ -215,8 +215,8 @@ pub async fn get_records_by_book_id_paginated(
     let page = if input.page < 1 { 1 } else { input.page };
     let page_size = input.page_size;
 
-    // 构建查询条件
-    let query = if input.book_id == DEFAULT_BOOK_ID {
+    // 构建基础查询条件
+    let mut query = if input.book_id == DEFAULT_BOOK_ID {
         // 如果是查询未归类账目，还需要包含 book_id 为 NULL 的记录
         accounting_record::Entity::find()
             .filter(
@@ -227,6 +227,32 @@ pub async fn get_records_by_book_id_paginated(
         accounting_record::Entity::find()
             .filter(accounting_record::Column::BookId.eq(input.book_id))
     };
+
+    // 2.1 固定过滤条件：只查询 write_off_id 为 NULL 的记录
+    query = query.filter(accounting_record::Column::WriteOffId.is_null());
+
+    // 2.2 时间范围过滤
+    if let Some(start_time) = input.start_time {
+        query = query.filter(accounting_record::Column::RecordTime.gte(start_time));
+    }
+    if let Some(end_time) = input.end_time {
+        query = query.filter(accounting_record::Column::RecordTime.lte(end_time));
+    }
+
+    // 2.3 记账类型过滤
+    if let Some(accounting_type) = input.accounting_type {
+        query = query.filter(accounting_record::Column::AccountingType.eq(accounting_type));
+    }
+
+    // 2.4 记账渠道过滤
+    if let Some(channel) = input.channel {
+        query = query.filter(accounting_record::Column::Channel.eq(channel));
+    }
+
+    // 2.5 记录状态过滤
+    if let Some(state) = input.state {
+        query = query.filter(accounting_record::Column::State.eq(state));
+    }
 
     // 获取总数量（使用相同的查询条件）
     let total = query.clone().count(db).await?;
@@ -251,8 +277,25 @@ pub async fn get_records_by_book_id_paginated(
         .paginate(db, page_size);
 
     // 获取当前页数据（注意：fetch_page 使用 0-based 索引）
-    let data = paginator.fetch_page(page - 1).await?;
+    let records = paginator.fetch_page(page - 1).await?;
 
+    // 2.6 批量查询关联记录数量
+    let record_ids: Vec<i64> = records.iter().map(|r| r.id).collect();
+    let related_counts = get_related_records_count(db, &record_ids).await?;
+
+    // 2.7 将关联记录数量注入到每条记录的返回数据中
+    let data: Vec<RecordWithCountDto> = records
+        .into_iter()
+        .map(|record| {
+            let related_count = *related_counts.get(&record.id).unwrap_or(&0);
+            RecordWithCountDto {
+                record,
+                related_count,
+            }
+        })
+        .collect();
+
+    // 2.8 更新函数返回类型，使用 PaginatedResponse<RecordWithCountDto>
     Ok(PaginatedResponse {
         data,
         total,
@@ -260,4 +303,63 @@ pub async fn get_records_by_book_id_paginated(
         page_size,
         total_pages,
     })
+}
+
+/// 批量查询记录的关联记录数量
+async fn get_related_records_count(
+    db: &DatabaseConnection,
+    record_ids: &[i64],
+) -> Result<std::collections::HashMap<i64, i64>, Box<dyn std::error::Error>> {
+    if record_ids.is_empty() {
+        return Ok(std::collections::HashMap::new());
+    }
+
+    // 批量查询每条记录的关联数量
+    let counts: Vec<(i64, i64)> = accounting_record::Entity::find()
+        .select_only()
+        .column_as(accounting_record::Column::WriteOffId, "record_id")
+        .column_as(accounting_record::Column::Id.count(), "count")
+        .filter(accounting_record::Column::WriteOffId.is_in(record_ids.to_vec()))
+        .group_by(accounting_record::Column::WriteOffId)
+        .into_tuple::<(i64, i64)>()
+        .all(db)
+        .await?;
+
+    // 转换为 HashMap
+    let mut result = std::collections::HashMap::new();
+    for (record_id, count) in counts {
+        result.insert(record_id, count);
+    }
+
+    // 为没有关联记录的 ID 添加 0
+    for id in record_ids {
+        if !result.contains_key(id) {
+            result.insert(*id, 0);
+        }
+    }
+
+    Ok(result)
+}
+
+/// 根据记录 ID 查询冲账关联记录
+///
+/// # 参数
+/// * `db` - 数据库连接
+/// * `record_id` - 记账记录 ID
+///
+/// # 返回
+/// 所有 `write_off_id` 等于给定记录 ID 的记账记录，按创建时间倒序排列
+pub async fn get_write_off_records_by_id(
+    db: &DatabaseConnection,
+    record_id: i64,
+) -> Result<Vec<accounting_record::Model>, Box<dyn std::error::Error>> {
+    // 3.2 实现根据记录 ID 查询关联记录的逻辑（通过 write_off_id 字段）
+    // 3.3 实现查询结果按创建时间倒序排列
+    let records = accounting_record::Entity::find()
+        .filter(accounting_record::Column::WriteOffId.eq(record_id))
+        .order_by_desc(accounting_record::Column::CreateAt)
+        .all(db)
+        .await?;
+
+    Ok(records)
 }

@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use crate::entity::accounting_record;
+use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 
 /// 创建账本 DTO
 #[derive(Deserialize, Serialize)]
@@ -31,6 +33,26 @@ pub struct GetRecordsByBookIdPaginatedDto {
     pub page: u64,
     /// 每页数量
     pub page_size: u64,
+    /// 开始时间（可选）
+    pub start_time: Option<chrono::NaiveDateTime>,
+    /// 结束时间（可选）
+    pub end_time: Option<chrono::NaiveDateTime>,
+    /// 记账类型（可选）
+    pub accounting_type: Option<AccountingType>,
+    /// 记账渠道（可选）
+    pub channel: Option<AccountingChannel>,
+    /// 记录状态（可选）
+    pub state: Option<AccountingRecordState>,
+}
+
+/// 带关联记录数量的记录 DTO
+#[derive(Serialize)]
+pub struct RecordWithCountDto {
+    /// 原始记账记录
+    #[serde(flatten)]
+    pub record: accounting_record::Model,
+    /// 冲账关联记录数量
+    pub related_count: i64,
 }
 
 /// 分页响应结构

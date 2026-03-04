@@ -1,5 +1,5 @@
 use crate::entity::accounting_book;
-use crate::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto};
+use crate::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
 use sea_orm::DatabaseConnection;
 use tauri::State;
 
@@ -94,8 +94,19 @@ pub async fn get_books_paginated(
 pub async fn get_records_by_book_id_paginated(
     db: State<'_, DatabaseConnection>,
     input: GetRecordsByBookIdPaginatedDto,
-) -> Result<crate::services::accounting_book::dto::PaginatedResponse<crate::entity::accounting_record::Model>, String> {
+) -> Result<PaginatedResponse<RecordWithCountDto>, String> {
     crate::services::accounting_book::get_records_by_book_id_paginated(&db, input)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// 根据记录 ID 查询冲账关联记录
+#[tauri::command]
+pub async fn get_write_off_records_by_id(
+    db: State<'_, DatabaseConnection>,
+    record_id: i64,
+) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
+    crate::services::accounting_book::get_write_off_records_by_id(&db, record_id)
         .await
         .map_err(|e| e.to_string())
 }

@@ -29,6 +29,7 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     accounting_book::get_records_by_book_id,
     accounting_book::get_uncategorized_records,
     accounting_book::get_books_paginated,
-    accounting_book::get_records_by_book_id_paginated
+    accounting_book::get_records_by_book_id_paginated,
+    accounting_book::get_write_off_records_by_id
   ])
 }
