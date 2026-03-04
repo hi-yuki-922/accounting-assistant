@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "shadcnVue": {
+      "command": "npx",
+      "args": [
+        "shadcn-vue@latest",
+        "mcp"
+      ]
+    },
+    "ai-elements-vue": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://registry.ai-elements-vue.com/mcp"
+      ]
+    }
+  }
+}
