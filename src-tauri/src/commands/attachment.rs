@@ -1,22 +1,18 @@
-use crate::db::connection;
 use crate::entity::attachment;
-use crate::services::attachment::AttachmentService;
+use crate::services;
 use crate::services::attachment::dto::AttachmentInfo;
 use chrono::{DateTime, Utc};
-use tauri::AppHandle;
 
 /// 创建附件
 #[tauri::command]
 pub async fn create_attachment(
-    app_handle: AppHandle,
     master_id: i64,
     file_name: String,
     file_suffix: String,
     file_size: String,
     file_content: Vec<u8>,
 ) -> Result<(i64, String), String> {
-    let db = connection::get_db().ok_or("数据库未初始化")?;
-    let service = AttachmentService::new((*db).clone(), app_handle);
+    let service = services::attachment_service();
 
     service
         .create_attachment(master_id, file_name, file_suffix, file_size, file_content)
@@ -25,29 +21,23 @@ pub async fn create_attachment(
 
 /// 按 ID 删除附件
 #[tauri::command]
-pub async fn delete_attachment(app_handle: AppHandle, id: i64) -> Result<(), String> {
-    let db = connection::get_db().ok_or("数据库未初始化")?;
-    let service = AttachmentService::new((*db).clone(), app_handle);
-
+pub async fn delete_attachment(id: i64) -> Result<(), String> {
+    let service = services::attachment_service();
     service.delete_attachment(id).await
 }
 
 /// 按路径删除附件
 #[tauri::command]
 pub async fn delete_attachment_by_path(
-    app_handle: AppHandle,
     path: String,
 ) -> Result<(), String> {
-    let db = connection::get_db().ok_or("数据库未初始化")?;
-    let service = AttachmentService::new((*db).clone(), app_handle);
-
+    let service = services::attachment_service();
     service.delete_attachment_by_path(&path).await
 }
 
 /// 查询附件列表
 #[tauri::command]
 pub async fn query_attachments(
-    app_handle: AppHandle,
     page: i64,
     page_size: i64,
     file_name: Option<String>,
@@ -56,8 +46,7 @@ pub async fn query_attachments(
     end_time: Option<String>,
     master_id: Option<i64>,
 ) -> Result<Vec<AttachmentInfo>, String> {
-    let db = connection::get_db().ok_or("数据库未初始化")?;
-    let service = AttachmentService::new((*db).clone(), app_handle);
+    let service = services::attachment_service();
 
     // 解析时间参数
     let start_dt: Option<DateTime<Utc>> = if let Some(start) = start_time {
@@ -98,11 +87,8 @@ pub async fn query_attachments(
 /// 下载附件
 #[tauri::command]
 pub async fn download_attachment(
-    app_handle: AppHandle,
     id: i64,
 ) -> Result<(String, Vec<u8>), String> {
-    let db = connection::get_db().ok_or("数据库未初始化")?;
-    let service = AttachmentService::new((*db).clone(), app_handle);
-
+    let service = services::attachment_service();
     service.download_attachment(id).await
 }

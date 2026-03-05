@@ -5,6 +5,7 @@ use tokio::fs;
 use dirs;
 
 /// 附件存储管理器
+#[derive(Debug)]
 pub struct AttachmentStorage {
     _app_handle: AppHandle,
 }

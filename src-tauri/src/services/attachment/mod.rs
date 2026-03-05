@@ -14,6 +14,7 @@ pub mod storage;
 use storage::AttachmentStorage;
 
 /// 附件服务
+#[derive(Debug)]
 pub struct AttachmentService {
     db: DatabaseConnection,
     storage: AttachmentStorage,

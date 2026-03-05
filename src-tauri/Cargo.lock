@@ -9,6 +9,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "dirs 5.0.1",
+ "once_cell",
  "rust_decimal",
  "sea-orm",
  "serde",

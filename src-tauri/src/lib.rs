@@ -59,8 +59,11 @@ pub fn run() {
                     println!("Entities registered successfully");
                   }
 
+                  // 初始化所有服务单例
+                  services::init_services(&db_connection, _handle.clone());
+
                   // 创建默认账本
-                  if let Err(e) = services::accounting_book::create_default_book(&db_connection).await {
+                  if let Err(e) = services::accounting_book_service().create_default_book().await {
                     eprintln!("Failed to create default accounting book: {}", e);
                   }
                 }
@@ -86,8 +89,11 @@ pub fn run() {
                   println!("Entities registered successfully");
                 }
 
+                // 初始化所有服务单例
+                services::init_services(&db_connection, _handle.clone());
+
                 // 创建默认账本
-                if let Err(e) = services::accounting_book::create_default_book(&db_connection).await {
+                if let Err(e) = services::accounting_book_service().create_default_book().await {
                   eprintln!("Failed to create default accounting book: {}", e);
                 }
               }
