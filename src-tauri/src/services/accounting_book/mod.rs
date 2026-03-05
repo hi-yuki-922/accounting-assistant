@@ -8,6 +8,35 @@ use self::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetReco
 /// 默认账本 ID
 pub const DEFAULT_BOOK_ID: i64 = 10000001;
 
+/// 创建默认账本（未归类账目）
+pub async fn create_default_book(db: &DatabaseConnection) -> Result<(), Box<dyn std::error::Error>> {
+    // 检查默认账本是否已存在
+    let existing = accounting_book::Entity::find()
+        .filter(accounting_book::Column::Id.eq(DEFAULT_BOOK_ID))
+        .one(db)
+        .await?;
+
+    if existing.is_some() {
+        // 默认账本已存在，无需创建
+        println!("Default accounting book already exists, skipping creation.");
+        return Ok(());
+    }
+
+    // 创建默认账本
+    let default_create_time = chrono::NaiveDateTime::parse_from_str("2000-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")?;
+
+    let new_book = accounting_book::ActiveModel {
+        id: Set(DEFAULT_BOOK_ID),
+        title: Set("未归类账目".to_string()),
+        create_at: Set(default_create_time),
+    };
+
+    new_book.insert(db).await?;
+    println!("Default accounting book created successfully.");
+
+    Ok(())
+}
+
 /// 创建账本
 pub async fn create_book(
     db: &DatabaseConnection,
