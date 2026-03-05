@@ -1,6 +1,6 @@
 use chrono::{Local, Utc};
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::fs;
 use dirs;
 
@@ -17,9 +17,7 @@ impl AttachmentStorage {
 
     /// 获取 app_data_dir 路径
     fn get_app_data_dir(&self) -> Result<PathBuf, String> {
-        Ok(dirs::data_dir()
-            .ok_or("无法获取数据目录")?
-            .join("accounting-assistant"))
+        Ok(self._app_handle.path().app_data_dir().expect("Failed to get app data directory"))
     }
 
     /// 获取基础存储目录
