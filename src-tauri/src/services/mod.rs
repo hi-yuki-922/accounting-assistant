@@ -1,6 +1,5 @@
 use once_cell::sync::OnceCell;
 use sea_orm::DatabaseConnection;
-use tauri::AppHandle;
 
 pub mod accounting;
 pub mod attachment;
@@ -30,8 +29,8 @@ fn init_accounting_book_service(db: &DatabaseConnection) {
 }
 
 /// 初始化附件服务单例
-fn init_attachment_service(db: &DatabaseConnection, app_handle: AppHandle) {
-    let service = AttachmentService::new((*db).clone(), app_handle);
+fn init_attachment_service(db: &DatabaseConnection) {
+    let service = AttachmentService::new((*db).clone());
     ATTACHMENT_SERVICE.set(service)
         .expect("AttachmentService already initialized");
 }
@@ -40,11 +39,10 @@ fn init_attachment_service(db: &DatabaseConnection, app_handle: AppHandle) {
 ///
 /// # 参数
 /// * `db` - 数据库连接
-/// * `app_handle` - Tauri 应用句柄
-pub fn init_services(db: &DatabaseConnection, app_handle: AppHandle) {
+pub fn init_services(db: &DatabaseConnection) {
     init_accounting_service(db);
     init_accounting_book_service(db);
-    init_attachment_service(db, app_handle);
+    init_attachment_service(db);
 }
 
 /// 获取记账服务单例

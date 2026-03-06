@@ -44,7 +44,6 @@ pub fn run() {
         // Initialize the database connection when app starts
         #[cfg(desktop)]
         {
-          let _handle = app.handle().clone();
           std::thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(async move {
@@ -60,7 +59,7 @@ pub fn run() {
                   }
 
                   // 初始化所有服务单例
-                  services::init_services(&db_connection, _handle.clone());
+                  services::init_services(&db_connection);
 
                   // 创建默认账本
                   if let Err(e) = services::accounting_book_service().create_default_book().await {
@@ -76,7 +75,6 @@ pub fn run() {
         // For mobile platforms
         #[cfg(mobile)]
         {
-          let _handle = app.handle().clone();
           tauri::async_runtime::spawn(async move {
             match connection::init_db(&app_data_dir).await {
               Ok(db_connection) => {
@@ -90,7 +88,7 @@ pub fn run() {
                 }
 
                 // 初始化所有服务单例
-                services::init_services(&db_connection, _handle.clone());
+                services::init_services(&db_connection);
 
                 // 创建默认账本
                 if let Err(e) = services::accounting_book_service().create_default_book().await {

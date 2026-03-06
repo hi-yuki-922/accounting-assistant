@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Attachment storage location
 系统 MUST 在 Tauri app_data_dir 目录下创建文件存储结构。

@@ -17,20 +17,19 @@ use storage::AttachmentStorage;
 #[derive(Debug)]
 pub struct AttachmentService {
     db: DatabaseConnection,
-    storage: AttachmentStorage,
 }
 
 impl AttachmentService {
-    pub fn new(db: DatabaseConnection, app_handle: AppHandle) -> Self {
+    pub fn new(db: DatabaseConnection) -> Self {
         Self {
             db,
-            storage: AttachmentStorage::new(app_handle),
         }
     }
 
     /// 创建附件
     pub async fn create_attachment(
         &self,
+        app_handle: &AppHandle,
         master_id: i64,
         file_name: String,
         file_suffix: String,
@@ -46,10 +45,7 @@ impl AttachmentService {
         }
 
         // 保存文件
-        let storage_path = self
-            .storage
-            .save_file(&file_name, file_content)
-            .await?;
+        let storage_path = AttachmentStorage::save_file(app_handle, &file_name, file_content).await?;
 
         // 获取存储路径字符串
         let path_str = storage_path
@@ -88,7 +84,7 @@ impl AttachmentService {
 
         // 删除物理文件
         if Path::new(&attachment.path).exists() {
-            self.storage.delete_file(&attachment.path).await?;
+            AttachmentStorage::delete_file(&attachment.path).await?;
         }
 
         // 删除数据库记录
@@ -112,7 +108,7 @@ impl AttachmentService {
 
         // 删除物理文件
         if Path::new(path).exists() {
-            self.storage.delete_file(path).await?;
+            AttachmentStorage::delete_file(path).await?;
         }
 
         // 删除数据库记录
@@ -203,7 +199,7 @@ impl AttachmentService {
             .ok_or("附件不存在")?;
 
         // 读取文件
-        let file_content = self.storage.read_file(&attachment.path).await?;
+        let file_content = AttachmentStorage::read_file(&attachment.path).await?;
 
         Ok((attachment.file_name, file_content))
     }

@@ -2,10 +2,12 @@ use crate::entity::attachment;
 use crate::services;
 use crate::services::attachment::dto::AttachmentInfo;
 use chrono::{DateTime, Utc};
+use tauri::AppHandle;
 
 /// 创建附件
 #[tauri::command]
 pub async fn create_attachment(
+    app: AppHandle,
     master_id: i64,
     file_name: String,
     file_suffix: String,
@@ -15,7 +17,7 @@ pub async fn create_attachment(
     let service = services::attachment_service();
 
     service
-        .create_attachment(master_id, file_name, file_suffix, file_size, file_content)
+        .create_attachment(&app, master_id, file_name, file_suffix, file_size, file_content)
         .await
 }
 
