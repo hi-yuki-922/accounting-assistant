@@ -1,21 +1,20 @@
 use crate::entity::attachment;
-use crate::services;
+use crate::services::attachment::AttachmentService;
 use crate::services::attachment::dto::AttachmentInfo;
 use chrono::{DateTime, Utc};
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
 /// 创建附件
 #[tauri::command]
 pub async fn create_attachment(
     app: AppHandle,
+    service: State<'_, AttachmentService>,
     master_id: i64,
     file_name: String,
     file_suffix: String,
     file_size: String,
     file_content: Vec<u8>,
 ) -> Result<(i64, String), String> {
-    let service = services::attachment_service();
-
     service
         .create_attachment(&app, master_id, file_name, file_suffix, file_size, file_content)
         .await
@@ -23,23 +22,26 @@ pub async fn create_attachment(
 
 /// 按 ID 删除附件
 #[tauri::command]
-pub async fn delete_attachment(id: i64) -> Result<(), String> {
-    let service = services::attachment_service();
+pub async fn delete_attachment(
+    service: State<'_, AttachmentService>,
+    id: i64,
+) -> Result<(), String> {
     service.delete_attachment(id).await
 }
 
 /// 按路径删除附件
 #[tauri::command]
 pub async fn delete_attachment_by_path(
+    service: State<'_, AttachmentService>,
     path: String,
 ) -> Result<(), String> {
-    let service = services::attachment_service();
     service.delete_attachment_by_path(&path).await
 }
 
 /// 查询附件列表
 #[tauri::command]
 pub async fn query_attachments(
+    service: State<'_, AttachmentService>,
     page: i64,
     page_size: i64,
     file_name: Option<String>,
@@ -48,8 +50,6 @@ pub async fn query_attachments(
     end_time: Option<String>,
     master_id: Option<i64>,
 ) -> Result<Vec<AttachmentInfo>, String> {
-    let service = services::attachment_service();
-
     // 解析时间参数
     let start_dt: Option<DateTime<Utc>> = if let Some(start) = start_time {
         Some(
@@ -89,8 +89,8 @@ pub async fn query_attachments(
 /// 下载附件
 #[tauri::command]
 pub async fn download_attachment(
+    service: State<'_, AttachmentService>,
     id: i64,
 ) -> Result<(String, Vec<u8>), String> {
-    let service = services::attachment_service();
     service.download_attachment(id).await
 }

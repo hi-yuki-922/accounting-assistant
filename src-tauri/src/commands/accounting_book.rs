@@ -1,12 +1,13 @@
 use crate::entity::accounting_book;
-use crate::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
+use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto}};
+use tauri::{State, command};
 
 /// 创建账本
 #[tauri::command]
 pub async fn create_book(
+    service: State<'_, AccountingBookService>,
     input: CreateBookDto,
 ) -> Result<accounting_book::Model, String> {
-    let service = crate::services::accounting_book_service();
     service.create_book(input)
         .await
         .map_err(|e| e.to_string())
@@ -15,8 +16,8 @@ pub async fn create_book(
 /// 查询所有账本
 #[tauri::command]
 pub async fn get_books(
+    service: State<'_, AccountingBookService>,
 ) -> Result<Vec<accounting_book::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_books()
         .await
         .map_err(|e| e.to_string())
@@ -25,9 +26,9 @@ pub async fn get_books(
 /// 根据 ID 查询单个账本
 #[tauri::command]
 pub async fn get_book_by_id(
+    service: State<'_, AccountingBookService>,
     id: i64,
 ) -> Result<Option<accounting_book::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_book_by_id(id)
         .await
         .map_err(|e| e.to_string())
@@ -36,9 +37,9 @@ pub async fn get_book_by_id(
 /// 修改账本标题
 #[tauri::command]
 pub async fn update_book_title(
+    service: State<'_, AccountingBookService>,
     input: UpdateBookTitleDto,
 ) -> Result<Option<accounting_book::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.update_book_title(input)
         .await
         .map_err(|e| e.to_string())
@@ -47,9 +48,9 @@ pub async fn update_book_title(
 /// 删除账本
 #[tauri::command]
 pub async fn delete_book(
+    service: State<'_, AccountingBookService>,
     id: i64,
 ) -> Result<bool, String> {
-    let service = crate::services::accounting_book_service();
     service.delete_book(id)
         .await
         .map_err(|e| e.to_string())
@@ -58,9 +59,9 @@ pub async fn delete_book(
 /// 查询指定账本下的所有记录
 #[tauri::command]
 pub async fn get_records_by_book_id(
+    service: State<'_, AccountingBookService>,
     book_id: i64,
 ) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_records_by_book_id(book_id)
         .await
         .map_err(|e| e.to_string())
@@ -69,8 +70,8 @@ pub async fn get_records_by_book_id(
 /// 查询未归类账目（包括 NULL 和默认账本的记录）
 #[tauri::command]
 pub async fn get_uncategorized_records(
+    service: State<'_, AccountingBookService>,
 ) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_uncategorized_records()
         .await
         .map_err(|e| e.to_string())
@@ -79,9 +80,9 @@ pub async fn get_uncategorized_records(
 /// 分页查询账本列表
 #[tauri::command]
 pub async fn get_books_paginated(
+    service: State<'_, AccountingBookService>,
     input: GetBooksPaginatedDto,
 ) -> Result<crate::services::accounting_book::dto::PaginatedResponse<accounting_book::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_books_paginated(input)
         .await
         .map_err(|e| e.to_string())
@@ -90,9 +91,9 @@ pub async fn get_books_paginated(
 /// 分页查询指定账本下的记账记录
 #[tauri::command]
 pub async fn get_records_by_book_id_paginated(
+    service: State<'_, AccountingBookService>,
     input: GetRecordsByBookIdPaginatedDto,
 ) -> Result<PaginatedResponse<RecordWithCountDto>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_records_by_book_id_paginated(input)
         .await
         .map_err(|e| e.to_string())
@@ -101,9 +102,9 @@ pub async fn get_records_by_book_id_paginated(
 /// 根据记录 ID 查询冲账关联记录
 #[tauri::command]
 pub async fn get_write_off_records_by_id(
+    service: State<'_, AccountingBookService>,
     record_id: i64,
 ) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
-    let service = crate::services::accounting_book_service();
     service.get_write_off_records_by_id(record_id)
         .await
         .map_err(|e| e.to_string())

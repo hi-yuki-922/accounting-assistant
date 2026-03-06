@@ -29,23 +29,14 @@ pub fn run() {
         // 初始化数据库连接池
         let db = rt.block_on(connection::init_db(&app_data_dir));
         let conn = db.unwrap();
-        
+
         // 注册实体
         rt.block_on(entity::with_install_entities(conn.clone().as_ref())).expect("Failed to register entities");
 
-                // 初始化所有服务单例
-                services::init_services(&db_connection);
+        // 初始服务
+        init_services(app, conn.clone().as_ref(), &rt)?;
 
-                // 创建默认账本
-                if let Err(e) = services::accounting_book_service().create_default_book().await {
-                  eprintln!("Failed to create default accounting book: {}", e);
-                }
-              }
-              Err(e) => eprintln!("Failed to initialize database: {}", e),
-            }
-          });
-        }
-
+        app.manage(conn);
         Ok(())
       });
 
