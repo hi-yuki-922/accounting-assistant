@@ -124,4 +124,8 @@ Database Layer (SQLite via Sea-ORM)
 
 ## Development Specifications
 
+### Tauri Rust backend development
 Tauri Rust backend development must adhere to the backend coding standards tauri-rust-backend-code-standard
+
+### Vue front-end development
+Vue front-end development must adhere to the front-end coding standards frontend-code-standard
