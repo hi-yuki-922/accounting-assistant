@@ -8,7 +8,13 @@
       "Bash(cargo add:*)",
       "Bash(cargo check:*)",
       "Bash(cargo test:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(pnpm build:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcnVue",
+    "ai-elements-vue",
+    "figma"
+  ]
 }
