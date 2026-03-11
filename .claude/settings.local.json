@@ -9,7 +9,12 @@
       "Bash(cargo check:*)",
       "Bash(cargo test:*)",
       "Bash(dir:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "mcp__shadcnVue__get_add_command_for_items",
+      "Bash(pnpm shadcn-vue:*)",
+      "Bash(npx shadcn-vue@latest:*)",
+      "Bash(pnpm shadcn-vue@latest:*)",
+      "Bash(mv:*)"
     ]
   },
   "enabledMcpjsonServers": [
