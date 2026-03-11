@@ -14,7 +14,11 @@
       "Bash(pnpm shadcn-vue:*)",
       "Bash(npx shadcn-vue@latest:*)",
       "Bash(pnpm shadcn-vue@latest:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "mcp__figma__get_figma_data",
+      "Bash(sed:*)",
+      "Bash(node:*)",
+      "WebSearch"
     ]
   },
   "enabledMcpjsonServers": [
