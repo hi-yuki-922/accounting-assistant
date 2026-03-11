@@ -1,5 +1,11 @@
-import '@/styles/tailwind.css';
-import { createApp } from "vue";
-import App from "./App.vue";
+import '@/styles/tailwind.css'
+import { createApp } from 'vue'
+import App from './App.vue'
+import { setupRouter } from './router'
 
-createApp(App).mount("#app");
+const app = createApp(App)
+
+// 安装路由
+setupRouter(app)
+
+app.mount('#app')
