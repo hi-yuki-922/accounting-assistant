@@ -16,11 +16,33 @@ export default defineConfig(async () => ({
     }
   },
 
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-  //
-  // 1. prevent Vite from obscuring rust errors
-  clearScreen: false,
-  // 2. tauri expects a fixed port, fail if that port is not available
+  // 性能优化配置
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 将 Vue 相关模块单独打包
+          vue: ['vue', 'vue-router'],
+          // 将 UI 组件库打包
+          ui: ['reka-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          // 将图标库打包
+          icons: ['lucide-vue-next'],
+          // 将工具函数打包
+          utils: ['@/lib/utils'],
+        },
+      },
+    },
+    // 启用代码压缩
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+  },
+
+  // 开发服务器配置
   server: {
     port: 1420,
     strictPort: true,
@@ -36,5 +58,18 @@ export default defineConfig(async () => ({
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+  },
+
+  // 优化依赖预构建
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      'reka-ui',
+      'class-variance-authority',
+      'clsx',
+      'tailwind-merge',
+      'lucide-vue-next',
+    ],
   },
 }));
