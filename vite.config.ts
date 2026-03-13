@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
@@ -8,7 +8,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [vue(), tailwindcss()],
+  plugins: [react(), tailwindcss()],
 
   resolve: {
     alias: {
@@ -21,12 +21,12 @@ export default defineConfig(async () => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // 将 Vue 相关模块单独打包
-          vue: ['vue', 'vue-router'],
+          // 将 React 相关模块单独打包
+          react: ['react', 'react-dom'],
           // 将 UI 组件库打包
-          ui: ['reka-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          ui: ['class-variance-authority', 'clsx', 'tailwind-merge'],
           // 将图标库打包
-          icons: ['lucide-vue-next'],
+          icons: ['lucide-react'],
           // 将工具函数打包
           utils: ['@/lib/utils'],
         },
@@ -63,13 +63,12 @@ export default defineConfig(async () => ({
   // 优化依赖预构建
   optimizeDeps: {
     include: [
-      'vue',
-      'vue-router',
-      'reka-ui',
+      'react',
+      'react-dom',
       'class-variance-authority',
       'clsx',
       'tailwind-merge',
-      'lucide-vue-next',
+      'lucide-react',
     ],
   },
 }));

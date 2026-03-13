@@ -1,24 +1,5 @@
 {
   "mcpServers": {
-    "shadcnVue": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "shadcn-vue@latest",
-        "mcp"
-      ]
-    },
-    "ai-elements-vue": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "mcp-remote",
-        "https://registry.ai-elements-vue.com/mcp"
-      ]
-    },
     "figma": {
       "type": "stdio",
       "command": "cmd",
