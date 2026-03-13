@@ -18,12 +18,15 @@
       "mcp__figma__get_figma_data",
       "Bash(sed:*)",
       "Bash(node:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pnpm run:*)"
     ]
   },
   "enabledMcpjsonServers": [
     "shadcnVue",
     "ai-elements-vue",
-    "figma"
-  ]
+    "figma",
+    "shadcn"
+  ],
+  "enableAllProjectMcpServers": true
 }

@@ -1,5 +1,17 @@
 {
+  "skills": [
+    "shadcn/ui"
+  ],
   "mcpServers": {
+    "shadcn": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
     "figma": {
       "type": "stdio",
       "command": "cmd",
