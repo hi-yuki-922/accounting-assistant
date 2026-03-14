@@ -5,7 +5,6 @@ pub mod entity;
 pub mod enums;
 pub mod commands;
 pub mod services;
-pub mod sidecar;
 use db::connection;
 use commands::{with_install_tauri_commands};
 use crate::services::init_services;
