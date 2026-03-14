@@ -1,9 +1,5 @@
 function App() {
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-    </main>
-  );
+  return null // 路由系统会接管应用的渲染
 }
 
-export default App;
+export default App
