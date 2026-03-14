@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Desktop Accounting Assistant Application** built with Tauri 2.0, combining a Vue 3 + TypeScript frontend with a Rust backend. It's a cross-platform desktop app for personal/small business financial tracking with income, expense, and investment recording features.
+This is a **Desktop Accounting Assistant Application** built with Tauri 2.0, combining a React 19 + TypeScript frontend with a Rust backend. It's a cross-platform desktop app for personal/small business financial tracking with income, expense, and investment recording features.
 
 ## Language Guidelines
 - All conversations, documentation, and comments **must use Simplified Chinese**
@@ -22,7 +22,7 @@ pnpm tauri build        # Build the native desktop application
 ### Frontend Only
 ```bash
 pnpm dev                # Start Vite dev server on port 1420
-pnpm build              # Build frontend (runs vue-tsc type checking first)
+pnpm build              # Build frontend (runs tsc type checking first)
 pnpm preview            # Preview the built frontend
 ```
 
@@ -35,19 +35,12 @@ cargo test              # Run Rust tests
 cargo clippy            # Run Rust linter
 ```
 
-### Sidecar (Bun)
-```bash
-cd src-bun
-bun install             # Install Bun dependencies
-bun run index.ts        # Run sidecar process directly
-```
-
 ## Architecture
 
 ### Multi-Layer Architecture
 
 ```
-Frontend (Vue 3 + TypeScript)
+Frontend (React 19 + TypeScript)
     ↓ Tauri IPC Commands
 Backend Commands Layer (Rust)
     ↓ Service Layer
@@ -58,17 +51,19 @@ Database Layer (SQLite via Sea-ORM)
 
 ### Project Structure
 
-- **`src/`** - Vue 3 frontend with Composition API (`<script setup>`)
-  - `components/ui/` - Base UI components from reka-ui
-  - `components/ai-elements/` - AI-specific components with streaming markdown
+- **`src/`** - React 19 frontend
+  - `components/ui/` - shadcn/ui components based on Radix UI (Radix Nova theme)
+  - `components/` - Feature components
+  - `hooks/` - Custom React hooks
+  - `lib/` - Utility functions and helpers
+  - `styles/` - CSS styles (Tailwind CSS v4)
+  - `types/` - TypeScript type definitions
 - **`src-tauri/src/`** - Rust backend
   - `commands/` - Tauri command handlers (IPC endpoints)
   - `services/` - Business logic layer
   - `entity/` - Sea-ORM entity definitions (entity-first approach)
   - `db/` - Database connection and pool management
   - `enums/` - Application enums (AccountingType, AccountingChannel, etc.)
-  - `sidecar/` - Sidecar process communication layer
-- **`src-bun/`** - Bun sidecar process for external operations
 
 ### Key Architectural Patterns
 
@@ -78,39 +73,36 @@ Database Layer (SQLite via Sea-ORM)
 - ActiveModel pattern for database operations
 - Global connection pool managed in `db::connection`
 
-**Sidecar Architecture:**
-- External process (Bun runtime) for heavy/external operations
-- IPC via stdin/stdout with JSON protocol
-- Managed by `SidecarManager` in `sidecar/manager.rs`
-- Automatic retry logic and thread-safe operations
-- Binary: `bun-sidecar-x86_64-pc-windows-mscv.exe` in `src-tauri/bin/`
-
-**App Initialization Flow** (see `src-tauri/src/lib.rs:15-90`):
+**App Initialization Flow** (see `src-tauri/src/lib.rs:14-46`):
 1. Create app data directory
-2. Initialize sidecar client and start process
-3. Spawn background thread with Tokio runtime
-4. Initialize SQLite database
-5. Register Sea-ORM entities and sync schema
+2. Initialize Tokio runtime
+3. Initialize SQLite database connection pool
+4. Register Sea-ORM entities and sync schema
+5. Initialize services
 6. Install Tauri commands
+7. Manage database connection in app state
 
 ## Tech Stack
 
 **Frontend:**
-- Vue 3 with Composition API and `<script setup>`
-- TypeScript
+- React 19 with TypeScript
 - Tailwind CSS v4
 - Vite (build tool and dev server)
-- reka-ui (component library)
-- vue-stream-markdown (AI response streaming)
-- AI SDK integration
+- shadcn/ui (component library, Radix UI Nova theme)
+- @tanstack/react-router (routing)
+- Vercel AI SDK (AI integration)
+- @unovis/react & recharts (data visualization)
+- next-themes (theme management)
+- radash (utility functions)
 
 **Backend:**
 - Tauri 2.0
-- Sea-ORM 2.0 with SQLite
+- Sea-ORM 2.0-rc with SQLite
 - Tokio async runtime
 - Rust Decimal for financial calculations
 - Chrono for date/time
 - Serde for JSON serialization
+- thiserror for error handling
 
 ## Important Notes
 
@@ -118,9 +110,9 @@ Database Layer (SQLite via Sea-ORM)
 - **Build order**: Frontend must be built before Tauri can package (handled by `beforeBuildCommand`)
 - **Dev server**: Runs on port 1420 (configured in tauri.conf.json)
 - **Database**: SQLite database stored in app data directory
-- **Sidecar errors**: Sidecar initialization failures are handled gracefully with warnings
 - **Entity registration**: Must happen after database initialization due to entity-first workflow
 - **Financial precision**: Always use `rust_decimal` for monetary values, never floating point
+- **Path aliases**: Components imports use `@/` prefix (configured in components.json)
 
 ## Design Context
 
