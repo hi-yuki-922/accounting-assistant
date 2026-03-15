@@ -1,0 +1,35 @@
+{
+  "skill_name": "frontend-dev-guide",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我创建一个新的React组件，用于显示交易记录列表，支持响应式设计和错误处理",
+      "expected_output": "创建一个使用 TypeScript 和 shadcn/ui 组件的 React 组件，包含 Props 接口定义、响应式样式、Result 类型错误处理，符合项目规范",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我需要调用后端 Tauri 命令获取用户数据，要处理可能的错误情况，请提供实现代码",
+      "expected_output": "使用 tryCMD 函数调用 Tauri 命令，使用 Result 类型处理错误，包含类型定义和错误处理逻辑",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "创建一个新的路由页面来显示统计仪表板，包含图表组件和数据格式化",
+      "expected_output": "使用 @tanstack/react-router 创建路由，集成 @unovis/react 图表组件，使用项目中的格式化函数，遵循项目样式规范",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "帮我优化现有的财务记录组件，添加移动端适配和类型安全改进",
+      "expected_output": "优化现有组件，添加 useIsMobile hook，改进 TypeScript 类型定义，使用 cn() 函数合并样式，增强响应式支持",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "创建一个自定义 Hook 来管理数据获取状态，包含加载状态和错误处理",
+      "expected_output": "创建符合 React Hooks 规范的自定义 Hook，使用 Result 类型处理错误，提供加载、数据、错误等状态，遵循项目错误处理模式",
+      "files": []
+    }
+  ]
+}
