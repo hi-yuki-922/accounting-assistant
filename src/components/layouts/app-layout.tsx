@@ -1,9 +1,17 @@
-import * as React from "react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import {
+  HomeIcon,
+  FileTextIcon,
+  BarChart3Icon,
+  SettingsIcon,
+  BellIcon,
+  MoonIcon,
+  SunIcon,
+} from 'lucide-react'
+import * as React from 'react'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
   SidebarContent,
@@ -17,20 +25,20 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { HomeIcon, FileTextIcon, BarChart3Icon, SettingsIcon, BellIcon, MoonIcon, SunIcon } from "lucide-react"
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface AppLayoutProps {
   children: React.ReactNode
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
-  const isMobile = useIsMobile()
-  const [theme, setTheme] = React.useState<"light" | "dark">("light")
+export const AppLayout = ({ children }: AppLayoutProps) => {
+  const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"))
-  }
+  const handleThemeToggle = React.useCallback(
+    () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
+    []
+  )
 
   return (
     <SidebarProvider>
@@ -42,7 +50,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold">会计助手</span>
-              <span className="text-xs text-sidebar-foreground/70">财务管理</span>
+              <span className="text-xs text-sidebar-foreground/70">
+                财务管理
+              </span>
             </div>
           </div>
         </SidebarHeader>
@@ -89,12 +99,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         <SidebarFooter>
           <div className="flex items-center gap-2 p-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="用户头像" />
+              <AvatarImage
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                alt="用户头像"
+              />
               <AvatarFallback>用户</AvatarFallback>
             </Avatar>
             <div className="flex flex-1 flex-col">
               <span className="text-sm font-medium">张三</span>
-              <span className="text-xs text-sidebar-foreground/70">zhang@example.com</span>
+              <span className="text-xs text-sidebar-foreground/70">
+                zhang@example.com
+              </span>
             </div>
           </div>
         </SidebarFooter>
@@ -104,8 +119,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon-sm" onClick={toggleTheme}>
-              {theme === "light" ? (
+            <Button variant="ghost" size="icon-sm" onClick={handleThemeToggle}>
+              {theme === 'light' ? (
                 <MoonIcon className="h-4 w-4" />
               ) : (
                 <SunIcon className="h-4 w-4" />
@@ -117,14 +132,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               <span className="sr-only">通知</span>
             </Button>
             <Avatar className="h-8 w-8">
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="用户头像" />
+              <AvatarImage
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                alt="用户头像"
+              />
               <AvatarFallback>用户</AvatarFallback>
             </Avatar>
           </div>
         </header>
-        <main className={cn("flex-1 p-2 sm:p-4 md:p-6")}>
-          {children}
-        </main>
+        <main className={cn('flex-1 p-2 sm:p-4 md:p-6')}>{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

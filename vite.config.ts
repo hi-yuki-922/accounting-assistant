@@ -1,20 +1,20 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import path from "node:path";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import path from 'node:path'
 
-// @ts-expect-error process is a nodejs global
-const host = process.env.TAURI_DEV_HOST;
+import tailwindcss from '@tailwindcss/vite'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+const host = process.env.TAURI_DEV_HOST
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig(() => ({
   plugins: [react(), tailwindcss(), TanStackRouterVite()],
 
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-    }
+    },
   },
 
   // 性能优化配置
@@ -45,19 +45,19 @@ export default defineConfig(async () => ({
 
   // 开发服务器配置
   server: {
-    port: 1420,
-    strictPort: true,
-    host: host || false,
     hmr: host
       ? {
-          protocol: "ws",
+          protocol: 'ws',
           host,
           port: 1421,
         }
       : undefined,
+    host: host || false,
+    port: 1420,
+    strictPort: true,
     watch: {
       // 3. tell Vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"],
+      ignored: ['**/src-tauri/**'],
     },
   },
 
@@ -72,4 +72,4 @@ export default defineConfig(async () => ({
       'lucide-react',
     ],
   },
-}));
+}))

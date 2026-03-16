@@ -9,7 +9,7 @@
   "experimentalSortImports": {
     "ignoreCase": true,
     "newlinesBetween": true,
-    "order": "asc"
+    "order": "asc",
   },
   "experimentalSortPackageJson": true,
   "jsxSingleQuote": false,
@@ -28,5 +28,9 @@
     ".claude",
     "CLAUDE.md",
     ".mcp.json",
+    "src/routeTree.gen.ts",
+    ".oxlint.json",
+    ".oxfmtrc.jsonc",
+    "./vite.confog.ts"
   ]
 }

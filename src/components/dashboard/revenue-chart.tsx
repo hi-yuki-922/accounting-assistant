@@ -1,38 +1,67 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
-import { ChartDataPoint } from "@/types/dashboard"
-import { formatCurrency } from "@/lib/formatters"
+import * as React from 'react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts'
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+import { formatCurrency } from '@/lib/formatters'
+import { cn } from '@/lib/utils'
+import type { ChartDataPoint } from '@/types/dashboard'
 
 interface RevenueChartProps {
   data: ChartDataPoint[]
   className?: string
 }
 
-export function RevenueChart({ data, className }: RevenueChartProps) {
+export const RevenueChart = ({ data, className }: RevenueChartProps) => {
+  const formatCurrencyValue = (value: number) => formatCurrency(value, '', 0)
+  const formatTooltipValue = (value: number, name: string) =>
+    [formatCurrency(value), name] as const
+
   const chartConfig = {
-    income: {
-      label: "收入",
-      color: "hsl(var(--chart-1))",
-    },
     expense: {
-      label: "支出",
-      color: "hsl(var(--chart-2))",
+      color: 'hsl(var(--chart-2))',
+      label: '支出',
+    },
+    income: {
+      color: 'hsl(var(--chart-1))',
+      label: '收入',
     },
   }
 
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn('', className)}>
       <CardHeader>
         <CardTitle>收支趋势</CardTitle>
         <CardDescription>最近6个月的收入和支出情况</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[250px] w-full sm:h-[300px]">
+        <ChartContainer
+          config={chartConfig}
+          className="h-[250px] w-full sm:h-[300px]"
+        >
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <LineChart
+              data={data}
+              margin={{ bottom: 5, left: 20, right: 30, top: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="month"
@@ -44,17 +73,10 @@ export function RevenueChart({ data, className }: RevenueChartProps) {
                 className="text-[10px] sm:text-xs text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(value) => formatCurrency(value, "", 0)}
+                tickFormatter={formatCurrencyValue}
               />
               <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value: number, name: string) => [
-                      formatCurrency(value),
-                      name,
-                    ]}
-                  />
-                }
+                content={<ChartTooltipContent formatter={formatTooltipValue} />}
               />
               <Legend
                 verticalAlign="top"
@@ -66,7 +88,14 @@ export function RevenueChart({ data, className }: RevenueChartProps) {
                 dataKey="income"
                 stroke="hsl(var(--chart-1))"
                 strokeWidth={2}
-                dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3, sm: { r: 4 } } as any}
+                dot={
+                  {
+                    fill: 'hsl(var(--chart-1))',
+                    r: 3,
+                    sm: { r: 4 },
+                    strokeWidth: 2,
+                  } as Record<string, unknown>
+                }
                 activeDot={{ r: 5 }}
               />
               <Line
@@ -74,7 +103,14 @@ export function RevenueChart({ data, className }: RevenueChartProps) {
                 dataKey="expense"
                 stroke="hsl(var(--chart-2))"
                 strokeWidth={2}
-                dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 3, sm: { r: 4 } } as any}
+                dot={
+                  {
+                    fill: 'hsl(var(--chart-2))',
+                    r: 3,
+                    sm: { r: 4 },
+                    strokeWidth: 2,
+                  } as Record<string, unknown>
+                }
                 activeDot={{ r: 5 }}
               />
             </LineChart>

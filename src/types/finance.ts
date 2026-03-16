@@ -5,9 +5,9 @@ export interface FinanceRecord {
   /** 记录 ID */
   id: string
   /** 记录类型：收入、支出、投资 */
-  type: "income" | "expense" | "investment"
+  type: 'income' | 'expense' | 'investment'
   /** 记录渠道 */
-  channel: "cash" | "bank" | "credit_card" | "alipay" | "wechat_pay" | "other"
+  channel: 'cash' | 'bank' | 'credit_card' | 'alipay' | 'wechat_pay' | 'other'
   /** 金额 */
   amount: number
   /** 日期 */
@@ -101,7 +101,7 @@ export interface Account {
   /** 账户名称 */
   name: string
   /** 账户类型 */
-  type: "checking" | "savings" | "credit_card" | "investment" | "cash"
+  type: 'checking' | 'savings' | 'credit_card' | 'investment' | 'cash'
   /** 当前余额 */
   balance: number
   /** 账户号 */
@@ -127,7 +127,7 @@ export interface Budget {
   /** 已用金额 */
   usedAmount: number
   /** 周期 */
-  period: "monthly" | "weekly" | "daily" | "yearly"
+  period: 'monthly' | 'weekly' | 'daily' | 'yearly'
   /** 分类 */
   category?: string
   /** 开始日期 */

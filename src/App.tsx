@@ -1,5 +1,3 @@
-function App() {
-  return null // 路由系统会接管应用的渲染
-}
+const App = () => null
 
 export default App

@@ -28,7 +28,7 @@ export interface TransactionRecord {
   /** 日期 */
   date: string
   /** 类型：收入或支出 */
-  type: "income" | "expense"
+  type: 'income' | 'expense'
   /** 分类 */
   category: string
   /** 金额 */
@@ -36,7 +36,7 @@ export interface TransactionRecord {
   /** 描述 */
   description: string
   /** 状态 */
-  status: "completed" | "pending" | "cancelled"
+  status: 'completed' | 'pending' | 'cancelled'
   /** 头像 URL */
   avatar?: string
 }
@@ -60,7 +60,7 @@ export interface ChartConfig {
   /** 图表标题 */
   title: string
   /** 图表类型 */
-  type: "line" | "bar" | "pie"
+  type: 'line' | 'bar' | 'pie'
   /** 数据源 */
   data: ChartDataPoint[] | number[]
   /** 颜色配置 */

@@ -1,49 +1,59 @@
-import { StatsCardData, TransactionRecord, ChartDataPoint, QuickAction, UserInfo } from "@/types/dashboard"
-import { FinanceRecord, FinanceCategory, FinanceStats, MonthlyFinanceData } from "@/types/finance"
+import type {
+  StatsCardData,
+  TransactionRecord,
+  ChartDataPoint,
+  QuickAction,
+  UserInfo,
+} from '@/types/dashboard'
+import type {
+  FinanceCategory,
+  FinanceStats,
+  MonthlyFinanceData,
+} from '@/types/finance'
 
 /**
  * 模拟统计卡片数据
  */
 export const mockStatsCards: StatsCardData[] = [
   {
-    title: "总资产",
-    value: "128,500.00",
+    icon: 'Wallet',
+    iconColor: 'text-blue-500',
+    title: '总资产',
     trend: {
+      isPositive: true,
       value: 8.5,
-      isPositive: true,
     },
-    icon: "Wallet",
-    iconColor: "text-blue-500",
+    value: '128,500.00',
   },
   {
-    title: "本月收入",
-    value: "32,000.00",
+    icon: 'TrendingUp',
+    iconColor: 'text-green-500',
+    title: '本月收入',
     trend: {
+      isPositive: true,
       value: 12.5,
-      isPositive: true,
     },
-    icon: "TrendingUp",
-    iconColor: "text-green-500",
+    value: '32,000.00',
   },
   {
-    title: "本月支出",
-    value: "18,500.00",
+    icon: 'TrendingDown',
+    iconColor: 'text-red-500',
+    title: '本月支出',
     trend: {
-      value: -5.2,
       isPositive: false,
+      value: -5.2,
     },
-    icon: "TrendingDown",
-    iconColor: "text-red-500",
+    value: '18,500.00',
   },
   {
-    title: "净资产",
-    value: "110,000.00",
+    icon: 'PieChart',
+    iconColor: 'text-purple-500',
+    title: '净资产',
     trend: {
-      value: 6.8,
       isPositive: true,
+      value: 6.8,
     },
-    icon: "PieChart",
-    iconColor: "text-purple-500",
+    value: '110,000.00',
   },
 ]
 
@@ -52,154 +62,154 @@ export const mockStatsCards: StatsCardData[] = [
  */
 export const mockTransactions: TransactionRecord[] = [
   {
-    id: "1",
-    date: "2024-03-15",
-    type: "income",
-    category: "工资收入",
-    amount: 28000,
-    description: "3月份工资",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=company",
+    amount: 28_000,
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=company',
+    category: '工资收入',
+    date: '2024-03-15',
+    description: '3月份工资',
+    id: '1',
+    status: 'completed',
+    type: 'income',
   },
   {
-    id: "2",
-    date: "2024-03-14",
-    type: "expense",
-    category: "餐饮消费",
     amount: 328,
-    description: "商务午餐",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=food",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=food',
+    category: '餐饮消费',
+    date: '2024-03-14',
+    description: '商务午餐',
+    id: '2',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "3",
-    date: "2024-03-13",
-    type: "expense",
-    category: "交通费用",
     amount: 150,
-    description: "打车费用",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=transport",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=transport',
+    category: '交通费用',
+    date: '2024-03-13',
+    description: '打车费用',
+    id: '3',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "4",
-    date: "2024-03-12",
-    type: "income",
-    category: "投资收益",
     amount: 4500,
-    description: "基金分红",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=invest",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=invest',
+    category: '投资收益',
+    date: '2024-03-12',
+    description: '基金分红',
+    id: '4',
+    status: 'completed',
+    type: 'income',
   },
   {
-    id: "5",
-    date: "2024-03-11",
-    type: "expense",
-    category: "购物消费",
     amount: 899,
-    description: "购买办公用品",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=shopping",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shopping',
+    category: '购物消费',
+    date: '2024-03-11',
+    description: '购买办公用品',
+    id: '5',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "6",
-    date: "2024-03-10",
-    type: "expense",
-    category: "居住费用",
     amount: 3500,
-    description: "3月份房租",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=rent",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rent',
+    category: '居住费用',
+    date: '2024-03-10',
+    description: '3月份房租',
+    id: '6',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "7",
-    date: "2024-03-09",
-    type: "expense",
-    category: "娱乐消费",
     amount: 580,
-    description: "周末聚餐",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=entertainment",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=entertainment',
+    category: '娱乐消费',
+    date: '2024-03-09',
+    description: '周末聚餐',
+    id: '7',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "8",
-    date: "2024-03-08",
-    type: "income",
-    category: "兼职收入",
     amount: 3200,
-    description: "项目咨询费",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=freelance",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=freelance',
+    category: '兼职收入',
+    date: '2024-03-08',
+    description: '项目咨询费',
+    id: '8',
+    status: 'completed',
+    type: 'income',
   },
   {
-    id: "9",
-    date: "2024-03-07",
-    type: "expense",
-    category: "交通费用",
     amount: 230,
-    description: "高铁票",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=train",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=train',
+    category: '交通费用',
+    date: '2024-03-07',
+    description: '高铁票',
+    id: '9',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "10",
-    date: "2024-03-06",
-    type: "expense",
-    category: "医疗费用",
     amount: 680,
-    description: "药品购买",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=medical",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=medical',
+    category: '医疗费用',
+    date: '2024-03-06',
+    description: '药品购买',
+    id: '10',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "11",
-    date: "2024-03-05",
-    type: "income",
-    category: "其他收入",
     amount: 1200,
-    description: "二手物品出售",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sell",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sell',
+    category: '其他收入',
+    date: '2024-03-05',
+    description: '二手物品出售',
+    id: '11',
+    status: 'completed',
+    type: 'income',
   },
   {
-    id: "12",
-    date: "2024-03-04",
-    type: "expense",
-    category: "教育费用",
     amount: 499,
-    description: "在线课程",
-    status: "pending",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=education",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=education',
+    category: '教育费用',
+    date: '2024-03-04',
+    description: '在线课程',
+    id: '12',
+    status: 'pending',
+    type: 'expense',
   },
   {
-    id: "13",
-    date: "2024-03-03",
-    type: "expense",
-    category: "餐饮消费",
     amount: 156,
-    description: "早餐咖啡",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=coffee",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=coffee',
+    category: '餐饮消费',
+    date: '2024-03-03',
+    description: '早餐咖啡',
+    id: '13',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "14",
-    date: "2024-03-02",
-    type: "expense",
-    category: "购物消费",
     amount: 2399,
-    description: "笔记本电脑维修",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=repair",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=repair',
+    category: '购物消费',
+    date: '2024-03-02',
+    description: '笔记本电脑维修',
+    id: '14',
+    status: 'completed',
+    type: 'expense',
   },
   {
-    id: "15",
-    date: "2024-03-01",
-    type: "income",
-    category: "工资收入",
     amount: 3000,
-    description: "年终奖发放",
-    status: "completed",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=bonus",
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bonus',
+    category: '工资收入',
+    date: '2024-03-01',
+    description: '年终奖发放',
+    id: '15',
+    status: 'completed',
+    type: 'income',
   },
 ]
 
@@ -207,12 +217,12 @@ export const mockTransactions: TransactionRecord[] = [
  * 模拟图表数据
  */
 export const mockChartData: ChartDataPoint[] = [
-  { month: "10月", income: 28000, expense: 15000 },
-  { month: "11月", income: 32000, expense: 18000 },
-  { month: "12月", income: 29000, expense: 22000 },
-  { month: "1月", income: 35000, expense: 17000 },
-  { month: "2月", income: 30000, expense: 19000 },
-  { month: "3月", income: 32000, expense: 18500 },
+  { expense: 15_000, income: 28_000, month: '10月' },
+  { expense: 18_000, income: 32_000, month: '11月' },
+  { expense: 22_000, income: 29_000, month: '12月' },
+  { expense: 17_000, income: 35_000, month: '1月' },
+  { expense: 19_000, income: 30_000, month: '2月' },
+  { expense: 18_500, income: 32_000, month: '3月' },
 ]
 
 /**
@@ -220,34 +230,34 @@ export const mockChartData: ChartDataPoint[] = [
  */
 export const mockQuickActions: QuickAction[] = [
   {
-    id: "add-record",
-    title: "记一笔",
-    description: "快速记录收入或支出",
-    icon: "Plus",
+    description: '快速记录收入或支出',
+    icon: 'Plus',
+    id: 'add-record',
+    onClick: () => {
+      console.log('添加记录')
+    },
     primary: true,
-    onClick: () => {
-      console.log("添加记录")
-    },
+    title: '记一笔',
   },
   {
-    id: "view-reports",
-    title: "查看报表",
-    description: "查看详细的财务分析报告",
-    icon: "BarChart3",
-    primary: false,
+    description: '查看详细的财务分析报告',
+    icon: 'BarChart3',
+    id: 'view-reports',
     onClick: () => {
-      console.log("查看报表")
+      console.log('查看报表')
     },
+    primary: false,
+    title: '查看报表',
   },
   {
-    id: "import-data",
-    title: "数据导入",
-    description: "导入银行对账单或其他数据",
-    icon: "Upload",
-    primary: false,
+    description: '导入银行对账单或其他数据',
+    icon: 'Upload',
+    id: 'import-data',
     onClick: () => {
-      console.log("导入数据")
+      console.log('导入数据')
     },
+    primary: false,
+    title: '数据导入',
   },
 ]
 
@@ -255,29 +265,29 @@ export const mockQuickActions: QuickAction[] = [
  * 模拟用户信息
  */
 export const mockUserInfo: UserInfo = {
-  id: "user_123",
-  name: "张三",
-  email: "zhangsan@example.com",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-  membershipLevel: "黄金会员",
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+  email: 'zhangsan@example.com',
+  id: 'user_123',
+  membershipLevel: '黄金会员',
+  name: '张三',
 }
 
 /**
  * 模拟财务统计数据
  */
 export const mockFinanceStats: FinanceStats = {
-  totalAssets: 128500,
-  monthlyIncome: 32000,
-  monthlyExpense: 18500,
-  netAssets: 110000,
-  incomeTrend: {
-    value: 12.5,
-    isPositive: true,
-  },
   expenseTrend: {
-    value: -5.2,
     isPositive: false,
+    value: -5.2,
   },
+  incomeTrend: {
+    isPositive: true,
+    value: 12.5,
+  },
+  monthlyExpense: 18_500,
+  monthlyIncome: 32_000,
+  netAssets: 110_000,
+  totalAssets: 128_500,
 }
 
 /**
@@ -285,51 +295,51 @@ export const mockFinanceStats: FinanceStats = {
  */
 export const mockFinanceCategories: FinanceCategory[] = [
   {
-    id: "cat_income_salary",
-    name: "工资收入",
-    icon: "DollarSign",
-    color: "#22c55e",
+    color: '#22c55e',
     enabled: true,
+    icon: 'DollarSign',
+    id: 'cat_income_salary',
+    name: '工资收入',
     order: 1,
   },
   {
-    id: "cat_income_investment",
-    name: "投资收益",
-    icon: "TrendingUp",
-    color: "#3b82f6",
+    color: '#3b82f6',
     enabled: true,
+    icon: 'TrendingUp',
+    id: 'cat_income_investment',
+    name: '投资收益',
     order: 2,
   },
   {
-    id: "cat_expense_food",
-    name: "餐饮消费",
-    icon: "Utensils",
-    color: "#f97316",
+    color: '#f97316',
     enabled: true,
+    icon: 'Utensils',
+    id: 'cat_expense_food',
+    name: '餐饮消费',
     order: 1,
   },
   {
-    id: "cat_expense_transport",
-    name: "交通费用",
-    icon: "Car",
-    color: "#8b5cf6",
+    color: '#8b5cf6',
     enabled: true,
+    icon: 'Car',
+    id: 'cat_expense_transport',
+    name: '交通费用',
     order: 2,
   },
   {
-    id: "cat_expense_shopping",
-    name: "购物消费",
-    icon: "ShoppingBag",
-    color: "#ec4899",
+    color: '#ec4899',
     enabled: true,
+    icon: 'ShoppingBag',
+    id: 'cat_expense_shopping',
+    name: '购物消费',
     order: 3,
   },
   {
-    id: "cat_expense_housing",
-    name: "居住费用",
-    icon: "Home",
-    color: "#06b6d4",
+    color: '#06b6d4',
     enabled: true,
+    icon: 'Home',
+    id: 'cat_expense_housing',
+    name: '居住费用',
     order: 4,
   },
 ]
@@ -339,65 +349,65 @@ export const mockFinanceCategories: FinanceCategory[] = [
  */
 export const mockMonthlyFinanceData: MonthlyFinanceData[] = [
   {
-    month: "2024年10月",
-    year: 2024,
+    month: '2024年10月',
     monthNumber: 10,
-    totalIncome: 28000,
-    totalExpense: 15000,
-    netIncome: 13000,
+    netIncome: 13_000,
+    totalExpense: 15_000,
+    totalIncome: 28_000,
     transactionCount: 45,
+    year: 2024,
   },
   {
-    month: "2024年11月",
-    year: 2024,
+    month: '2024年11月',
     monthNumber: 11,
-    totalIncome: 32000,
-    totalExpense: 18000,
-    netIncome: 14000,
+    netIncome: 14_000,
+    totalExpense: 18_000,
+    totalIncome: 32_000,
     transactionCount: 52,
-  },
-  {
-    month: "2024年12月",
     year: 2024,
+  },
+  {
+    month: '2024年12月',
     monthNumber: 12,
-    totalIncome: 29000,
-    totalExpense: 22000,
     netIncome: 7000,
+    totalExpense: 22_000,
+    totalIncome: 29_000,
     transactionCount: 38,
+    year: 2024,
   },
   {
-    month: "2025年1月",
-    year: 2025,
+    month: '2025年1月',
     monthNumber: 1,
-    totalIncome: 35000,
-    totalExpense: 17000,
-    netIncome: 18000,
+    netIncome: 18_000,
+    totalExpense: 17_000,
+    totalIncome: 35_000,
     transactionCount: 48,
+    year: 2025,
   },
   {
-    month: "2025年2月",
-    year: 2025,
+    month: '2025年2月',
     monthNumber: 2,
-    totalIncome: 30000,
-    totalExpense: 19000,
-    netIncome: 11000,
+    netIncome: 11_000,
+    totalExpense: 19_000,
+    totalIncome: 30_000,
     transactionCount: 41,
+    year: 2025,
   },
   {
-    month: "2025年3月",
-    year: 2025,
+    month: '2025年3月',
     monthNumber: 3,
-    totalIncome: 32000,
-    totalExpense: 18500,
-    netIncome: 13500,
+    netIncome: 13_500,
+    totalExpense: 18_500,
+    totalIncome: 32_000,
     transactionCount: 55,
+    year: 2025,
   },
 ]
 
 /**
  * 获取随机交易记录（用于测试）
  */
-export function getRandomTransaction(): TransactionRecord {
+export const getRandomTransaction = (): TransactionRecord => {
   const randomIndex = Math.floor(Math.random() * mockTransactions.length)
   return { ...mockTransactions[randomIndex] }
 }
@@ -405,31 +415,29 @@ export function getRandomTransaction(): TransactionRecord {
 /**
  * 获取指定数量的交易记录
  */
-export function getTransactions(count: number = 10): TransactionRecord[] {
-  return mockTransactions.slice(0, count)
-}
+export const getTransactions = (count = 10): TransactionRecord[] =>
+  mockTransactions.slice(0, count)
 
 /**
  * 根据类型筛选交易记录
  */
-export function getTransactionsByType(type: "income" | "expense"): TransactionRecord[] {
-  return mockTransactions.filter((transaction) => transaction.type === type)
-}
+export const getTransactionsByType = (
+  type: 'income' | 'expense'
+): TransactionRecord[] =>
+  mockTransactions.filter((transaction) => transaction.type === type)
 
 /**
  * 计算总收入
  */
-export function calculateTotalIncome(): number {
-  return mockTransactions
-    .filter((t) => t.type === "income")
+export const calculateTotalIncome = (): number =>
+  mockTransactions
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
-}
 
 /**
  * 计算总支出
  */
-export function calculateTotalExpense(): number {
-  return mockTransactions
-    .filter((t) => t.type === "expense")
+export const calculateTotalExpense = (): number =>
+  mockTransactions
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
-}

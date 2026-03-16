@@ -1,0 +1,26 @@
+{
+  "categories": {
+    "correctness": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "unicorn/filename-case": "off",
+    "import/namespace": "off",
+    "unicorn/no-abusive-eslint-disable": "off",
+    "react-perf/jsx-no-new-function-as-prop": "off",
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "ignorePatterns": [
+    "src-tauri",
+    "src/components/ui",
+    "src/components/ai-elements",
+    "openspec",
+    ".claude",
+    "CLAUDE.md",
+    ".mcp.json",
+    "src/routeTree.gen.ts",
+    ".oxlint.json",
+    ".oxfmtrc.jsonc",
+    "vite.config.ts"
+  ]
+}

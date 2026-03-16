@@ -1,46 +1,58 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { TransactionRecord } from "@/types/dashboard"
-import { formatCurrency, formatDate } from "@/lib/formatters"
-import { STATUS_LABELS } from "@/lib/constants"
-import * as LucideIcons from "lucide-react"
-import { MoreHorizontalIcon } from "lucide-react"
+import { MoreHorizontalIcon } from 'lucide-react'
+import * as React from 'react'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { STATUS_LABELS } from '@/lib/constants'
+import { formatCurrency, formatDate } from '@/lib/formatters'
+import { cn } from '@/lib/utils'
+import type { TransactionRecord } from '@/types/dashboard'
 
 interface TransactionsTableProps {
   data: TransactionRecord[]
   className?: string
 }
 
-export function TransactionsTable({ data, className }: TransactionsTableProps) {
-  const getStatusBadgeVariant = (status: TransactionRecord["status"]) => {
+export const TransactionsTable = ({
+  data,
+  className,
+}: TransactionsTableProps) => {
+  const getStatusBadgeVariant = (status: TransactionRecord['status']) => {
     switch (status) {
-      case "completed":
-        return "default"
-      case "pending":
-        return "secondary"
-      case "cancelled":
-        return "destructive"
-      default:
-        return "outline"
+      case 'completed': {
+        return 'default'
+      }
+      case 'pending': {
+        return 'secondary'
+      }
+      case 'cancelled': {
+        return 'destructive'
+      }
+      default: {
+        return 'outline'
+      }
     }
   }
 
-  const getTypeBadgeVariant = (type: TransactionRecord["type"]) => {
-    return type === "income" ? "default" : "destructive"
-  }
+  const getTypeBadgeVariant = (type: TransactionRecord['type']) =>
+    type === 'income' ? 'default' : 'destructive'
 
-  const getTypeBadgeText = (type: TransactionRecord["type"]) => {
-    return type === "income" ? "收入" : "支出"
-  }
+  const getTypeBadgeText = (type: TransactionRecord['type']) =>
+    type === 'income' ? '收入' : '支出'
 
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn('', className)}>
       <CardHeader>
         <CardTitle>最近交易</CardTitle>
       </CardHeader>
@@ -62,24 +74,34 @@ export function TransactionsTable({ data, className }: TransactionsTableProps) {
                 <TableRow key={transaction.id}>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <div className="font-medium text-xs sm:text-sm">{formatDate(transaction.date, "short")}</div>
+                      <div className="font-medium text-xs sm:text-sm">
+                        {formatDate(transaction.date, 'short')}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={getTypeBadgeVariant(transaction.type)} className="text-xs">
+                    <Badge
+                      variant={getTypeBadgeVariant(transaction.type)}
+                      className="text-xs"
+                    >
                       {getTypeBadgeText(transaction.type)}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 sm:gap-3">
                       <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                        <AvatarImage src={transaction.avatar} alt={transaction.category} />
+                        <AvatarImage
+                          src={transaction.avatar}
+                          alt={transaction.category}
+                        />
                         <AvatarFallback className="text-[10px] sm:text-xs">
                           {transaction.category.slice(0, 2)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium text-xs sm:text-sm">{transaction.category}</span>
+                        <span className="font-medium text-xs sm:text-sm">
+                          {transaction.category}
+                        </span>
                         <span className="text-[10px] sm:text-sm text-muted-foreground line-clamp-1">
                           {transaction.description}
                         </span>
@@ -87,16 +109,23 @@ export function TransactionsTable({ data, className }: TransactionsTableProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className={cn(
-                      "font-semibold text-xs sm:text-sm",
-                      transaction.type === "income" ? "text-green-600" : "text-red-600"
-                    )}>
-                      {transaction.type === "income" ? "+" : "-"}
+                    <div
+                      className={cn(
+                        'font-semibold text-xs sm:text-sm',
+                        transaction.type === 'income'
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                      )}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={getStatusBadgeVariant(transaction.status)} className="text-xs">
+                    <Badge
+                      variant={getStatusBadgeVariant(transaction.status)}
+                      className="text-xs"
+                    >
                       {STATUS_LABELS[transaction.status].label}
                     </Badge>
                   </TableCell>
