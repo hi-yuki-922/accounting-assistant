@@ -1,22 +1,15 @@
 {
+  "skills": [
+    "shadcn/ui"
+  ],
   "mcpServers": {
-    "shadcnVue": {
+    "shadcn": {
       "command": "cmd",
       "args": [
         "/c",
         "npx",
-        "shadcn-vue@latest",
+        "shadcn@latest",
         "mcp"
-      ]
-    },
-    "ai-elements-vue": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "mcp-remote",
-        "https://registry.ai-elements-vue.com/mcp"
       ]
     },
     "figma": {

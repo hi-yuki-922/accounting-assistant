@@ -10,20 +10,18 @@
       "Bash(cargo test:*)",
       "Bash(dir:*)",
       "Bash(pnpm build:*)",
-      "mcp__shadcnVue__get_add_command_for_items",
-      "Bash(pnpm shadcn-vue:*)",
-      "Bash(npx shadcn-vue@latest:*)",
-      "Bash(pnpm shadcn-vue@latest:*)",
       "Bash(mv:*)",
       "mcp__figma__get_figma_data",
       "Bash(sed:*)",
-      "Bash(node:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pnpm run:*)",
+      "Bash(find:*)",
+      "Bash(cd:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "shadcnVue",
-    "ai-elements-vue",
-    "figma"
+    "figma",
+    "shadcn"
   ]
 }

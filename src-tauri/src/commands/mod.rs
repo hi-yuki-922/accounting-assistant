@@ -1,6 +1,5 @@
 mod accounting;
 mod attachment;
-mod config;
 mod accounting_book;
 
 pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
@@ -8,7 +7,6 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     accounting::add_accounting_record,
     accounting::modify_accounting_record,
     accounting::post_accounting_record,
-    config::get_llm_config,
     attachment::create_attachment,
     attachment::delete_attachment,
     attachment::delete_attachment_by_path,
