@@ -1,75 +1,56 @@
 import path from 'node:path'
 
 import tailwindcss from '@tailwindcss/vite'
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST
 
 // https://vite.dev/config/
-export default defineConfig(() => ({
-  plugins: [react(), tailwindcss(), TanStackRouterVite()],
-
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+export default defineConfig((_env) =>
+  ( {
+    // 性能优化配置
+    build: {
+      // 启用代码压缩
+      minify: 'terser',
     },
-  },
-
-  // 性能优化配置
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // 将 React 相关模块单独打包
-          react: ['react', 'react-dom'],
-          // 将 UI 组件库打包
-          ui: ['class-variance-authority', 'clsx', 'tailwind-merge'],
-          // 将图标库打包
-          icons: ['lucide-react'],
-          // 将工具函数打包
-          utils: ['@/lib/utils'],
-        },
+    // 优化依赖预构建
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'class-variance-authority',
+        'clsx',
+        'tailwind-merge',
+        'lucide-react',
+      ],
+    },
+    plugins: [react(), tailwindcss(), tanstackRouter()],
+    resolve: {
+      alias: {
+        // oxlint-disable-next-line unicorn/prefer-module
+        '@': path.resolve(__dirname, './src'),
       },
     },
-    // 启用代码压缩
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
-  },
 
-  // 开发服务器配置
-  server: {
-    hmr: host
-      ? {
-          protocol: 'ws',
+    // 开发服务器配置
+    server: {
+      hmr: host
+        ? {
           host,
           port: 1421,
+          protocol: 'ws',
         }
-      : undefined,
-    host: host || false,
-    port: 1420,
-    strictPort: true,
-    watch: {
-      // 3. tell Vite to ignore watching `src-tauri`
-      ignored: ['**/src-tauri/**'],
+        : undefined,
+      host: host || false,
+      port: 1420,
+      strictPort: true,
+      watch: {
+        // 3. tell Vite to ignore watching `src-tauri`
+        ignored: ['**/src-tauri/**'],
+      },
     },
-  },
 
-  // 优化依赖预构建
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'class-variance-authority',
-      'clsx',
-      'tailwind-merge',
-      'lucide-react',
-    ],
-  },
-}))
+  })
+)
