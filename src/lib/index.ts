@@ -19,7 +19,7 @@ export const tryResult = <T extends (...args: unknown[]) => unknown>(
 
     const [e, res] = result
 
-    return e ? err(e) : ok(res)
+    return e ? err(e) : ok(res as ReturnType<T>)
   }
 }
 
@@ -34,7 +34,7 @@ export const tryResultAsync = <
     ...args: Parameters<T>
   ): Promise<Result<ReturnType<T>, Error>> => {
     const [e, res] = await safe(...args)
-    return e ? err(e) : ok(res)
+    return e ? err(e) : ok(res as ReturnType<T>)
   }
 }
 
@@ -45,9 +45,13 @@ export const parseJson = (str: string): Result<unknown, Error> => {
   return e ? err(e) : ok(result)
 }
 
-export const tryCMD = async <T>(
+type TryCMD = {
+  (...args: Parameters<typeof invoke>): Promise<Result<undefined, Error>>
+  <T>(...args: Parameters<typeof invoke>): Promise<Result<T, Error>>
+}
+export const tryCMD: TryCMD = async <T>(
   ...args: Parameters<typeof invoke>
 ): Promise<Result<T, Error>> => {
   const [e, res] = await tryit(invoke<T>)(...args)
-  return e ? err(e) : ok(res)
+  return e ? err(e as Error) : ok(res as T)
 }
