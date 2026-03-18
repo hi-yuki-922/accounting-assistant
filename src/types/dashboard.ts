@@ -86,7 +86,7 @@ export interface QuickAction {
   /** 是否为主要操作 */
   primary?: boolean
   /** 点击处理函数 */
-  onClick?: () => void
+  handleClick?: () => void
 }
 
 /**

@@ -6,6 +6,7 @@ import {
   BellIcon,
   MoonIcon,
   SunIcon,
+  MessageSquareIcon,
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -81,6 +82,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                     <a href="/statistics" className="flex items-center gap-2">
                       <BarChart3Icon className="h-4 w-4" />
                       <span>统计</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <a href="/chatbot" className="flex items-center gap-2">
+                      <MessageSquareIcon className="h-4 w-4" />
+                      <span>AI 助手</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

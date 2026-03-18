@@ -1,4 +1,3 @@
-import * as LucideIcons from 'lucide-react'
 import * as React from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -13,10 +12,6 @@ interface StatsCardProps {
 }
 
 export const StatsCard = ({ data, className }: StatsCardProps) => {
-  const IconComponent = LucideIcons[
-    data.icon as keyof typeof LucideIcons
-  ] as React.ComponentType<{ className?: string }>
-
   const getTrendBadgeVariant = () => {
     if (!data.trend) {
       return 'default'
@@ -36,9 +31,7 @@ export const StatsCard = ({ data, className }: StatsCardProps) => {
             data.iconColor || 'text-primary'
           )}
         >
-          {IconComponent && (
-            <IconComponent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          )}
+          {data.icon && <data.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
         </div>
       </CardHeader>
       <CardContent className="p-4 sm:p-6">
