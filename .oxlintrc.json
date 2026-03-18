@@ -9,9 +9,13 @@
     "src-tauri",
     "src/components/ui",
     "src/components/ai-elements",
+    "src/routeTree.gen.ts",
     "openspec",
-    ".claude",
     "CLAUDE.md",
+    ".claude",
     ".mcp.json"
-  ]
+  ],
+  "rules": {
+    "typescript/consistent-type-definitions": "off"
+  }
 }
