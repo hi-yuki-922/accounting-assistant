@@ -1,0 +1,95 @@
+/**
+ * Accounting 模块类型定义
+ * 与 Rust 后端类型定义对齐
+ */
+
+import type {
+  AccountingType,
+  AccountingChannel,
+  AccountingRecordState,
+} from './enums'
+
+/**
+ * 金额类型使用 number（前端显示用）
+ * 注意：实际 Rust 后端使用 rust_decimal::Decimal
+ */
+export type Amount = number
+
+/**
+ * 记账记录模型
+ * 与 Rust 后端 accounting_record::Model 对齐
+ */
+export type AccountingRecord = {
+  id: number
+  amount: Amount
+  record_time: string
+  accounting_type: AccountingType
+  title: string
+  channel: AccountingChannel
+  remark?: string
+  write_off_id?: number
+  create_at: string
+  state: AccountingRecordState
+  book_id?: number
+}
+
+/**
+ * 添加记账记录 DTO
+ * 与 Rust 后端 AddAccountingRecordDto 对齐
+ */
+export type AddAccountingRecordDto = {
+  amount: number
+  // Format: "YYYY-MM-DD HH:mm:ss"
+  record_time: string
+  accounting_type: string
+  title: string
+  channel: string
+  remark?: string
+  write_off_id?: number
+  book_id?: number
+}
+
+/**
+ * 修改记账记录 DTO
+ * 与 Rust 后端 ModifyAccountingRecordDto 对齐
+ */
+export type ModifyAccountingRecordDto = {
+  id: number
+  amount?: number
+  record_time?: string
+  accounting_type?: string
+  title?: string
+  remark?: string | null
+}
+
+/**
+ * 过账记账记录 DTO
+ */
+export type PostAccountingRecordDto = {
+  id: number
+}
+
+/**
+ * 查询记账记录参数
+ */
+export type QueryAccountingRecordsParams = {
+  book_id?: number
+  accounting_type?: AccountingType
+  channel?: AccountingChannel
+  state?: AccountingRecordState
+  start_time?: string
+  end_time?: string
+  page?: number
+  page_size?: number
+}
+
+/**
+ * 分页结果
+ */
+export type PaginatedResult<T> = {
+  items: T[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
