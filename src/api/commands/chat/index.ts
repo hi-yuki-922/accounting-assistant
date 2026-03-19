@@ -5,8 +5,7 @@
 
 import { tryCMD } from '@/lib'
 
-import type { MessageState } from './enums'
-import { MessageRole } from './enums'
+import { MessageRole, MessageState } from './enums'
 import type {
   ChatSession,
   ChatMessage,
@@ -76,8 +75,8 @@ export const createMessage = (data: CreateMessageDto) =>
  * 获取会话的所有消息
  * 对应 Rust 后端 get_chat_messages 命令
  */
-export const getMessages = (session_id: number) =>
-  tryCMD<ChatMessage[]>('get_chat_messages', { session_id })
+export const getMessages = (sessionId: number) =>
+  tryCMD<ChatMessage[]>('get_chat_messages', { sessionId })
 
 /**
  * 更新消息状态
@@ -95,6 +94,8 @@ export const updateMessageContent = (data: UpdateMessageContentDto) =>
 
 // 便捷方法
 export const chat = {
+  MessageRole,
+  MessageState,
   createMessage,
   createSession,
   deleteSession,

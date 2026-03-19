@@ -2,6 +2,7 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 
 import { ThemeProvider } from '@/components/theme-provider'
+import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 
 const RootComponent = () => (
   <ThemeProvider
@@ -10,10 +11,12 @@ const RootComponent = () => (
     enableSystem
     disableTransitionOnChange
   >
-    <div className="min-h-screen bg-background text-foreground">
-      <Outlet />
-      <TanStackRouterDevtools />
-    </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        <Outlet />
+        <TanStackRouterDevtools />
+      </div>
+    </TooltipProvider>
   </ThemeProvider>
 )
 
