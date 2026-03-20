@@ -3,9 +3,9 @@
  * 与 Rust 后端 src-tauri/src/commands/accounting_book.rs 中的命令对齐
  */
 
-import type { InvokeArgs } from "@tauri-apps/api/core";
-import type { PaginatedResponse } from "@/api/shared/types.ts";
+import type { InvokeArgs } from '@tauri-apps/api/core'
 
+import type { PaginatedResponse } from '@/api/shared/types.ts'
 import { tryCMD } from '@/lib'
 
 import type {
@@ -46,7 +46,10 @@ export const getBookById = (id: number) =>
  * 对应 Rust 后端 get_books_paginated 命令
  */
 export const getBooksPaginated = (params: GetBooksPaginatedDto) =>
-  tryCMD<PaginatedResponse<RecordWithCountDto>>('get_books_paginated', params as unknown as InvokeArgs)
+  tryCMD<PaginatedResponse<RecordWithCountDto>>(
+    'get_books_paginated',
+    params as unknown as InvokeArgs
+  )
 
 /**
  * 修改账本标题
@@ -67,7 +70,11 @@ export const deleteBook = (id: number) => tryCMD<boolean>('delete_book', { id })
  */
 export const getRecordsByBookIdPaginated = (
   params: GetRecordsByBookIdPaginatedDto
-) => tryCMD<PaginatedResponse<any>>('get_records_by_book_id_paginated', params as unknown as InvokeArgs)
+) =>
+  tryCMD<PaginatedResponse<any>>(
+    'get_records_by_book_id_paginated',
+    params as unknown as InvokeArgs
+  )
 
 /**
  * 获取账本统计信息

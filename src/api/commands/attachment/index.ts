@@ -3,6 +3,7 @@
  * 与 Rust 后端 src-tauri/src/commands/attachment.rs 中的命令对齐
  */
 
+import type { PaginatedResponse } from '@/api/shared/types.ts'
 import { tryCMD } from '@/lib'
 
 import type {
@@ -10,7 +11,6 @@ import type {
   CreateAttachmentDto,
   QueryAttachmentsParams,
 } from './type'
-import type { PaginatedResponse } from "@/api/shared/types.ts";
 
 // 导出类型
 export type * from './type'
