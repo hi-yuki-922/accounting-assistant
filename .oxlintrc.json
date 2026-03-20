@@ -16,6 +16,10 @@
     ".mcp.json"
   ],
   "rules": {
-    "typescript/consistent-type-definitions": "off"
+    "typescript/consistent-type-definitions": "off",
+    "sort-keys": "off",
+    "eslint/array-callback-return": "off",
+    "jsx-no-new-function-as-prop": "warn",
+    "no-loop-func": "off"
   }
 }
