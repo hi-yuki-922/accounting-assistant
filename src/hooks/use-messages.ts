@@ -3,13 +3,17 @@
  * 专门处理消息的加载、创建和更新
  */
 
+import { err, ok } from 'neverthrow'
 import React, { useState } from 'react'
 
-import type { MessageRole, MessageState, CreateMessageDto } from '@/api/commands'
+import type {
+  MessageRole,
+  MessageState,
+  CreateMessageDto,
+} from '@/api/commands'
 import { chat } from '@/api/commands'
 import type { ChatMessage } from '@/types/chat'
-import type { SafeAsync } from "@/types/lib.ts";
-import { err, ok } from "neverthrow";
+import type { SafeAsync } from '@/types/lib.ts'
 
 /**
  * 消息管理状态和操作接口
@@ -55,20 +59,22 @@ export const useMessages = (): UseMessagesState => {
     setIsLoading(true)
     const result = await chat.getMessages(sessionId)
     setIsLoading(false)
-    return result.map(
-      message => setMessages(message)
-    ).mapErr(e => new Error(`加载消息失败：${e.message}`))
+    return result
+      .map((message) => setMessages(message))
+      .mapErr((e) => new Error(`加载消息失败：${e.message}`))
   }
 
   /**
    * 创建新消息
    */
-  const createMessage = async (message:CreateMessageDto) => {
+  const createMessage = async (message: CreateMessageDto) => {
     const result = await chat.createMessage(message)
-    return result.map(newMessage => {
-      setMessages((prev) => [...prev, newMessage])
-      return newMessage
-    }).mapErr(e => new Error(`创建消息失败：${e.message}`))
+    return result
+      .map((newMessage) => {
+        setMessages((prev) => [...prev, newMessage])
+        return newMessage
+      })
+      .mapErr((e) => new Error(`创建消息失败：${e.message}`))
   }
 
   /**

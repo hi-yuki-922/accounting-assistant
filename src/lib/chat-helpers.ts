@@ -4,7 +4,6 @@
 
 import type { UIMessage } from 'ai'
 
-import { chat } from '@/api/commands'
 import type { ChatMessage } from '@/types/chat'
 
 /**

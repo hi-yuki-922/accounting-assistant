@@ -3,21 +3,24 @@
  * 展示如何使用新的 Hook 架构
  */
 
+import type { ToolLoopAgent } from 'ai'
+import { tryit } from 'radash'
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
+import { chat, MessageRole, MessageState } from '@/api'
+import type { PromptInputMessage } from '@/components/ai-elements/prompt-input.tsx'
 import { useChatbot } from '@/hooks/use-chatbot'
+import { useMessages } from '@/hooks/use-messages.ts'
 import { useSessions } from '@/hooks/use-sessions.ts'
+import { createFinanceAgent, getModelName } from '@/lib/ai-provider.ts'
+import type { FinanceTools } from '@/lib/chat-tools.ts'
+
 import { ChatHeader } from './chat-header'
 import { MessageInput } from './message-input'
 import { MessageList } from './message-list'
 import { SessionDrawer } from './session-drawer'
-import { useMessages } from "@/hooks/use-messages.ts";
-import { toast } from "sonner";
-import type { PromptInputMessage } from "@/components/ai-elements/prompt-input.tsx";
-import { MessageRole, MessageState } from "@/api";
-import { createFinanceAgent, getModelName } from "@/lib/ai-provider.ts";
-import { ToolLoopAgent } from "ai";
 
 /**
  * 聊天页面组件（重构版）
@@ -26,19 +29,24 @@ export const ChatPageNew = () => {
   // 使用 useChatbot Hook 管理所有聊天状态
   const chatbotState = useChatbot()
 
-  const [drawerVisible,setDrawerVisible] = useState(false)
-  const [loading,setLoading] = useState(false)
-  const [modelName,setModelName] = useState(getModelName())
-  const agentRef = useRef<ToolLoopAgent | null>(null)
+  const [drawerVisible, setDrawerVisible] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [modelName, setModelName] = useState(getModelName())
+
+  const [userPrompt, setUserPrompt] = useState('')
+
+  const agentRef = useRef<ToolLoopAgent<never, FinanceTools> | null>(null)
   useEffect(() => {
     const result = createFinanceAgent(modelName)
     result.match(
-      agent => agentRef.current = agent,
-      e => agentRef.current = null
+      (agent) => {
+        agentRef.current = agent
+      },
+      (_) => {
+        agentRef.current = null
+      }
     )
-
-
-  },[modelName])
+  }, [modelName])
   const {
     sessions,
     currentSession,
@@ -50,26 +58,25 @@ export const ChatPageNew = () => {
     setEditingSessionId,
     loadSessions,
     createSession,
+    generateSessionTitle,
     selectSession,
     deleteSession,
-    renameSession
+    renameSession,
   } = useSessions()
 
-  const {messages,setMessages, createMessage} = useMessages()
-
-
+  const { messages, setMessages, createMessage } = useMessages()
 
   const onCreateNewSession = async () => {
     setLoading(true)
     const result = await createSession()
     result.match(
-      newSession => {
-        setSessions([newSession,...sessions])
+      (newSession) => {
+        setSessions([newSession, ...sessions])
         setCurrentSession(newSession)
         setMessages([])
         setDrawerVisible(false)
       },
-      e => {
+      (e) => {
         toast.error(e.message)
       }
     )
@@ -87,52 +94,83 @@ export const ChatPageNew = () => {
     }
     let session = currentSession
     if (!session) {
-      const newSession = await createSession("新会话")
+      const newSession = await createSession('新会话')
       if (newSession.isErr()) {
         toast.error(newSession.error.message)
         return
       }
       setCurrentSession(newSession.value)
       session = newSession.value
+      generateSessionTitle(session.id, userContent)
     }
 
     const userMessage = await createMessage({
       content: userContent,
       role: MessageRole.User,
-      session_id:session.id,
-      state: MessageState.Completed
+      session_id: session.id,
+      state: MessageState.Completed,
     })
 
     if (userMessage.isErr()) {
-      toast.error("保存用户消息失败")
+      toast.error('保存用户消息失败')
       return
     }
     const assistantMessage = await createMessage({
       content: '',
       role: MessageRole.Assistant,
-      session_id:session.id,
-      state: MessageState.Sending
+      session_id: session.id,
+      state: MessageState.Sending,
     })
 
     if (assistantMessage.isErr()) {
-      toast.error("创建消息失败")
+      toast.error('创建消息失败')
       return
     }
 
-    const inputMessages = messages.map(msg => ({
+    const inputMessages = messages.map((msg) => ({
       content: msg.content,
-      role: msg.role
+      role: msg.role,
     }))
 
     let aiResponse = ''
-    const result = await agentRef.current.stream({
-      messages,
+    const [streamError, result] = await tryit(agentRef.current.stream)({
+      messages: inputMessages,
     })
+
+    if (streamError) {
+      // TODO: 请求失败错误处理
+      setLoading(false)
+      return
+    }
 
     for await (const chunk of result.textStream) {
       aiResponse += chunk
-      setMessages(prev => prev.map(msg => msg.id === assistantMessage.value.id ? {...msg, content: aiResponse} : msg))
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessage.value.id
+            ? { ...msg, content: aiResponse }
+            : msg
+        )
+      )
     }
+
+    await chat.updateMessageContent({
+      content: aiResponse,
+      id: assistantMessage.value.id,
+    })
+
+    await chat.updateMessageState(
+      assistantMessage.value.id,
+      MessageState.Completed
+    )
+
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === assistantMessage.value.id
+          ? { ...msg, content: aiResponse, state: MessageState.Completed }
+          : msg
+      )
+    )
   }
 
   // 渲染聊天界面
@@ -144,19 +182,17 @@ export const ChatPageNew = () => {
         <ChatHeader
           currentSession={currentSession}
           isLoading={loading}
-          onToggleDrawer={() => setDrawerVisible(prev => !prev)}
+          onToggleDrawer={() => setDrawerVisible((prev) => !prev)}
           onCreateNewSession={onCreateNewSession}
         />
 
         {/* 消息列表 */}
-        <MessageList
-          messages={messages}
-        />
+        <MessageList messages={messages} />
 
         {/* 消息输入框 */}
         <MessageInput
-          inputValue={input}
-          onInputChange={setInput}
+          inputValue={userPrompt}
+          onInputChange={setUserPrompt}
           onSubmit={onSendMessage}
           disabled={loading}
           placeholder="输入消息..."
@@ -180,7 +216,6 @@ export const ChatPageNew = () => {
         editingTitle={editingTitle}
         setEditingTitle={setEditingTitle}
       />
-
     </div>
   )
 }
