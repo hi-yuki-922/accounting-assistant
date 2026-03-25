@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "fmt": "oxfmt"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.34",
