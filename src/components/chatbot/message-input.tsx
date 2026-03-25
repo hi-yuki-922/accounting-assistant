@@ -7,6 +7,7 @@ import type { ChatStatus } from 'ai'
 import { Paperclip, XIcon } from 'lucide-react'
 import * as React from 'react'
 
+import type { PromptInputMessage } from '@/components/ai-elements/prompt-input'
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -26,7 +27,7 @@ import {
 export interface MessageInputProps {
   inputValue: string
   onInputChange: (value: string) => void
-  onSubmit: (message: { text: string; files: File[] }) => Promise<void>
+  onSubmit: (message: PromptInputMessage) => Promise<void>
   chatStatus: ChatStatus
 }
 
@@ -69,9 +70,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
-  const handleSubmit = async (
-    message: { files: any[]; text: string },
-  ) => {
+  const handleSubmit = async (message: { files: any[]; text: string }) => {
     if (!inputValue.trim() && message.files.length === 0) {
       return
     }

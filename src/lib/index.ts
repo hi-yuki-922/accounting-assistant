@@ -2,7 +2,8 @@ import { invoke } from '@tauri-apps/api/core'
 import type { Result } from 'neverthrow'
 import { ok, err } from 'neverthrow'
 import { isPromise, tryit } from 'radash'
-import type { Safe, SafeAsync, TryCMD } from "@/types/lib.ts";
+
+import type { Safe, SafeAsync, TryCMD } from '@/types/lib.ts'
 // oxlint-disable-next-line typescript/no-explicit-any
 export const tryResult = <T extends (...args: any[]) => any>(
   fn: T
@@ -31,11 +32,9 @@ export const tryResultAsync = <
 >(
   fn: T
 ): ((...args: Parameters<T>) => SafeAsync<Awaited<ReturnType<T>>>) => {
-  const safe = tryit<Parameters<T>,Promise<ReturnType<T>>>(fn)
+  const safe = tryit<Parameters<T>, Promise<ReturnType<T>>>(fn)
 
-  return async (
-    ...args
-  ) => {
+  return async (...args) => {
     const [e, res] = await safe(...args)
     return e ? err(e) : ok(res)
   }
@@ -49,7 +48,6 @@ export const parseJson = (str: string): Result<any, Error> => {
     | [undefined, any]
   return e ? err(e) : ok(result)
 }
-
 
 export const tryCMD: TryCMD = async <T>(
   ...args: Parameters<typeof invoke>

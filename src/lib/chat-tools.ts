@@ -85,16 +85,12 @@ export const addRecordTool = tool({
     z.object({
       accounting_type: z
         .enum(['收入', '支出', '投资收益', '投资亏损'])
-        .describe(
-          '记账类型：收入, 支出, 投资收益, 投资亏损'
-        ),
+        .describe('记账类型：收入, 支出, 投资收益, 投资亏损'),
       amount: z.number().describe('金额'),
       book_id: z.number().optional().describe('账本 ID'),
       channel: z
         .enum(['现金', '支付宝', '微信', '银行卡'])
-        .describe(
-          '支付渠道：现金, 支付宝, 微信, 银行卡'
-        ),
+        .describe('支付渠道：现金, 支付宝, 微信, 银行卡'),
       record_time: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
       remark: z.string().optional().describe('备注信息'),
       title: z.string().describe('记账标题'),
