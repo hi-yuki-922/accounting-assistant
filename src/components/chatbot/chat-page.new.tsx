@@ -3,15 +3,15 @@
  * 展示如何使用新的 Hook 架构
  */
 
-import type { ToolLoopAgent } from 'ai'
+import type { ChatStatus, ToolLoopAgent } from 'ai'
 import { tryit } from 'radash'
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import type { ChatSession } from '@/api'
 import { chat, MessageRole, MessageState } from '@/api'
 import type { PromptInputMessage } from '@/components/ai-elements/prompt-input.tsx'
-import { useChatbot } from '@/hooks/use-chatbot'
 import { useMessages } from '@/hooks/use-messages.ts'
 import { useSessions } from '@/hooks/use-sessions.ts'
 import { createFinanceAgent, getModelName } from '@/lib/ai-provider.ts'
@@ -26,8 +26,7 @@ import { SessionDrawer } from './session-drawer'
  * 聊天页面组件（重构版）
  */
 export const ChatPageNew = () => {
-  // 使用 useChatbot Hook 管理所有聊天状态
-  const chatbotState = useChatbot()
+  const [chatStatus, setChatStatus] = useState<ChatStatus>('submitted')
 
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -56,15 +55,13 @@ export const ChatPageNew = () => {
     setCurrentSession,
     setEditingTitle,
     setEditingSessionId,
-    loadSessions,
     createSession,
     generateSessionTitle,
-    selectSession,
     deleteSession,
     renameSession,
   } = useSessions()
 
-  const { messages, setMessages, createMessage } = useMessages()
+  const { messages, setMessages, createMessage, loadMessages } = useMessages()
 
   const onCreateNewSession = async () => {
     setLoading(true)
@@ -92,6 +89,7 @@ export const ChatPageNew = () => {
     if (!userContent.trim()) {
       return
     }
+    setUserPrompt('')
     let session = currentSession
     if (!session) {
       const newSession = await createSession('新会话')
@@ -99,7 +97,6 @@ export const ChatPageNew = () => {
         toast.error(newSession.error.message)
         return
       }
-      setCurrentSession(newSession.value)
       session = newSession.value
       generateSessionTitle(session.id, userContent)
     }
@@ -133,15 +130,19 @@ export const ChatPageNew = () => {
     }))
 
     let aiResponse = ''
-    const [streamError, result] = await tryit(agentRef.current.stream)({
+    const result = await agentRef.current.stream({
       messages: inputMessages,
     })
+    // const [streamError, result] = await tryit(agentRef.current.stream)({
+    //   messages: inputMessages,
+    // })
 
-    if (streamError) {
-      // TODO: 请求失败错误处理
-      setLoading(false)
-      return
-    }
+    // if (streamError) {
+    //   // TODO: 请求失败错误处理
+    //   console.log(streamError)
+    //   setLoading(false)
+    //   return
+    // }
 
     for await (const chunk of result.textStream) {
       aiResponse += chunk
@@ -173,11 +174,47 @@ export const ChatPageNew = () => {
     )
   }
 
+  const onSelectSession = async (session: ChatSession) => {
+    setCurrentSession(session)
+    const result = await loadMessages(session.id)
+    result.match(
+      () => {
+        setDrawerVisible(false)
+      },
+      () => {
+        toast.error('加载会话消息失败')
+      }
+    )
+  }
+
+  const onDeleteSession = async (sessionId: number) => {
+    const result = await deleteSession(sessionId)
+    if (result.isOk()) {
+      setMessages([])
+    }
+  }
+
+  const onStartRenameSession = (session: ChatSession) => {
+    setEditingSessionId(session.id)
+    setEditingTitle(session.title)
+  }
+  const onSaveSessionTitle = async (sessionId: number) => {
+    const result = await renameSession(sessionId, editingTitle)
+    if (result.isOk()) {
+      setEditingSessionId(null)
+      setEditingTitle('')
+    }
+  }
+  const onCancelRenameSession = () => {
+    setEditingSessionId(null)
+    setEditingTitle('')
+  }
+
   // 渲染聊天界面
   return (
     <div className="flex h-screen bg-background">
       {/* 主聊天区域 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-9rem)]">
         {/* 聊天头部 */}
         <ChatHeader
           currentSession={currentSession}
@@ -190,13 +227,14 @@ export const ChatPageNew = () => {
         <MessageList messages={messages} />
 
         {/* 消息输入框 */}
-        <MessageInput
-          inputValue={userPrompt}
-          onInputChange={setUserPrompt}
-          onSubmit={onSendMessage}
-          disabled={loading}
-          placeholder="输入消息..."
-        />
+        <div className="border-t p-4">
+          <MessageInput
+            inputValue={userPrompt}
+            onInputChange={setUserPrompt}
+            onSubmit={onSendMessage}
+            chatStatus={chatStatus}
+          />
+        </div>
       </div>
 
       {/* 会话抽屉 */}
@@ -211,7 +249,7 @@ export const ChatPageNew = () => {
         onSaveSessionTitle={onSaveSessionTitle}
         onCancelRenameSession={onCancelRenameSession}
         onCreateNewSession={onCreateNewSession}
-        isLoading={isLoading}
+        isLoading={loading}
         editingSessionId={editingSessionId}
         editingTitle={editingTitle}
         setEditingTitle={setEditingTitle}

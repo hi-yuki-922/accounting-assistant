@@ -5,10 +5,9 @@ import { generateText } from 'ai'
  */
 import { err, ok } from 'neverthrow'
 import type { Result } from 'neverthrow'
-import React, { useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 
 import { chat } from '@/api/commands'
-import { tryResult } from '@/lib'
 import { createZAiProvider } from '@/lib/ai-provider.ts'
 import type { ChatSession } from '@/types/chat'
 
@@ -35,7 +34,6 @@ export type UseSessionsState = {
     sessionId: number,
     userContent: string
   ) => Promise<Result<void, Error>>
-  selectSession: (session: ChatSession) => Result<void, Error>
   deleteSession: (sessionId: number) => Promise<Result<void, Error>>
   renameSession: (
     sessionId: number,
@@ -88,13 +86,6 @@ export const useSessions = (
   }
 
   /**
-   * 选择会话
-   */
-  const selectSession = tryResult((session: ChatSession) => {
-    setCurrentSession(session)
-  })
-
-  /**
    * 删除会话
    */
   const deleteSession = async (sessionId: number) => {
@@ -141,7 +132,7 @@ export const useSessions = (
         setSessions((prev) =>
           prev.map((s) => (s.id === sessionId ? { ...s, title: newTitle } : s))
         )
-        return ok()
+        return newTitle
       })
       .mapErr((e) => err(e))
   }
@@ -159,26 +150,29 @@ export const useSessions = (
     const generateResult = await result.match(
       async (zAi) => {
         const data = await generateText({
-          model: zAi('glm-4.7-flash'),
+          model: zAi('glm-4.5-air'),
           prompt: `请对用户输入的内容进行总结摘要，生成一段简洁的描述作为会话标题（不超过10个字）：\n ====用户输入内容开始====\n${userContent}\n====用户输入内容结束====`,
         })
         setSessions((prev) =>
           prev.map((s) => (s.id === sessionId ? { ...s, title: data.text } : s))
         )
-        return ok()
+        return ok(data.text)
       },
       async (_) => await generateSessionTitleLocal(sessionId, userContent)
     )
     return generateResult.match(
-      async () => {
-        // oxlint-disable-next-line typescript/no-non-null-assertion
-        const session = sessions.find((s) => s.id === sessionId)!
-        await chat.updateSessionTitle(sessionId, session.title)
+      async (title) => {
+        setCurrentSession((prev) => ({ ...(prev as ChatSession), title }))
+        await chat.updateSessionTitle(sessionId, title)
         return ok()
       },
       (e) => e
     )
   }
+
+  useEffect(() => {
+    loadSessions()
+  }, [])
 
   return {
     // 状态
@@ -197,7 +191,6 @@ export const useSessions = (
     loadSessions,
     createSession,
     generateSessionTitle,
-    selectSession,
     deleteSession,
     renameSession,
   }

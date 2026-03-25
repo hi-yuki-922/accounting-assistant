@@ -3,16 +3,22 @@
  * 管理会话列表、消息、输入状态等核心逻辑
  */
 
-import { ChatStatus, streamText } from 'ai'
+import type { ChatStatus } from 'ai'
+import { streamText } from 'ai'
+import { ok } from 'neverthrow'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { chat, MessageRole, MessageState } from '@/api/commands'
 import type { PromptInputMessage } from '@/components/ai-elements/prompt-input'
-import { createFinanceAgent, createZAiProvider, getApiKey, getModelName, } from '@/lib/ai-provider'
-import { financeTools } from '@/lib/chat-tools'
 import { tryResultAsync } from '@/lib'
+import {
+  createFinanceAgent,
+  createZAiProvider,
+  getApiKey,
+  getModelName,
+} from '@/lib/ai-provider'
+import { financeTools } from '@/lib/chat-tools'
 import type { ChatMessage, ChatSession } from '@/types/chat'
-import { ok } from "neverthrow";
 
 /**
  * 聊天机器人状态和操作接口
@@ -54,7 +60,9 @@ export interface ChatbotState {
 /**
  * 聊天机器人状态管理 Hook
  */
-export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState => {
+export const useChatbot = (
+  initialSessions: ChatSession[] = []
+): ChatbotState => {
   // 核心状态
   const [sessions, setSessions] = useState<ChatSession[]>(initialSessions)
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null)
@@ -218,7 +226,7 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
     let session = currentSession
     if (!session) {
       const newSession = await createTempSession()
-      if (newSession.isErr()){
+      if (newSession.isErr()) {
         throw newSession._unsafeUnwrapErr
       }
       session = newSession._unsafeUnwrap()
@@ -227,7 +235,10 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
     return session
   })
 
-  const generateSessionTitleLocal = async (firstMessage: string, sessionId: number) => {
+  const generateSessionTitleLocal = async (
+    firstMessage: string,
+    sessionId: number
+  ) => {
     // 如果没有 Agent，使用简单截断作为降级方案
     const newTitle = firstMessage.slice(0, 20)
     await chat.updateSessionTitle(sessionId, newTitle)
@@ -235,9 +246,7 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
       prev.map((s) => (s.id === sessionId ? { ...s, title: newTitle } : s))
     )
     if (currentSession?.id === sessionId) {
-      setCurrentSession((prev) =>
-        prev ? { ...prev, title: newTitle } : null
-      )
+      setCurrentSession((prev) => (prev ? { ...prev, title: newTitle } : null))
     }
   }
   /**
@@ -247,7 +256,7 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
     async (sessionId: number, firstMessage: string) => {
       const agent = agentRef.current
       if (!agent) {
-        await generateSessionTitleLocal(firstMessage, sessionId);
+        await generateSessionTitleLocal(firstMessage, sessionId)
         return
       }
 
@@ -299,9 +308,8 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
     const session = await getCurrentSession()
 
     if (session.isErr()) {
-      throw new Error("创建会话失败：", session.error)
+      throw new Error('创建会话失败：', session.error)
     }
-
 
     setInput('')
     setIsLoading(true)
@@ -430,8 +438,6 @@ export const useChatbot = (initialSessions: ChatSession[] = []): ChatbotState =>
       setIsLoading(false)
     }
   })
-
-
 
   // 初始加载会话
   useEffect(() => {
