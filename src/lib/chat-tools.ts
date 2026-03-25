@@ -3,7 +3,7 @@
  * 使用 AI SDK 的 tool 函数创建可被 Agent 调用的工具
  */
 
-import { tool } from 'ai'
+import { tool, zodSchema } from 'ai'
 import { z } from 'zod'
 
 import { accounting } from '@/api/commands/accounting'
@@ -23,6 +23,23 @@ import type {
  */
 export const queryRecordsTool = tool({
   description: '查询用户的记账记录，支持按时间范围、类型、金额等条件筛选',
+  inputSchema: zodSchema(
+    z.object({
+      accounting_type: z
+        .enum(['income', 'expenditure', 'investment_income', 'investment_loss'])
+        .optional()
+        .describe(
+          '记账类型：income=收入, expenditure=支出, investment_income=投资收益, investment_loss=投资亏损'
+        ),
+      book_id: z.number().optional().describe('账本 ID'),
+      end_time: z.string().optional().describe('结束日期，格式：YYYY-MM-DD'),
+      max_amount: z.number().optional().describe('最大金额'),
+      min_amount: z.number().optional().describe('最小金额'),
+      page: z.number().optional().describe('页码'),
+      page_size: z.number().optional().describe('每页数量'),
+      start_time: z.string().optional().describe('开始日期，格式：YYYY-MM-DD'),
+    })
+  ),
   execute: async (input: QueryRecordsParams) => {
     try {
       const result = await accounting.query({
@@ -57,21 +74,6 @@ export const queryRecordsTool = tool({
       }
     }
   },
-  parameters: z.object({
-    accounting_type: z
-      .enum(['income', 'expenditure', 'investment_income', 'investment_loss'])
-      .optional()
-      .describe(
-        '记账类型：income=收入, expenditure=支出, investment_income=投资收益, investment_loss=投资亏损'
-      ),
-    book_id: z.number().optional().describe('账本 ID'),
-    end_time: z.string().optional().describe('结束日期，格式：YYYY-MM-DD'),
-    max_amount: z.number().optional().describe('最大金额'),
-    min_amount: z.number().optional().describe('最小金额'),
-    page: z.number().optional().describe('页码'),
-    page_size: z.number().optional().describe('每页数量'),
-    start_time: z.string().optional().describe('开始日期，格式：YYYY-MM-DD'),
-  }),
 })
 
 /**
@@ -79,6 +81,25 @@ export const queryRecordsTool = tool({
  */
 export const addRecordTool = tool({
   description: '添加一条新的记账记录',
+  inputSchema: zodSchema(
+    z.object({
+      accounting_type: z
+        .enum(['收入', '支出', '投资收益', '投资亏损'])
+        .describe(
+          '记账类型：收入, 支出, 投资收益, 投资亏损'
+        ),
+      amount: z.number().describe('金额'),
+      book_id: z.number().optional().describe('账本 ID'),
+      channel: z
+        .enum(['现金', '支付宝', '微信', '银行卡'])
+        .describe(
+          '支付渠道：现金, 支付宝, 微信, 银行卡'
+        ),
+      record_time: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
+      remark: z.string().optional().describe('备注信息'),
+      title: z.string().describe('记账标题'),
+    })
+  ),
   execute: async (input: AddRecordParams) => {
     try {
       const result = await accounting.add({
@@ -112,21 +133,6 @@ export const addRecordTool = tool({
       }
     }
   },
-  parameters: z.object({
-    accounting_type: z
-      .enum(['income', 'expenditure', 'investment_income', 'investment_loss'])
-      .describe(
-        '记账类型：income=收入, expenditure=支出, investment_income=投资收益, investment_loss=投资亏损'
-      ),
-    amount: z.number().describe('金额'),
-    book_id: z.number().optional().describe('账本 ID'),
-    channel: z
-      .enum(['cash', 'alipay', 'wechat', 'bank'])
-      .describe('支付渠道：cash=现金, alipay=支付宝, wechat=微信, bank=银行卡'),
-    record_time: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
-    remark: z.string().optional().describe('备注信息'),
-    title: z.string().describe('记账标题'),
-  }),
 })
 
 /**
@@ -134,6 +140,13 @@ export const addRecordTool = tool({
  */
 export const getStatisticsTool = tool({
   description: '获取财务统计数据，包括总收入、总支出、投资收益等汇总信息',
+  inputSchema: zodSchema(
+    z.object({
+      book_id: z.number().optional().describe('账本 ID'),
+      end_time: z.string().optional().describe('结束日期，格式：YYYY-MM-DD'),
+      start_time: z.string().optional().describe('开始日期，格式：YYYY-MM-DD'),
+    })
+  ),
   execute: async (input: StatisticsParams) => {
     try {
       const result = await accounting.stats({
@@ -163,11 +176,6 @@ export const getStatisticsTool = tool({
       }
     }
   },
-  parameters: z.object({
-    book_id: z.number().optional().describe('账本 ID'),
-    end_time: z.string().optional().describe('结束日期，格式：YYYY-MM-DD'),
-    start_time: z.string().optional().describe('开始日期，格式：YYYY-MM-DD'),
-  }),
 })
 
 /**
@@ -175,6 +183,7 @@ export const getStatisticsTool = tool({
  */
 export const queryBooksTool = tool({
   description: '查询所有账本列表',
+  inputSchema: zodSchema(z.object({}).describe('无参数')),
   execute: async () => {
     try {
       const result = await accountingBook.getAll()
@@ -200,7 +209,6 @@ export const queryBooksTool = tool({
       }
     }
   },
-  parameters: z.object({}).describe('无参数'),
 })
 
 /**
@@ -208,6 +216,12 @@ export const queryBooksTool = tool({
  */
 export const createBookTool = tool({
   description: '创建一个新的账本',
+  inputSchema: zodSchema(
+    z.object({
+      description: z.string().optional().describe('账本描述'),
+      title: z.string().describe('账本标题'),
+    })
+  ),
   execute: async (input: CreateBookParams) => {
     try {
       const result = await accountingBook.create({
@@ -236,10 +250,6 @@ export const createBookTool = tool({
       }
     }
   },
-  parameters: z.object({
-    description: z.string().optional().describe('账本描述'),
-    title: z.string().describe('账本标题'),
-  }),
 })
 
 /**
@@ -247,6 +257,11 @@ export const createBookTool = tool({
  */
 export const getBookStatsTool = tool({
   description: '获取指定账本的统计信息',
+  inputSchema: zodSchema(
+    z.object({
+      book_id: z.number().describe('账本 ID'),
+    })
+  ),
   execute: async ({ book_id }: { book_id: number }) => {
     try {
       const result = await accountingBook.getStats(book_id)
@@ -272,9 +287,6 @@ export const getBookStatsTool = tool({
       }
     }
   },
-  parameters: z.object({
-    book_id: z.number().describe('账本 ID'),
-  }),
 })
 
 /**
@@ -282,6 +294,7 @@ export const getBookStatsTool = tool({
  */
 export const getAllBooksStatsTool = tool({
   description: '获取所有账本的统计信息汇总',
+  inputSchema: zodSchema(z.object({}).describe('无参数')),
   execute: async () => {
     try {
       const result = await accountingBook.getAllStats()
@@ -307,7 +320,6 @@ export const getAllBooksStatsTool = tool({
       }
     }
   },
-  parameters: z.object({}).describe('无参数'),
 })
 
 /**
@@ -315,6 +327,12 @@ export const getAllBooksStatsTool = tool({
  */
 export const queryAttachmentsTool = tool({
   description: '查询附件列表',
+  inputSchema: zodSchema(
+    z.object({
+      page: z.number().optional().describe('页码'),
+      page_size: z.number().optional().describe('每页数量'),
+    })
+  ),
   execute: async (input: QueryAttachmentsParams) => {
     try {
       const result = await attachment.query({
@@ -343,10 +361,6 @@ export const queryAttachmentsTool = tool({
       }
     }
   },
-  parameters: z.object({
-    page: z.number().optional().describe('页码'),
-    page_size: z.number().optional().describe('每页数量'),
-  }),
 })
 
 /**
@@ -354,6 +368,11 @@ export const queryAttachmentsTool = tool({
  */
 export const getAttachmentsByMasterIdTool = tool({
   description: '按主键 ID 查询关联的所有附件',
+  inputSchema: zodSchema(
+    z.object({
+      master_id: z.number().describe('主键 ID（记录 ID 或账本 ID）'),
+    })
+  ),
   execute: async (input: GetAttachmentsByMasterIdParams) => {
     try {
       const result = await attachment.getByMasterId(input.master_id)
@@ -379,9 +398,6 @@ export const getAttachmentsByMasterIdTool = tool({
       }
     }
   },
-  parameters: z.object({
-    master_id: z.number().describe('主键 ID（记录 ID 或账本 ID）'),
-  }),
 })
 
 /**
