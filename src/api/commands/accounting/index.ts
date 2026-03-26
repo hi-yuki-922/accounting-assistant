@@ -2,7 +2,7 @@
  * Accounting 模块 IPC 命令实现
  * 与 Rust 后端 src-tauri/src/commands/accounting.rs 中的命令对齐
  */
-import type { InvokeArgs } from "@tauri-apps/api/core";
+import type { InvokeArgs } from '@tauri-apps/api/core'
 
 import { tryCMD } from '@/lib'
 
@@ -54,7 +54,10 @@ export const postAccountingRecord = (data: PostAccountingRecordDto) =>
 export const queryAccountingRecords = (
   params: QueryAccountingRecordsParams = {}
 ) =>
-  tryCMD<PaginatedResult<AccountingRecord>>('query_accounting_records', params as InvokeArgs)
+  tryCMD<PaginatedResult<AccountingRecord>>(
+    'query_accounting_records',
+    params as InvokeArgs
+  )
 
 /**
  * 获取记账记录（通过 ID）

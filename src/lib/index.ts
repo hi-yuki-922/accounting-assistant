@@ -2,12 +2,15 @@ import { invoke } from '@tauri-apps/api/core'
 import type { Result } from 'neverthrow'
 import { ok, err } from 'neverthrow'
 import { isPromise, tryit } from 'radash'
-export const tryResult = <T extends (...args: unknown[]) => unknown>(
+
+import type { Safe, SafeAsync, TryCMD } from '@/types/lib.ts'
+// oxlint-disable-next-line typescript/no-explicit-any
+export const tryResult = <T extends (...args: any[]) => any>(
   fn: T
-): ((...args: Parameters<T>) => Result<ReturnType<T>, Error>) => {
+): ((...args: Parameters<T>) => Safe<ReturnType<T>>) => {
   const safe = tryit(fn)
 
-  return (...args: Parameters<T>): Result<ReturnType<T>, Error> => {
+  return (...args: Parameters<T>) => {
     const result = safe(...args)
     if (isPromise(result)) {
       return err(
@@ -22,33 +25,30 @@ export const tryResult = <T extends (...args: unknown[]) => unknown>(
     return e ? err(e) : ok(res as ReturnType<T>)
   }
 }
-
+// Promise<Result<Awaited<ReturnType<T>>, Error>>
 export const tryResultAsync = <
-  T extends (...args: unknown[]) => Promise<unknown>,
+  // oxlint-disable-next-line typescript/no-explicit-any
+  T extends (...args: any[]) => Promise<any>,
 >(
   fn: T
-): ((...args: Parameters<T>) => Promise<Result<ReturnType<T>, Error>>) => {
-  const safe = tryit(fn)
+): ((...args: Parameters<T>) => SafeAsync<Awaited<ReturnType<T>>>) => {
+  const safe = tryit<Parameters<T>, Promise<ReturnType<T>>>(fn)
 
-  return async (
-    ...args: Parameters<T>
-  ): Promise<Result<ReturnType<T>, Error>> => {
+  return async (...args) => {
     const [e, res] = await safe(...args)
-    return e ? err(e) : ok(res as ReturnType<T>)
+    return e ? err(e) : ok(res)
   }
 }
 
-export const parseJson = (str: string): Result<unknown, Error> => {
+// oxlint-disable-next-line typescript/no-explicit-any
+export const parseJson = (str: string): Result<any, Error> => {
   const [e, result] = tryit(JSON.parse)(str) as
     | [Error, undefined]
-    | [undefined, unknown]
+    // oxlint-disable-next-line typescript/no-explicit-any
+    | [undefined, any]
   return e ? err(e) : ok(result)
 }
 
-type TryCMD = {
-  (...args: Parameters<typeof invoke>): Promise<Result<undefined, Error>>
-  <T>(...args: Parameters<typeof invoke>): Promise<Result<T, Error>>
-}
 export const tryCMD: TryCMD = async <T>(
   ...args: Parameters<typeof invoke>
 ): Promise<Result<T, Error>> => {
