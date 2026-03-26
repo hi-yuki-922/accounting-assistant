@@ -10,6 +10,7 @@
 export type AccountingBook = {
   id: number
   title: string
+  description?: string
   create_at: string
 }
 
@@ -19,10 +20,21 @@ export type AccountingBook = {
  */
 export type CreateBookDto = {
   title: string
+  description?: string
 }
 
 /**
- * 更新账本标题 DTO
+ * 更新账本 DTO
+ * 与 Rust 后端 UpdateBookDto 对齐
+ */
+export type UpdateBookDto = {
+  id: number
+  title?: string
+  description?: string | null
+}
+
+/**
+ * 更新账本标题 DTO（已弃用，请使用 UpdateBookDto）
  * 与 Rust 后端 UpdateBookTitleDto 对齐
  */
 export type UpdateBookTitleDto = {

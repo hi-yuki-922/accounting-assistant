@@ -3,7 +3,7 @@ use crate::entity::{accounting_book, accounting_record};
 
 pub mod dto;
 
-use self::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
+use self::dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
 
 /// 默认账本 ID
 pub const DEFAULT_BOOK_ID: i64 = 10000001;
@@ -39,6 +39,7 @@ impl AccountingBookService {
         let new_book = accounting_book::ActiveModel {
             id: Set(DEFAULT_BOOK_ID),
             title: Set("未归类账目".to_string()),
+            description: Set(None),
             create_at: Set(default_create_time),
         };
 
@@ -63,6 +64,7 @@ impl AccountingBookService {
         let new_book = accounting_book::ActiveModel {
             id: Set(book_id),
             title: Set(input.title),
+            description: Set(input.description),
             create_at: Set(chrono::Local::now().naive_local()),
         };
 
@@ -92,15 +94,11 @@ impl AccountingBookService {
         Ok(book)
     }
 
-    /// 修改账本标题
-    pub async fn update_book_title(
+    /// 更新账本信息
+    pub async fn update_book(
         &self,
-        input: UpdateBookTitleDto,
+        input: UpdateBookDto,
     ) -> Result<Option<accounting_book::Model>, Box<dyn std::error::Error>> {
-        if input.new_title.trim().is_empty() {
-            return Err("账本标题不能为空".into());
-        }
-
         let book = accounting_book::Entity::find()
             .filter(accounting_book::Column::Id.eq(input.id))
             .one(&self.db)
@@ -109,13 +107,37 @@ impl AccountingBookService {
         match book {
             Some(book) => {
                 let mut active_book: accounting_book::ActiveModel = book.into();
-                active_book.title = Set(input.new_title);
+
+                // 只更新提供的字段
+                if let Some(title) = input.title {
+                    if title.trim().is_empty() {
+                        return Err("账本标题不能为空".into());
+                    }
+                    active_book.title = Set(title);
+                }
+
+                if let Some(description) = input.description {
+                    active_book.description = Set(description);
+                }
 
                 let updated_book = active_book.update(&self.db).await?;
                 Ok(Some(updated_book))
             }
             None => Ok(None),
         }
+    }
+
+    /// 修改账本标题（已弃用，请使用 update_book）
+    pub async fn update_book_title(
+        &self,
+        input: UpdateBookTitleDto,
+    ) -> Result<Option<accounting_book::Model>, Box<dyn std::error::Error>> {
+        self.update_book(UpdateBookDto {
+            id: input.id,
+            title: Some(input.new_title),
+            description: None,
+        })
+        .await
     }
 
     /// 删除账本（将关联记录迁移到默认账本）

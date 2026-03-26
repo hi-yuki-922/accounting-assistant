@@ -6,9 +6,19 @@ use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 #[derive(Deserialize, Serialize)]
 pub struct CreateBookDto {
     pub title: String,
+    pub description: Option<String>,
 }
 
-/// 修改账本标题 DTO
+/// 更新账本 DTO
+#[derive(Deserialize, Serialize)]
+pub struct UpdateBookDto {
+    pub id: i64,
+    pub title: Option<String>,
+    pub description: Option<Option<String>>,
+}
+
+/// 修改账本标题 DTO（已弃用，请使用 UpdateBookDto）
+#[deprecated(since = "0.1.1", note = "请使用 UpdateBookDto 代替")]
 #[derive(Deserialize, Serialize)]
 pub struct UpdateBookTitleDto {
     pub id: i64,

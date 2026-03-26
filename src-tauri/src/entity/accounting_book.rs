@@ -9,6 +9,7 @@ pub struct Model {
     pub id: i64,
 
     pub title: String,
+    pub description: Option<String>,
     pub create_at: NaiveDateTime,
 }
 
@@ -29,6 +30,7 @@ impl ActiveModelBehavior for ActiveModel {
         Self {
             id: sea_orm::ActiveValue::NotSet,
             title: sea_orm::ActiveValue::NotSet,
+            description: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
         }
     }

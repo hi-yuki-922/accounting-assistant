@@ -12,6 +12,7 @@ import type {
   AccountingBook,
   CreateBookDto,
   UpdateBookTitleDto,
+  UpdateBookDto,
   GetBooksPaginatedDto,
   RecordWithCountDto,
   GetRecordsByBookIdPaginatedDto,
@@ -52,7 +53,14 @@ export const getBooksPaginated = (params: GetBooksPaginatedDto) =>
   )
 
 /**
- * 修改账本标题
+ * 更新账本信息
+ * 对应 Rust 后端 update_book 命令
+ */
+export const updateBook = (data: UpdateBookDto) =>
+  tryCMD<AccountingBook | null>('update_book', { input: data })
+
+/**
+ * 修改账本标题（已弃用，请使用 updateBook）
  * 对应 Rust 后端 update_book_title 命令
  */
 export const updateBookTitle = (data: UpdateBookTitleDto) =>
@@ -98,5 +106,6 @@ export const accountingBook = {
   getPaginated: getBooksPaginated,
   getRecordsByBookId: getRecordsByBookIdPaginated,
   getStats: getBookStats,
+  update: updateBook,
   updateTitle: updateBookTitle,
 }

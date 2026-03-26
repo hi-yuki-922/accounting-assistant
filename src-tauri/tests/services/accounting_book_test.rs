@@ -17,6 +17,7 @@ async fn test_create_book_success() {
 
         let dto = CreateBookDto {
             title: "测试账本".to_string(),
+            description: None,
         };
 
         let book = service.create_book(dto).await?;
@@ -44,6 +45,7 @@ async fn test_create_book_empty_title() {
 
         let dto = CreateBookDto {
             title: "".to_string(),
+            description: None,
         };
 
         let result = service.create_book(dto).await;
@@ -71,6 +73,7 @@ async fn test_create_book_duplicate_title() {
 
         let dto = CreateBookDto {
             title: "重复标题".to_string(),
+            description: None,
         };
 
         // 第一次创建应该成功
@@ -81,6 +84,7 @@ async fn test_create_book_duplicate_title() {
         // 实际测试中需要根据业务需求调整
         let dto2 = CreateBookDto {
             title: "重复标题".to_string(),
+            description: None,
         };
         let book2 = service.create_book(dto2).await?;
 
@@ -102,6 +106,7 @@ async fn test_get_book_by_id_success() {
         // 创建一个账本
         let dto = CreateBookDto {
             title: "查询测试账本".to_string(),
+            description: None,
         };
         let book = service.create_book(dto).await?;
 
@@ -157,6 +162,7 @@ async fn test_get_books_multiple() {
         for i in 1..=3 {
             let dto = CreateBookDto {
                 title: format!("账本{}", i),
+                description: None,
             };
             service.create_book(dto).await?;
         }
@@ -179,6 +185,7 @@ async fn test_update_book_title_success() {
         // 创建账本
         let dto = CreateBookDto {
             title: "原标题".to_string(),
+            description: None,
         };
         let book = service.create_book(dto).await?;
 
@@ -208,6 +215,7 @@ async fn test_update_book_empty_title() {
         // 创建账本
         let dto = CreateBookDto {
             title: "原标题".to_string(),
+            description: None,
         };
         let book = service.create_book(dto).await?;
 
@@ -263,6 +271,7 @@ async fn test_delete_book_empty() {
         // 创建账本
         let dto = CreateBookDto {
             title: "待删除账本".to_string(),
+            description: None,
         };
         let book = service.create_book(dto).await?;
 
@@ -372,6 +381,7 @@ async fn test_get_records_by_book_id() {
         // 创建账本
         let book_dto = CreateBookDto {
             title: "测试账本".to_string(),
+            description: None,
         };
         let book = service.create_book(book_dto).await?;
 
@@ -425,6 +435,7 @@ async fn test_get_records_by_book_id_empty() {
         // 创建账本
         let book_dto = CreateBookDto {
             title: "空账本".to_string(),
+            description: None,
         };
         let book = service.create_book(book_dto).await?;
 
