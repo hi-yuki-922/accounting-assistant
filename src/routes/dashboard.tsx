@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { QuickActions } from '@/components/dashboard/quick-actions'
-import { RevenueChart } from '@/components/dashboard/revenue-chart'
-import { StatsCard } from '@/components/dashboard/stats-card'
-import { TransactionsTable } from '@/components/dashboard/transactions-table'
+import { QuickActions } from '@/pages/dashboard/components/quick-actions'
+import { RevenueChart } from '@/pages/dashboard/components/revenue-chart'
+import { StatsCard } from '@/pages/dashboard/components/stats-card'
+import { TransactionsTable } from '@/pages/dashboard/components/transactions-table'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { BottomNav } from '@/components/layouts/bottom-nav'
 import {
