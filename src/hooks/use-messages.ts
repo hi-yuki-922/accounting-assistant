@@ -80,7 +80,10 @@ export const useMessages = (): UseMessagesState => {
   /**
    * 更新消息
    */
-  const updateMessage = async (messageId: number, updates): SafeAsync<void> => {
+  const updateMessage = async (
+    messageId: number,
+    updates: { content?: string; state?: MessageState }
+  ): SafeAsync<void> => {
     if (updates.content !== undefined) {
       const contentResult = await chat.updateMessageContent({
         content: updates.content,
