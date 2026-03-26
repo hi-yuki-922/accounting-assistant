@@ -70,20 +70,6 @@ export type PostAccountingRecordDto = {
 }
 
 /**
- * 查询记账记录参数
- */
-export type QueryAccountingRecordsParams = {
-  book_id?: number
-  accounting_type?: AccountingType
-  channel?: AccountingChannel
-  state?: AccountingRecordState
-  start_time?: string
-  end_time?: string
-  page?: number
-  page_size?: number
-}
-
-/**
  * 分页结果
  */
 export type PaginatedResult<T> = {

@@ -1,7 +1,9 @@
+import { LucideIcon } from 'lucide-react'
+
 /**
  * 统计卡片数据接口
  */
-export interface StatsCardData {
+export type StatsCardData = {
   /** 卡片标题 */
   title: string
   /** 显示数值 */
@@ -14,7 +16,7 @@ export interface StatsCardData {
     isPositive: boolean
   }
   /** 图标组件名 */
-  icon: string
+  icon: LucideIcon
   /** 图标颜色 */
   iconColor?: string
 }
@@ -22,7 +24,7 @@ export interface StatsCardData {
 /**
  * 交易记录接口
  */
-export interface TransactionRecord {
+export type TransactionRecord = {
   /** 记录 ID */
   id: string
   /** 日期 */
@@ -44,7 +46,7 @@ export interface TransactionRecord {
 /**
  * 图表数据点接口
  */
-export interface ChartDataPoint {
+export type ChartDataPoint = {
   /** 月份标签 */
   month: string
   /** 收入数据 */
@@ -56,7 +58,7 @@ export interface ChartDataPoint {
 /**
  * 图表配置接口
  */
-export interface ChartConfig {
+export type ChartConfig = {
   /** 图表标题 */
   title: string
   /** 图表类型 */
@@ -74,7 +76,7 @@ export interface ChartConfig {
 /**
  * 快速操作接口
  */
-export interface QuickAction {
+export type QuickAction = {
   /** 操作 ID */
   id: string
   /** 操作标题 */
@@ -82,7 +84,7 @@ export interface QuickAction {
   /** 操作描述 */
   description: string
   /** 图标组件名 */
-  icon: string
+  icon: LucideIcon
   /** 是否为主要操作 */
   primary?: boolean
   /** 点击处理函数 */
@@ -92,7 +94,7 @@ export interface QuickAction {
 /**
  * 用户信息接口
  */
-export interface UserInfo {
+export type UserInfo = {
   /** 用户 ID */
   id: string
   /** 用户名 */

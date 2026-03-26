@@ -16,8 +16,6 @@ import type {
   AddAccountingRecordDto,
   ModifyAccountingRecordDto,
   PostAccountingRecordDto,
-  QueryAccountingRecordsParams,
-  PaginatedResult,
 } from './type'
 
 // 导出类型和枚举
@@ -48,18 +46,6 @@ export const postAccountingRecord = (data: PostAccountingRecordDto) =>
   tryCMD<AccountingRecord>('post_accounting_record', data)
 
 /**
- * 查询记账记录（新增功能，前端扩展）
- * 对应 Rust 后端的查询逻辑
- */
-export const queryAccountingRecords = (
-  params: QueryAccountingRecordsParams = {}
-) =>
-  tryCMD<PaginatedResult<AccountingRecord>>(
-    'query_accounting_records',
-    params as InvokeArgs
-  )
-
-/**
  * 获取记账记录（通过 ID）
  */
 export const getAccountingRecord = (id: number) =>
@@ -71,17 +57,6 @@ export const getAccountingRecord = (id: number) =>
 export const deleteAccountingRecord = (id: number) =>
   tryCMD<boolean>('delete_accounting_record', { id })
 
-/**
- * 获取记账记录统计
- */
-export const getAccountingStats = (
-  params: {
-    book_id?: number
-    start_time?: string
-    end_time?: string
-  } = {}
-) => tryCMD<any>('get_accounting_stats', params)
-
 // 便捷方法
 export const accounting = {
   AccountingChannel,
@@ -92,6 +67,4 @@ export const accounting = {
   get: getAccountingRecord,
   modify: modifyAccountingRecord,
   post: postAccountingRecord,
-  query: queryAccountingRecords,
-  stats: getAccountingStats,
 }

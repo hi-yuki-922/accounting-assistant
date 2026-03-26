@@ -1,3 +1,13 @@
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  PieChart,
+  Plus,
+  BarChart3,
+  Upload,
+} from 'lucide-react'
+
 import type {
   StatsCardData,
   TransactionRecord,
@@ -16,7 +26,7 @@ import type {
  */
 export const mockStatsCards: StatsCardData[] = [
   {
-    icon: 'Wallet',
+    icon: Wallet,
     iconColor: 'text-blue-500',
     title: '总资产',
     trend: {
@@ -26,7 +36,7 @@ export const mockStatsCards: StatsCardData[] = [
     value: '128,500.00',
   },
   {
-    icon: 'TrendingUp',
+    icon: TrendingUp,
     iconColor: 'text-green-500',
     title: '本月收入',
     trend: {
@@ -36,7 +46,7 @@ export const mockStatsCards: StatsCardData[] = [
     value: '32,000.00',
   },
   {
-    icon: 'TrendingDown',
+    icon: TrendingDown,
     iconColor: 'text-red-500',
     title: '本月支出',
     trend: {
@@ -46,7 +56,7 @@ export const mockStatsCards: StatsCardData[] = [
     value: '18,500.00',
   },
   {
-    icon: 'PieChart',
+    icon: PieChart,
     iconColor: 'text-purple-500',
     title: '净资产',
     trend: {
@@ -231,31 +241,22 @@ export const mockChartData: ChartDataPoint[] = [
 export const mockQuickActions: QuickAction[] = [
   {
     description: '快速记录收入或支出',
-    icon: 'Plus',
+    icon: Plus,
     id: 'add-record',
-    onClick: () => {
-      console.log('添加记录')
-    },
     primary: true,
     title: '记一笔',
   },
   {
     description: '查看详细的财务分析报告',
-    icon: 'BarChart3',
+    icon: BarChart3,
     id: 'view-reports',
-    onClick: () => {
-      console.log('查看报表')
-    },
     primary: false,
     title: '查看报表',
   },
   {
     description: '导入银行对账单或其他数据',
-    icon: 'Upload',
+    icon: Upload,
     id: 'import-data',
-    onClick: () => {
-      console.log('导入数据')
-    },
     primary: false,
     title: '数据导入',
   },
