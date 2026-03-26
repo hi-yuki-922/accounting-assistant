@@ -1,10 +1,4 @@
-/**
- * 聊天页面（重构后的版本）
- * 展示如何使用新的 Hook 架构
- */
-
 import type { ChatStatus, ToolLoopAgent } from 'ai'
-import { tryit } from 'radash'
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -17,15 +11,15 @@ import { useSessions } from '@/hooks/use-sessions.ts'
 import { createFinanceAgent, getModelName } from '@/lib/ai-provider.ts'
 import type { FinanceTools } from '@/lib/chat-tools.ts'
 
-import { ChatHeader } from './chat-header'
-import { MessageInput } from './message-input'
-import { MessageList } from './message-list'
-import { SessionDrawer } from './session-drawer'
+import { ChatHeader } from './components/chat-header'
+import { MessageInput } from './components/message-input'
+import { MessageList } from './components/message-list'
+import { SessionDrawer } from './components/session-drawer'
 
 /**
  * 聊天页面组件（重构版）
  */
-export const ChatPageNew = () => {
+export const ChatbotPage = () => {
   const [chatStatus, setChatStatus] = useState<ChatStatus>('submitted')
 
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -38,12 +32,12 @@ export const ChatPageNew = () => {
   useEffect(() => {
     const result = createFinanceAgent(modelName)
     result.match(
-      (agent) => {
-        agentRef.current = agent
-      },
-      (_) => {
-        agentRef.current = null
-      }
+        (agent) => {
+          agentRef.current = agent
+        },
+        (_) => {
+          agentRef.current = null
+        }
     )
   }, [modelName])
   const {
@@ -67,15 +61,15 @@ export const ChatPageNew = () => {
     setLoading(true)
     const result = await createSession()
     result.match(
-      (newSession) => {
-        setSessions([newSession, ...sessions])
-        setCurrentSession(newSession)
-        setMessages([])
-        setDrawerVisible(false)
-      },
-      (e) => {
-        toast.error(e.message)
-      }
+        (newSession) => {
+          setSessions([newSession, ...sessions])
+          setCurrentSession(newSession)
+          setMessages([])
+          setDrawerVisible(false)
+        },
+        (e) => {
+          toast.error(e.message)
+        }
     )
     setLoading(false)
   }
@@ -147,11 +141,11 @@ export const ChatPageNew = () => {
     for await (const chunk of result.textStream) {
       aiResponse += chunk
       setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessage.value.id
-            ? { ...msg, content: aiResponse }
-            : msg
-        )
+          prev.map((msg) =>
+              msg.id === assistantMessage.value.id
+                  ? { ...msg, content: aiResponse }
+                  : msg
+          )
       )
     }
 
@@ -161,16 +155,16 @@ export const ChatPageNew = () => {
     })
 
     await chat.updateMessageState(
-      assistantMessage.value.id,
-      MessageState.Completed
+        assistantMessage.value.id,
+        MessageState.Completed
     )
 
     setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === assistantMessage.value.id
-          ? { ...msg, content: aiResponse, state: MessageState.Completed }
-          : msg
-      )
+        prev.map((msg) =>
+            msg.id === assistantMessage.value.id
+                ? { ...msg, content: aiResponse, state: MessageState.Completed }
+                : msg
+        )
     )
   }
 
@@ -178,12 +172,12 @@ export const ChatPageNew = () => {
     setCurrentSession(session)
     const result = await loadMessages(session.id)
     result.match(
-      () => {
-        setDrawerVisible(false)
-      },
-      () => {
-        toast.error('加载会话消息失败')
-      }
+        () => {
+          setDrawerVisible(false)
+        },
+        () => {
+          toast.error('加载会话消息失败')
+        }
     )
   }
 
@@ -212,48 +206,48 @@ export const ChatPageNew = () => {
 
   // 渲染聊天界面
   return (
-    <div className="flex h-screen bg-background">
-      {/* 主聊天区域 */}
-      <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-9rem)]">
-        {/* 聊天头部 */}
-        <ChatHeader
-          currentSession={currentSession}
-          isLoading={loading}
-          onToggleDrawer={() => setDrawerVisible((prev) => !prev)}
-          onCreateNewSession={onCreateNewSession}
-        />
-
-        {/* 消息列表 */}
-        <MessageList messages={messages} />
-
-        {/* 消息输入框 */}
-        <div className="border-t p-4">
-          <MessageInput
-            inputValue={userPrompt}
-            onInputChange={setUserPrompt}
-            onSubmit={onSendMessage}
-            chatStatus={chatStatus}
+      <div className="flex h-screen bg-background">
+        {/* 主聊天区域 */}
+        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-9rem)]">
+          {/* 聊天头部 */}
+          <ChatHeader
+              currentSession={currentSession}
+              isLoading={loading}
+              onToggleDrawer={() => setDrawerVisible((prev) => !prev)}
+              onCreateNewSession={onCreateNewSession}
           />
-        </div>
-      </div>
 
-      {/* 会话抽屉 */}
-      <SessionDrawer
-        isOpen={drawerVisible}
-        onClose={() => setDrawerVisible(false)}
-        sessions={sessions}
-        currentSession={currentSession}
-        onSelectSession={onSelectSession}
-        onDeleteSession={onDeleteSession}
-        onStartRenameSession={onStartRenameSession}
-        onSaveSessionTitle={onSaveSessionTitle}
-        onCancelRenameSession={onCancelRenameSession}
-        onCreateNewSession={onCreateNewSession}
-        isLoading={loading}
-        editingSessionId={editingSessionId}
-        editingTitle={editingTitle}
-        setEditingTitle={setEditingTitle}
-      />
-    </div>
+          {/* 消息列表 */}
+          <MessageList messages={messages} />
+
+          {/* 消息输入框 */}
+          <div className="border-t p-4">
+            <MessageInput
+                inputValue={userPrompt}
+                onInputChange={setUserPrompt}
+                onSubmit={onSendMessage}
+                chatStatus={chatStatus}
+            />
+          </div>
+        </div>
+
+        {/* 会话抽屉 */}
+        <SessionDrawer
+            isOpen={drawerVisible}
+            onClose={() => setDrawerVisible(false)}
+            sessions={sessions}
+            currentSession={currentSession}
+            onSelectSession={onSelectSession}
+            onDeleteSession={onDeleteSession}
+            onStartRenameSession={onStartRenameSession}
+            onSaveSessionTitle={onSaveSessionTitle}
+            onCancelRenameSession={onCancelRenameSession}
+            onCreateNewSession={onCreateNewSession}
+            isLoading={loading}
+            editingSessionId={editingSessionId}
+            editingTitle={editingTitle}
+            setEditingTitle={setEditingTitle}
+        />
+      </div>
   )
 }

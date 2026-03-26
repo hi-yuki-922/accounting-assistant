@@ -1,13 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ChatPageNew } from '@/components/chatbot/chat-page.new.tsx'
-import { ChatbotPage } from '@/components/chatbot/chatbot-page'
+import { ChatbotPage } from "@/pages/chatbot/chatbot-page.tsx"
 import { AppLayout } from '@/components/layouts/app-layout'
 
 export const Route = createFileRoute('/chatbot')({
   component: () => (
     <AppLayout>
-      <ChatPageNew />
+      <ChatbotPage />
     </AppLayout>
   ),
 })
