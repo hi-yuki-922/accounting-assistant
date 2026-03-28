@@ -2,6 +2,7 @@ import { useLocation } from '@tanstack/react-router'
 import {
   HomeIcon,
   FileTextIcon,
+  BookIcon,
   BarChart3Icon,
   MessageSquareIcon,
   SettingsIcon,
@@ -20,6 +21,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
   const navItems = [
     { href: '/dashboard', icon: HomeIcon, label: '首页' },
     { href: '/records', icon: FileTextIcon, label: '记录' },
+    { href: '/books', icon: BookIcon, label: '账本' },
     { href: '/statistics', icon: BarChart3Icon, label: '统计' },
     { href: '/chatbot', icon: MessageSquareIcon, label: 'AI' },
     { href: '/settings', icon: SettingsIcon, label: '设置' },

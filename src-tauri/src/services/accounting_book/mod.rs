@@ -1,9 +1,15 @@
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait};
 use crate::entity::{accounting_book, accounting_record};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
+};
 
 pub mod dto;
 
-use self::dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
+use self::dto::{
+    CreateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse,
+    RecordWithCountDto, UpdateBookDto, UpdateBookTitleDto,
+};
 
 /// 默认账本 ID
 pub const DEFAULT_BOOK_ID: i64 = 10000001;
@@ -34,13 +40,16 @@ impl AccountingBookService {
         }
 
         // 创建默认账本
-        let default_create_time = chrono::NaiveDateTime::parse_from_str("2000-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")?;
+        let default_create_time =
+            chrono::NaiveDateTime::parse_from_str("2000-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")?;
 
         let new_book = accounting_book::ActiveModel {
             id: Set(DEFAULT_BOOK_ID),
             title: Set("未归类账目".to_string()),
             description: Set(None),
             create_at: Set(default_create_time),
+            record_count: Set(0),
+            icon: Set(Some("folder".to_string())),
         };
 
         new_book.insert(&self.db).await?;
@@ -66,6 +75,8 @@ impl AccountingBookService {
             title: Set(input.title),
             description: Set(input.description),
             create_at: Set(chrono::Local::now().naive_local()),
+            record_count: Set(0),
+            icon: Set(input.icon),
         };
 
         let book = new_book.insert(&self.db).await?;
@@ -76,9 +87,7 @@ impl AccountingBookService {
     pub async fn get_books(
         &self,
     ) -> Result<Vec<accounting_book::Model>, Box<dyn std::error::Error>> {
-        let books = accounting_book::Entity::find()
-            .all(&self.db)
-            .await?;
+        let books = accounting_book::Entity::find().all(&self.db).await?;
         Ok(books)
     }
 
@@ -120,6 +129,10 @@ impl AccountingBookService {
                     active_book.description = Set(description);
                 }
 
+                if let Some(icon) = input.icon {
+                    active_book.icon = Set(icon);
+                }
+
                 let updated_book = active_book.update(&self.db).await?;
                 Ok(Some(updated_book))
             }
@@ -136,15 +149,13 @@ impl AccountingBookService {
             id: input.id,
             title: Some(input.new_title),
             description: None,
+            icon: None,
         })
         .await
     }
 
     /// 删除账本（将关联记录迁移到默认账本）
-    pub async fn delete_book(
-        &self,
-        id: i64,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
+    pub async fn delete_book(&self, id: i64) -> Result<bool, Box<dyn std::error::Error>> {
         // 禁止删除默认账本
         if id == DEFAULT_BOOK_ID {
             return Err("默认账本不能删除".into());
@@ -162,17 +173,33 @@ impl AccountingBookService {
             return Ok(false);
         }
 
+        let book = book.unwrap();
+
         // 将该账本的所有记录迁移到默认账本
         let update = accounting_record::ActiveModel {
             book_id: Set(Some(DEFAULT_BOOK_ID)),
             ..Default::default()
         };
 
-        accounting_record::Entity::update_many()
+        let update_result = accounting_record::Entity::update_many()
             .filter(accounting_record::Column::BookId.eq(id))
             .set(update)
             .exec(&txn)
             .await?;
+
+        // 更新默认账本的 record_count
+        if update_result.rows_affected > 0 {
+            let mut default_book = accounting_book::ActiveModel::from(
+                accounting_book::Entity::find()
+                    .filter(accounting_book::Column::Id.eq(DEFAULT_BOOK_ID))
+                    .one(&txn)
+                    .await?
+                    .ok_or("默认账本不存在")?,
+            );
+            default_book.record_count =
+                Set(default_book.record_count.as_ref() + update_result.rows_affected as i32);
+            default_book.update(&txn).await?;
+        }
 
         // 删除账本
         accounting_book::Entity::delete_many()
@@ -204,8 +231,9 @@ impl AccountingBookService {
     ) -> Result<Vec<accounting_record::Model>, Box<dyn std::error::Error>> {
         let records = accounting_record::Entity::find()
             .filter(
-                accounting_record::Column::BookId.is_null()
-                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID))
+                accounting_record::Column::BookId
+                    .is_null()
+                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID)),
             )
             .all(&self.db)
             .await?;
@@ -223,12 +251,14 @@ impl AccountingBookService {
         let page_size = input.page_size;
 
         // 获取总数量
-        let total = accounting_book::Entity::find()
-            .count(&self.db)
-            .await?;
+        let total = accounting_book::Entity::find().count(&self.db).await?;
 
         // 计算总页数
-        let total_pages = if total == 0 { 0 } else { (total + page_size - 1) / page_size };
+        let total_pages = if total == 0 {
+            0
+        } else {
+            (total + page_size - 1) / page_size
+        };
 
         // 如果页码超出范围，返回空数据
         if page > total_pages && total > 0 {
@@ -280,11 +310,11 @@ impl AccountingBookService {
         // 构建基础查询条件
         let mut query = if input.book_id == DEFAULT_BOOK_ID {
             // 如果是查询未归类账目，还需要包含 book_id 为 NULL 的记录
-            accounting_record::Entity::find()
-                .filter(
-                    accounting_record::Column::BookId.is_null()
-                        .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID))
-                )
+            accounting_record::Entity::find().filter(
+                accounting_record::Column::BookId
+                    .is_null()
+                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID)),
+            )
         } else {
             accounting_record::Entity::find()
                 .filter(accounting_record::Column::BookId.eq(input.book_id))
@@ -320,7 +350,11 @@ impl AccountingBookService {
         let total = query.clone().count(&self.db).await?;
 
         // 计算总页数
-        let total_pages = if total == 0 { 0 } else { (total + page_size - 1) / page_size };
+        let total_pages = if total == 0 {
+            0
+        } else {
+            (total + page_size - 1) / page_size
+        };
 
         // 如果页码超出范围，返回空数据
         if page > total_pages && total > 0 {

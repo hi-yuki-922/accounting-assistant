@@ -7,6 +7,8 @@ use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 pub struct CreateBookDto {
     pub title: String,
     pub description: Option<String>,
+    /// 账本图标（可选）
+    pub icon: Option<String>,
 }
 
 /// 更新账本 DTO
@@ -15,6 +17,8 @@ pub struct UpdateBookDto {
     pub id: i64,
     pub title: Option<String>,
     pub description: Option<Option<String>>,
+    /// 账本图标（可选，设置为 Some(None) 表示清空图标）
+    pub icon: Option<Option<String>>,
 }
 
 /// 修改账本标题 DTO（已弃用，请使用 UpdateBookDto）

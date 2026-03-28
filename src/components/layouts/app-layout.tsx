@@ -1,6 +1,7 @@
 import {
   HomeIcon,
   FileTextIcon,
+  BookIcon,
   BarChart3Icon,
   SettingsIcon,
   BellIcon,
@@ -79,6 +80,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
+                    <a href="/books" className="flex items-center gap-2">
+                      <BookIcon className="h-4 w-4" />
+                      <span>账本</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
                     <a href="/statistics" className="flex items-center gap-2">
                       <BarChart3Icon className="h-4 w-4" />
                       <span>统计</span>
@@ -126,7 +135,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <SidebarInset>
         <header className="flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b px-2 sm:px-4">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
           <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2">
             <Button variant="ghost" size="icon-sm" onClick={handleThemeToggle}>
               {theme === 'light' ? (

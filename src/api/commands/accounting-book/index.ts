@@ -47,10 +47,9 @@ export const getBookById = (id: number) =>
  * 对应 Rust 后端 get_books_paginated 命令
  */
 export const getBooksPaginated = (params: GetBooksPaginatedDto) =>
-  tryCMD<PaginatedResponse<RecordWithCountDto>>(
-    'get_books_paginated',
-    params as unknown as InvokeArgs
-  )
+  tryCMD<PaginatedResponse<AccountingBook>>('get_books_paginated', {
+    input: params,
+  } as InvokeArgs)
 
 /**
  * 更新账本信息
@@ -79,9 +78,9 @@ export const deleteBook = (id: number) => tryCMD<boolean>('delete_book', { id })
 export const getRecordsByBookIdPaginated = (
   params: GetRecordsByBookIdPaginatedDto
 ) =>
-  tryCMD<PaginatedResponse<any>>(
+  tryCMD<PaginatedResponse<RecordWithCountDto>>(
     'get_records_by_book_id_paginated',
-    params as unknown as InvokeArgs
+    { input: params } as InvokeArgs
   )
 
 /**

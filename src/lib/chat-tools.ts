@@ -6,15 +6,12 @@
 import { tool, zodSchema } from 'ai'
 import { z } from 'zod'
 
-import {
-  accounting,
-  type AddAccountingRecordDto,
-} from '@/api/commands/accounting'
-import {
-  accountingBook,
-  type CreateBookDto,
-} from '@/api/commands/accounting-book'
-import { attachment, QueryAttachmentsParams } from '@/api/commands/attachment'
+import { accounting } from '@/api/commands/accounting'
+import type { AddAccountingRecordDto } from '@/api/commands/accounting'
+import { accountingBook } from '@/api/commands/accounting-book'
+import type { CreateBookDto } from '@/api/commands/accounting-book'
+import type { QueryAttachmentsParams } from '@/api/commands/attachment'
+import { attachment } from '@/api/commands/attachment'
 
 /**
  * 添加记账记录工具

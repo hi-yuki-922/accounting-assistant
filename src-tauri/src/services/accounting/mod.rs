@@ -30,6 +30,8 @@ impl AccountingService {
         // Generate a unique ID for the record
         let id = Model::generate_id(&self.db).await?;
 
+        let book_id = input.book_id.unwrap_or(DEFAULT_BOOK_ID);
+
         let new_record = ActiveModel {
             id: sea_orm::ActiveValue::Set(id),
             amount: sea_orm::ActiveValue::Set(amount),
@@ -41,10 +43,26 @@ impl AccountingService {
             write_off_id: sea_orm::ActiveValue::Set(input.write_off_id),
             create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
-            book_id: sea_orm::ActiveValue::Set(Option::from(input.book_id.unwrap_or(DEFAULT_BOOK_ID))),
+            book_id: sea_orm::ActiveValue::Set(Option::from(book_id)),
         };
 
         let inserted_record = new_record.insert(&self.db).await?;
+
+        // 更新对应账本的 record_count
+        use sea_orm::{EntityTrait, ColumnTrait, QueryFilter, Set, ActiveModelTrait};
+        use crate::entity::accounting_book;
+
+        let book = accounting_book::Entity::find()
+            .filter(accounting_book::Column::Id.eq(book_id))
+            .one(&self.db)
+            .await?;
+
+        if let Some(b) = book {
+            let mut active_book: accounting_book::ActiveModel = b.into();
+            active_book.record_count = Set(active_book.record_count.as_ref() + 1);
+            active_book.update(&self.db).await?;
+        }
+
         Ok(inserted_record)
     }
 

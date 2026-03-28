@@ -11,6 +11,10 @@ pub struct Model {
     pub title: String,
     pub description: Option<String>,
     pub create_at: NaiveDateTime,
+    /// 记录数量（缓存字段，用于优化查询性能）
+    pub record_count: i32,
+    /// 账本图标
+    pub icon: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -32,6 +36,8 @@ impl ActiveModelBehavior for ActiveModel {
             title: sea_orm::ActiveValue::NotSet,
             description: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
+            record_count: sea_orm::ActiveValue::Set(0),
+            icon: sea_orm::ActiveValue::NotSet,
         }
     }
 }

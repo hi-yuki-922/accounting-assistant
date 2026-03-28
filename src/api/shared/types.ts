@@ -1,5 +1,5 @@
 export type PaginatedResponse<T> = {
-  items: T[]
+  data: T[]
   total: number
   page: number
   page_size: number
