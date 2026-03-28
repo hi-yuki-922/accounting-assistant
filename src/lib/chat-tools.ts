@@ -20,17 +20,17 @@ export const addRecordTool = tool({
   description: '添加一条新的记账记录',
   inputSchema: zodSchema(
     z.object({
-      accounting_type: z
+      accountingType: z
         .enum(['Income', 'Expenditure', 'InvestmentIncome', 'InvestmentLoss'])
         .describe(
           '记账类型：Income, Expenditure, InvestmentIncome, InvestmentLoss'
         ),
       amount: z.number().describe('金额'),
-      book_id: z.number().optional().describe('账本 ID'),
+      bookId: z.number().optional().describe('账本 ID'),
       channel: z
         .enum(['Cash', 'AliPay', 'Wechat', 'BankCard'])
         .describe('支付渠道：Cash, AliPay, Wechat, BankCard'),
-      record_time: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
+      recordTime: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
       remark: z.string().optional().describe('备注信息'),
       title: z.string().describe('记账标题'),
     })
@@ -38,11 +38,11 @@ export const addRecordTool = tool({
   execute: async (input: AddAccountingRecordDto) => {
     try {
       const result = await accounting.add({
-        accounting_type: input.accounting_type as any,
+        accountingType: input.accountingType as any,
         amount: input.amount,
-        book_id: input.book_id,
+        bookId: input.bookId,
         channel: input.channel as any,
-        record_time: input.record_time,
+        recordTime: input.recordTime,
         remark: input.remark,
         title: input.title,
       })
@@ -151,12 +151,12 @@ export const getBookStatsTool = tool({
   description: '获取指定账本的统计信息',
   inputSchema: zodSchema(
     z.object({
-      book_id: z.number().describe('账本 ID'),
+      bookId: z.number().describe('账本 ID'),
     })
   ),
-  execute: async ({ book_id }: { book_id: number }) => {
+  execute: async ({ bookId }: { bookId: number }) => {
     try {
-      const result = await accountingBook.getStats(book_id)
+      const result = await accountingBook.getStats(bookId)
 
       if (result.isOk()) {
         return {
@@ -222,14 +222,14 @@ export const queryAttachmentsTool = tool({
   inputSchema: zodSchema(
     z.object({
       page: z.number().optional().describe('页码'),
-      page_size: z.number().optional().describe('每页数量'),
+      pageSize: z.number().optional().describe('每页数量'),
     })
   ),
   execute: async (input: QueryAttachmentsParams) => {
     try {
       const result = await attachment.query({
         page: input.page || 1,
-        page_size: input.page_size || 10,
+        pageSize: input.pageSize || 10,
       })
 
       if (result.isOk()) {

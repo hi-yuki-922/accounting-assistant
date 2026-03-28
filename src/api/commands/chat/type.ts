@@ -13,9 +13,9 @@ export type ChatSession = {
   id: number
   title: string
   model: string
-  system_prompt?: string
-  created_at: string
-  updated_at: string
+  systemPrompt?: string
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -24,11 +24,11 @@ export type ChatSession = {
  */
 export type ChatMessage = {
   id: number
-  session_id: number
+  sessionId: number
   role: MessageRole
   content: string
   tokens?: number
-  created_at: string
+  createdAt: string
   state: MessageState
 }
 
@@ -39,7 +39,7 @@ export type ChatMessage = {
 export type CreateSessionDto = {
   title: string
   model?: string
-  system_prompt?: string
+  systemPrompt?: string
 }
 
 /**
@@ -47,7 +47,7 @@ export type CreateSessionDto = {
  * 与 Rust 后端 CreateMessageDto 对齐
  */
 export type CreateMessageDto = {
-  session_id: number
+  sessionId: number
   role: MessageRole
   content: string
   tokens?: number

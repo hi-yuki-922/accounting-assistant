@@ -47,8 +47,8 @@ export const queryAttachments = (params: QueryAttachmentsParams = {}) =>
  * 按主键 ID 查询附件
  * 对应 Rust 后端 get_attachment_by_master_id 命令
  */
-export const getAttachmentByMasterId = (master_id: number) =>
-  tryCMD<AttachmentInfo[]>('get_attachment_by_master_id', { master_id })
+export const getAttachmentByMasterId = (masterId: number) =>
+  tryCMD<AttachmentInfo[]>('get_attachment_by_master_id', { masterId })
 
 /**
  * 按 ID 查询单个附件

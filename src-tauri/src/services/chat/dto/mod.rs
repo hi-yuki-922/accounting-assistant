@@ -3,6 +3,7 @@ use crate::entity::chat_message::{MessageRole, MessageState};
 
 /// 创建会话 DTO
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSessionDto {
     pub title: String,
     pub model: Option<String>,
@@ -11,6 +12,7 @@ pub struct CreateSessionDto {
 
 /// 创建消息 DTO
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateMessageDto {
     pub session_id: i64,
     pub role: MessageRole,

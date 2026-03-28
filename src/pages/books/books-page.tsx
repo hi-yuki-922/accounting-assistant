@@ -133,7 +133,7 @@ export const BooksPage = () => {
           // 默认按创建时间倒序
           loadedBooks.sort(
             (a, b) =>
-              new Date(b.create_at).getTime() - new Date(a.create_at).getTime()
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
         }
 
@@ -359,7 +359,7 @@ export const BooksPage = () => {
           open={deleteDialogOpen}
           book={{
             title: deletingBook.title,
-            recordCount: deletingBook.record_count,
+            recordCount: deletingBook.recordCount,
           }}
           onClose={() => {
             setDeleteDialogOpen(false)

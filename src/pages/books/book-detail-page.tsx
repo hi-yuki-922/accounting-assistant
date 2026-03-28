@@ -88,16 +88,16 @@ export const BookDetailPage = () => {
     }
 
     const result = await accountingBook.getRecordsByBookId({
-      book_id: Number(bookId),
+      bookId: Number(bookId),
       page: pagination.page,
-      page_size: pagination.pageSize,
-      start_time: filters.startTime
+      pageSize: pagination.pageSize,
+      startTime: filters.startTime
         ? formatDateTime(filters.startTime)
         : undefined,
-      end_time: filters.endTime
+      endTime: filters.endTime
         ? formatDateTime(filters.endTime, true)
         : undefined,
-      accounting_type: filters.accountingType,
+      accountingType: filters.accountingType,
       channel: filters.channel,
       state: filters.state,
     })
@@ -106,9 +106,9 @@ export const BookDetailPage = () => {
         setRecords(response.data)
         setPagination({
           page: response.page,
-          pageSize: response.page_size,
+          pageSize: response.pageSize,
           total: response.total,
-          totalPages: response.total_pages,
+          totalPages: response.totalPages,
         })
         setLoading(false)
       },
@@ -388,7 +388,7 @@ export const BookDetailPage = () => {
           open={deleteDialogOpen}
           book={{
             title: book.title,
-            recordCount: book.record_count,
+            recordCount: book.recordCount,
           }}
           onClose={() => setDeleteDialogOpen(false)}
           onConfirm={handleDeleteBook}

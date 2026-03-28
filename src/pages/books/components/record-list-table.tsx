@@ -95,7 +95,7 @@ export const RecordListTable = ({
           {records.map((record) => (
             <TableRow key={record.id}>
               <TableCell className="text-sm text-gray-600 dark:text-gray-400">
-                {new Date(record.record_time).toLocaleString('zh-CN', {
+                {new Date(record.recordTime).toLocaleString('zh-CN', {
                   year: 'numeric',
                   month: '2-digit',
                   day: '2-digit',
@@ -106,18 +106,18 @@ export const RecordListTable = ({
               <TableCell className="font-medium">{record.title}</TableCell>
               <TableCell>
                 <Badge variant="outline">
-                  {getAccountingTypeLabel(record.accounting_type)}
+                  {getAccountingTypeLabel(record.accountingType)}
                 </Badge>
               </TableCell>
               <TableCell
                 className={cn(
                   'font-medium',
-                  record.accounting_type === AccountingType.Income
+                  record.accountingType === AccountingType.Income
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-red-600 dark:text-red-400'
                 )}
               >
-                {formatAmount(record.amount, record.accounting_type)}
+                {formatAmount(record.amount, record.accountingType)}
               </TableCell>
               <TableCell className="text-sm text-gray-600 dark:text-gray-400">
                 {getAccountingChannelLabel(record.channel)}
@@ -128,9 +128,9 @@ export const RecordListTable = ({
                 </Badge>
               </TableCell>
               <TableCell className="text-sm text-gray-600 dark:text-gray-400">
-                {record.related_count > 0 ? (
+                {record.relatedCount > 0 ? (
                   <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs">
-                    {record.related_count}
+                    {record.relatedCount}
                   </span>
                 ) : (
                   '-'

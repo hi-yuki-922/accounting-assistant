@@ -87,8 +87,8 @@ export const getRecordsByBookIdPaginated = (
  * 获取账本统计信息
  * 对应 Rust 后端 get_book_stats 命令
  */
-export const getBookStats = (book_id: number) =>
-  tryCMD<BookStats>('get_book_stats', { book_id })
+export const getBookStats = (bookId: number) =>
+  tryCMD<BookStats>('get_book_stats', { bookId })
 
 /**
  * 获取所有账本的统计信息

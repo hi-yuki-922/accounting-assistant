@@ -4,6 +4,7 @@ use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 
 /// 创建账本 DTO
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateBookDto {
     pub title: String,
     pub description: Option<String>,
@@ -13,6 +14,7 @@ pub struct CreateBookDto {
 
 /// 更新账本 DTO
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateBookDto {
     pub id: i64,
     pub title: Option<String>,
@@ -24,6 +26,7 @@ pub struct UpdateBookDto {
 /// 修改账本标题 DTO（已弃用，请使用 UpdateBookDto）
 #[deprecated(since = "0.1.1", note = "请使用 UpdateBookDto 代替")]
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateBookTitleDto {
     pub id: i64,
     pub new_title: String,
@@ -31,6 +34,7 @@ pub struct UpdateBookTitleDto {
 
 /// 分页查询账本请求 DTO
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GetBooksPaginatedDto {
     /// 页码，从 1 开始
     pub page: u64,
@@ -40,6 +44,7 @@ pub struct GetBooksPaginatedDto {
 
 /// 分页查询账本记录请求 DTO
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GetRecordsByBookIdPaginatedDto {
     /// 账本 ID
     pub book_id: i64,
@@ -61,6 +66,7 @@ pub struct GetRecordsByBookIdPaginatedDto {
 
 /// 带关联记录数量的记录 DTO
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RecordWithCountDto {
     /// 原始记账记录
     #[serde(flatten)]
@@ -72,6 +78,7 @@ pub struct RecordWithCountDto {
 /// 分页响应结构
 #[derive(Serialize)]
 #[serde(bound(serialize = "T: Serialize"))]
+#[serde(rename_all = "camelCase")]
 pub struct PaginatedResponse<T> {
     /// 数据列表
     pub data: Vec<T>,

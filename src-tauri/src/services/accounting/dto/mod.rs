@@ -4,6 +4,7 @@ use rust_decimal::Decimal;
 use chrono::NaiveDateTime;
 
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AddAccountingRecordDto {
     pub amount: f64,
     pub record_time: String,  // Format: "YYYY-MM-DD HH:MM:SS"
@@ -16,6 +17,7 @@ pub struct AddAccountingRecordDto {
 }
 
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ModifyAccountingRecordDto {
     pub id: i64,
     pub amount: Option<f64>,                    // New amount as float

@@ -13,11 +13,11 @@ export type MessageState = 'sending' | 'sent' | 'completed' | 'failed'
  */
 export interface ChatMessage {
   id: number
-  session_id: number
+  sessionId: number
   role: MessageRole
   content: string
   tokens?: number
-  created_at: string
+  createdAt: string
   state: MessageState
 }
 
@@ -28,7 +28,7 @@ export interface ChatSession {
   id: number
   title: string
   model: string
-  system_prompt?: string
-  created_at: string
-  updated_at: string
+  systemPrompt?: string
+  createdAt: string
+  updatedAt: string
 }

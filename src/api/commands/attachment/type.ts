@@ -9,12 +9,12 @@
  */
 export type AttachmentInfo = {
   id: number
-  file_name: string
-  file_suffix: string
-  file_size: string
-  file_path: string
-  create_at: string
-  master_id: number
+  fileName: string
+  fileSuffix: string
+  fileSize: string
+  filePath: string
+  createdAt: string
+  masterId: number
 }
 
 /**
@@ -22,11 +22,11 @@ export type AttachmentInfo = {
  * 与 Rust 后端创建附件参数对齐
  */
 export type CreateAttachmentDto = {
-  master_id: number
-  file_name: string
-  file_suffix: string
-  file_size: string
-  file_content: ArrayBuffer
+  masterId: number
+  fileName: string
+  fileSuffix: string
+  fileSize: string
+  fileContent: ArrayBuffer
 }
 
 /**
@@ -35,9 +35,9 @@ export type CreateAttachmentDto = {
  */
 export type QueryAttachmentsParams = {
   page?: number
-  page_size?: number
-  file_name?: string
-  file_suffix?: string
-  start_time?: string
-  end_time?: string
+  pageSize?: number
+  fileName?: string
+  fileSuffix?: string
+  startTime?: string
+  endTime?: string
 }

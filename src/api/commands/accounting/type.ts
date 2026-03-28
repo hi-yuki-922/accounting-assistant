@@ -22,15 +22,15 @@ export type Amount = number
 export type AccountingRecord = {
   id: number
   amount: Amount
-  record_time: string
-  accounting_type: AccountingType
+  recordTime: string
+  accountingType: AccountingType
   title: string
   channel: AccountingChannel
   remark?: string
-  write_off_id?: number
-  create_at: string
+  writeOffId?: number
+  createdAt: string
   state: AccountingRecordState
-  book_id?: number
+  bookId?: number
 }
 
 /**
@@ -40,13 +40,13 @@ export type AccountingRecord = {
 export type AddAccountingRecordDto = {
   amount: number
   // Format: "YYYY-MM-DD HH:mm:ss"
-  record_time: string
-  accounting_type: string
+  recordTime: string
+  accountingType: string
   title: string
   channel: string
   remark?: string
-  write_off_id?: number
-  book_id?: number
+  writeOffId?: number
+  bookId?: number
 }
 
 /**
@@ -56,8 +56,8 @@ export type AddAccountingRecordDto = {
 export type ModifyAccountingRecordDto = {
   id: number
   amount?: number
-  record_time?: string
-  accounting_type?: string
+  recordTime?: string
+  accountingType?: string
   title?: string
   remark?: string | null
 }
@@ -76,6 +76,6 @@ export type PaginatedResult<T> = {
   items: T[]
   total: number
   page: number
-  page_size: number
-  total_pages: number
+  pageSize: number
+  totalPages: number
 }

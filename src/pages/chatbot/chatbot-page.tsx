@@ -98,7 +98,7 @@ export const ChatbotPage = () => {
     const userMessage = await createMessage({
       content: userContent,
       role: MessageRole.User,
-      session_id: session.id,
+      sessionId: session.id,
       state: MessageState.Completed,
     })
 
@@ -109,7 +109,7 @@ export const ChatbotPage = () => {
     const assistantMessage = await createMessage({
       content: '',
       role: MessageRole.Assistant,
-      session_id: session.id,
+      sessionId: session.id,
       state: MessageState.Sending,
     })
 

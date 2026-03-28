@@ -133,7 +133,7 @@ export const SessionDrawer: React.FC<SessionDrawerProps> = ({
                   <div>
                     <p className="font-medium truncate">{session.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(session.updated_at).toLocaleDateString()}
+                      {new Date(session.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
                 )}

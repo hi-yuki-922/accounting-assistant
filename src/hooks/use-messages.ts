@@ -32,7 +32,7 @@ export type UseMessagesState = {
   createMessage: (message: {
     content: string
     role: MessageRole
-    session_id: number
+    sessionId: number
     state: MessageState
   }) => SafeAsync<ChatMessage>
   updateMessage: (

@@ -90,7 +90,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                 </p>
               )}
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                {book.record_count} 条记录
+                {book.recordCount} 条记录
               </p>
             </div>
           </div>

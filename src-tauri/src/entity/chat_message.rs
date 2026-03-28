@@ -6,7 +6,7 @@ use sea_orm::sea_query::{ColumnType as SeaQueryColumnType, StringLen};
 
 /// 消息角色枚举
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum MessageRole {
     User,
     Assistant,
@@ -88,7 +88,7 @@ impl sea_orm::TryFromU64 for MessageRole {
 
 /// 消息状态枚举
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum MessageState {
     Sending,
     Sent,
@@ -172,6 +172,7 @@ impl sea_orm::TryFromU64 for MessageState {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 #[sea_orm(table_name = "chat_message")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]

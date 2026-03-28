@@ -15,8 +15,8 @@ export type AccountingBook = {
   id: number
   title: string
   description?: string
-  create_at: string
-  record_count: number
+  createdAt: string
+  recordCount: number
   icon?: string
 }
 
@@ -56,7 +56,7 @@ export type UpdateBookTitleDto = {
  */
 export type GetBooksPaginatedDto = {
   page: number
-  page_size: number
+  pageSize: number
 }
 
 /**
@@ -65,19 +65,19 @@ export type GetBooksPaginatedDto = {
  * 注意：后端使用了 #[serde(flatten)]，所以 AccountingRecord 的字段会被平铺到外层
  */
 export type RecordWithCountDto = AccountingRecord & {
-  related_count: number
+  relatedCount: number
 }
 
 /**
  * 根据账本 ID 查询记录 DTO
  */
 export type GetRecordsByBookIdPaginatedDto = {
-  book_id: number
+  bookId: number
   page: number
-  page_size: number
-  start_time?: string
-  end_time?: string
-  accounting_type?: string
+  pageSize: number
+  startTime?: string
+  endTime?: string
+  accountingType?: string
   channel?: string
   state?: string
 }
@@ -86,10 +86,10 @@ export type GetRecordsByBookIdPaginatedDto = {
  * 账本统计信息
  */
 export type BookStats = {
-  book_id: number
-  book_title: string
-  total_records: number
-  total_income: number
-  total_expenditure: number
+  bookId: number
+  bookTitle: string
+  totalRecords: number
+  totalIncome: number
+  totalExpenditure: number
   balance: number
 }
