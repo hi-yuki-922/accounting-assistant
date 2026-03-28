@@ -48,7 +48,7 @@ impl Model {
     pub async fn generate_id(db: &DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
-        let year = now.year() as i32;
+        let year = now.year();
 
         // 获取今年的下一个流水号
         let next_seq = super::accounting_book_seq::Model::get_next_sequence(db, year).await?;

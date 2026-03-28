@@ -173,7 +173,7 @@ impl AccountingBookService {
             return Ok(false);
         }
 
-        let book = book.unwrap();
+        let _book = book.unwrap();
 
         // 将该账本的所有记录迁移到默认账本
         let update = accounting_record::ActiveModel {
@@ -257,7 +257,7 @@ impl AccountingBookService {
         let total_pages = if total == 0 {
             0
         } else {
-            (total + page_size - 1) / page_size
+            total.div_ceil(page_size)
         };
 
         // 如果页码超出范围，返回空数据
@@ -353,7 +353,7 @@ impl AccountingBookService {
         let total_pages = if total == 0 {
             0
         } else {
-            (total + page_size - 1) / page_size
+            total.div_ceil(page_size)
         };
 
         // 如果页码超出范围，返回空数据

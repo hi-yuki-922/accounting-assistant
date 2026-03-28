@@ -67,7 +67,7 @@ impl Model {
         } else {
             // 创建新的序列号记录，序列号从 1 开始
             let new_seq = Model::generate_id(db)?;
-            let mut active_model: ActiveModel = ActiveModel {
+            let active_model: ActiveModel = ActiveModel {
                 id: Set(new_seq),
                 date_key: Set(date_key),
                 seq: Set(1),

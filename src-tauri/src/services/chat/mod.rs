@@ -1,6 +1,6 @@
 use crate::entity::{
     chat_session::{self, ActiveModel as SessionActiveModel, Model as SessionModel},
-    chat_message::{self, ActiveModel as MessageActiveModel, Model as MessageModel, MessageRole, MessageState},
+    chat_message::{self, ActiveModel as MessageActiveModel, Model as MessageModel, MessageState},
 };
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter,

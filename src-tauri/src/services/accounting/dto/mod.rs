@@ -62,7 +62,7 @@ impl ModifyAccountingRecordDto {
 
         // Parse optional date string to NaiveDateTime if provided
         let parsed_datetime = if let Some(date_str) = self.record_time.as_ref() {
-            Some(NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
+            Some(NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S")
                 .map_err(|_| "Invalid date format, expected YYYY-MM-DD HH:MM:SS".to_string())?)
         } else {
             None

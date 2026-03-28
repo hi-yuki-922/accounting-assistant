@@ -1,6 +1,5 @@
 use tauri::command;
 use tauri::State;
-use serde::{Deserialize, Serialize};
 use crate::services::accounting::AccountingService;
 use crate::services::accounting::dto::{AddAccountingRecordDto, ModifyAccountingRecordDto};
 

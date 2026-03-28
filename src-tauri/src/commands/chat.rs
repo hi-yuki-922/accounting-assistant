@@ -2,7 +2,7 @@ use tauri::command;
 use tauri::State;
 use crate::services::chat::ChatService;
 use crate::services::chat::dto::{CreateSessionDto, CreateMessageDto};
-use crate::entity::chat_message::{MessageRole, MessageState};
+use crate::entity::chat_message::MessageState;
 
 /// 创建聊天会话
 #[command]

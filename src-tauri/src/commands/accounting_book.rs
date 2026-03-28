@@ -1,6 +1,6 @@
 use crate::entity::accounting_book;
 use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto}};
-use tauri::{State, command};
+use tauri::State;
 
 /// 创建账本
 #[tauri::command]
