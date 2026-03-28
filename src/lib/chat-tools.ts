@@ -21,13 +21,15 @@ export const addRecordTool = tool({
   inputSchema: zodSchema(
     z.object({
       accounting_type: z
-        .enum(['收入', '支出', '投资收益', '投资亏损'])
-        .describe('记账类型：收入, 支出, 投资收益, 投资亏损'),
+        .enum(['Income', 'Expenditure', 'InvestmentIncome', 'InvestmentLoss'])
+        .describe(
+          '记账类型：Income, Expenditure, InvestmentIncome, InvestmentLoss'
+        ),
       amount: z.number().describe('金额'),
       book_id: z.number().optional().describe('账本 ID'),
       channel: z
-        .enum(['现金', '支付宝', '微信', '银行卡'])
-        .describe('支付渠道：现金, 支付宝, 微信, 银行卡'),
+        .enum(['Cash', 'AliPay', 'Wechat', 'BankCard'])
+        .describe('支付渠道：Cash, AliPay, Wechat, BankCard'),
       record_time: z.string().describe('日期，格式：YYYY-MM-DD HH:mm:ss'),
       remark: z.string().optional().describe('备注信息'),
       title: z.string().describe('记账标题'),
@@ -232,8 +234,8 @@ export const queryAttachmentsTool = tool({
 
       if (result.isOk()) {
         return {
-          data: result.value.items,
-          message: `查询成功，共 ${result.value.items.length} 个附件`,
+          data: result.value.data,
+          message: `查询成功，共 ${result.value.data.length} 个附件`,
           success: true,
         }
       }

@@ -16,10 +16,10 @@ impl std::str::FromStr for AccountingType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "收入" => Ok(AccountingType::Income),
-            "支出" => Ok(AccountingType::Expenditure),
-            "投资收益" => Ok(AccountingType::InvestmentIncome),
-            "投资亏损" => Ok(AccountingType::InvestmentLoss),
+            "Income" => Ok(AccountingType::Income),
+            "Expenditure" => Ok(AccountingType::Expenditure),
+            "InvestmentIncome" => Ok(AccountingType::InvestmentIncome),
+            "InvestmentLoss" => Ok(AccountingType::InvestmentLoss),
             _ => Err(()),
         }
     }
@@ -28,10 +28,10 @@ impl std::str::FromStr for AccountingType {
 impl AccountingType {
     fn as_str(&self) -> &'static str {
         match self {
-            AccountingType::Income => "收入",
-            AccountingType::Expenditure => "支出",
-            AccountingType::InvestmentIncome => "投资收益",
-            AccountingType::InvestmentLoss => "投资亏损",
+            AccountingType::Income => "Income",
+            AccountingType::Expenditure => "Expenditure",
+            AccountingType::InvestmentIncome => "InvestmentIncome",
+            AccountingType::InvestmentLoss => "InvestmentLoss",
         }
     }
 }
@@ -50,11 +50,11 @@ impl std::str::FromStr for AccountingChannel {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "现金" => Ok(AccountingChannel::Cash),
-            "支付宝" => Ok(AccountingChannel::AliPay),
-            "微信" => Ok(AccountingChannel::Wechat),
-            "银行卡" => Ok(AccountingChannel::BankCard),
-            "未知" => Ok(AccountingChannel::Unknown),
+            "Cash" => Ok(AccountingChannel::Cash),
+            "AliPay" => Ok(AccountingChannel::AliPay),
+            "Wechat" => Ok(AccountingChannel::Wechat),
+            "BankCard" => Ok(AccountingChannel::BankCard),
+            "Unknown" => Ok(AccountingChannel::Unknown),
             _ => Err(()),
         }
     }
@@ -63,11 +63,11 @@ impl std::str::FromStr for AccountingChannel {
 impl AccountingChannel {
     fn as_str(&self) -> &'static str {
         match self {
-            AccountingChannel::Cash => "现金",
-            AccountingChannel::AliPay => "支付宝",
-            AccountingChannel::Wechat => "微信",
-            AccountingChannel::BankCard => "银行卡",
-            AccountingChannel::Unknown => "未知",
+            AccountingChannel::Cash => "Cash",
+            AccountingChannel::AliPay => "AliPay",
+            AccountingChannel::Wechat => "Wechat",
+            AccountingChannel::BankCard => "BankCard",
+            AccountingChannel::Unknown => "Unknown",
         }
     }
 }
@@ -185,8 +185,8 @@ impl std::str::FromStr for AccountingRecordState {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "待入账" => Ok(AccountingRecordState::PendingPosting),
-            "已入账" => Ok(AccountingRecordState::Posted),
+            "PendingPosting" => Ok(AccountingRecordState::PendingPosting),
+            "Posted" => Ok(AccountingRecordState::Posted),
             _ => Err(()),
         }
     }
@@ -195,8 +195,8 @@ impl std::str::FromStr for AccountingRecordState {
 impl AccountingRecordState {
     fn as_str(&self) -> &'static str {
         match self {
-            AccountingRecordState::PendingPosting => "待入账",
-            AccountingRecordState::Posted => "已入账",
+            AccountingRecordState::PendingPosting => "PendingPosting",
+            AccountingRecordState::Posted => "Posted",
         }
     }
 }
