@@ -4,7 +4,7 @@
  */
 
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { formatISO } from 'date-fns'
+import { format } from 'date-fns'
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 
@@ -81,12 +81,22 @@ export const BookDetailPage = () => {
       return
     }
 
+    // 格式化日期为 ISO 8601 格式（后端 chrono::NaiveDateTime 需要此格式）
+    const formatDateTime = (date: Date, isEndTime = false) => {
+      const time = isEndTime ? '23:59:59' : '00:00:00'
+      return format(date, 'yyyy-MM-dd') + 'T' + time
+    }
+
     const result = await accountingBook.getRecordsByBookId({
       book_id: Number(bookId),
       page: pagination.page,
       page_size: pagination.pageSize,
-      start_time: filters.startTime ? formatISO(filters.startTime) : undefined,
-      end_time: filters.endTime ? formatISO(filters.endTime) : undefined,
+      start_time: filters.startTime
+        ? formatDateTime(filters.startTime)
+        : undefined,
+      end_time: filters.endTime
+        ? formatDateTime(filters.endTime, true)
+        : undefined,
       accounting_type: filters.accountingType,
       channel: filters.channel,
       state: filters.state,

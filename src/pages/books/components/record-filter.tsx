@@ -4,12 +4,16 @@
  */
 
 import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
 import { Calendar as CalendarIcon, Filter } from 'lucide-react'
 
 import {
   AccountingType,
   AccountingChannel,
   AccountingRecordState,
+  ACCOUNTING_TYPE_DISPLAY_TEXT,
+  ACCOUNTING_CHANNEL_DISPLAY_TEXT,
+  ACCOUNTING_RECORD_STATE_DISPLAY_TEXT,
 } from '@/api/commands/accounting'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -101,11 +105,16 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {startTime ? format(startTime, 'PPP') : <span>选择日期</span>}
+                {startTime ? (
+                  format(startTime, 'yyyy-MM-dd')
+                ) : (
+                  <span>选择日期</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
+                locale={zhCN}
                 mode="single"
                 selected={startTime || undefined}
                 onSelect={handleStartTimeChange}
@@ -129,11 +138,16 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {endTime ? format(endTime, 'PPP') : <span>选择日期</span>}
+                {endTime ? (
+                  format(endTime, 'yyyy-MM-dd')
+                ) : (
+                  <span>选择日期</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
+                locale={zhCN}
                 mode="single"
                 selected={endTime || undefined}
                 onSelect={handleEndTimeChange}
@@ -160,8 +174,12 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部</SelectItem>
-              <SelectItem value={AccountingType.Income}>收入</SelectItem>
-              <SelectItem value={AccountingType.Expenditure}>支出</SelectItem>
+              <SelectItem value={AccountingType.Income}>
+                {ACCOUNTING_TYPE_DISPLAY_TEXT[AccountingType.Income]}
+              </SelectItem>
+              <SelectItem value={AccountingType.Expenditure}>
+                {ACCOUNTING_TYPE_DISPLAY_TEXT[AccountingType.Expenditure]}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -183,10 +201,18 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部</SelectItem>
-              <SelectItem value={AccountingChannel.Cash}>现金</SelectItem>
-              <SelectItem value={AccountingChannel.Wechat}>微信</SelectItem>
-              <SelectItem value={AccountingChannel.AliPay}>支付宝</SelectItem>
-              <SelectItem value={AccountingChannel.BankCard}>银行卡</SelectItem>
+              <SelectItem value={AccountingChannel.Cash}>
+                {ACCOUNTING_CHANNEL_DISPLAY_TEXT[AccountingChannel.Cash]}
+              </SelectItem>
+              <SelectItem value={AccountingChannel.Wechat}>
+                {ACCOUNTING_CHANNEL_DISPLAY_TEXT[AccountingChannel.Wechat]}
+              </SelectItem>
+              <SelectItem value={AccountingChannel.AliPay}>
+                {ACCOUNTING_CHANNEL_DISPLAY_TEXT[AccountingChannel.AliPay]}
+              </SelectItem>
+              <SelectItem value={AccountingChannel.BankCard}>
+                {ACCOUNTING_CHANNEL_DISPLAY_TEXT[AccountingChannel.BankCard]}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -211,10 +237,18 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
             <SelectContent>
               <SelectItem value="all">全部</SelectItem>
               <SelectItem value={AccountingRecordState.PendingPosting}>
-                待过账
+                {
+                  ACCOUNTING_RECORD_STATE_DISPLAY_TEXT[
+                    AccountingRecordState.PendingPosting
+                  ]
+                }
               </SelectItem>
               <SelectItem value={AccountingRecordState.Posted}>
-                已过账
+                {
+                  ACCOUNTING_RECORD_STATE_DISPLAY_TEXT[
+                    AccountingRecordState.Posted
+                  ]
+                }
               </SelectItem>
               {/*<SelectItem value={AccountingRecordState.Cancelled}>*/}
               {/*  已取消*/}

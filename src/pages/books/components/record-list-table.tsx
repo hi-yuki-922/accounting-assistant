@@ -3,10 +3,13 @@
  * 展示账本内的记账记录
  */
 
+import type { AccountingChannel } from '@/api/commands/accounting'
 import {
   AccountingType,
-  AccountingChannel,
   AccountingRecordState,
+  ACCOUNTING_TYPE_DISPLAY_TEXT,
+  ACCOUNTING_CHANNEL_DISPLAY_TEXT,
+  ACCOUNTING_RECORD_STATE_DISPLAY_TEXT,
 } from '@/api/commands/accounting'
 import type { RecordWithCountDto } from '@/api/commands/accounting-book/type'
 import { Badge } from '@/components/ui/badge'
@@ -33,56 +36,14 @@ const formatAmount = (amount: number, type: AccountingType): string => {
   return `${sign}${absAmount.toFixed(2)}`
 }
 
-const getAccountingTypeLabel = (type: AccountingType): string => {
-  switch (type) {
-    case AccountingType.Income: {
-      return '收入'
-    }
-    case AccountingType.Expenditure: {
-      return '支出'
-    }
-    default: {
-      return '未知'
-    }
-  }
-}
+const getAccountingTypeLabel = (type: AccountingType): string =>
+  ACCOUNTING_TYPE_DISPLAY_TEXT[type] || '未知'
 
-const getAccountingChannelLabel = (channel: AccountingChannel): string => {
-  console.log(channel)
-  switch (channel) {
-    case AccountingChannel.Cash: {
-      return '现金'
-    }
-    case AccountingChannel.Wechat: {
-      return '微信'
-    }
-    case AccountingChannel.AliPay: {
-      return '支付宝'
-    }
-    case AccountingChannel.BankCard: {
-      return '银行卡'
-    }
-    default: {
-      return '未知'
-    }
-  }
-}
+const getAccountingChannelLabel = (channel: AccountingChannel): string =>
+  ACCOUNTING_CHANNEL_DISPLAY_TEXT[channel] || '未知'
 
-const getAccountingRecordStateLabel = (
-  state: AccountingRecordState
-): string => {
-  switch (state) {
-    case AccountingRecordState.PendingPosting: {
-      return '待过账'
-    }
-    case AccountingRecordState.Posted: {
-      return '已过账'
-    }
-    default: {
-      return '未知'
-    }
-  }
-}
+const getAccountingRecordStateLabel = (state: AccountingRecordState): string =>
+  ACCOUNTING_RECORD_STATE_DISPLAY_TEXT[state] || '未知'
 
 const getStateBadgeVariant = (
   state: AccountingRecordState
