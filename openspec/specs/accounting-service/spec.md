@@ -142,8 +142,8 @@
 - **THEN** 错误信息 MUST 说明期望的时间格式
 
 #### Scenario: Parse valid accounting type
-- **WHEN** DTO 包含有效的记账类型字符串
-- **THEN** 系统 MUST 将字符串解析为 AccountingType 枚举
+- **WHEN** DTO 包含有效的记账类型字符串（Income、Expenditure、InvestmentIncome、InvestmentLoss）
+- **THEN** 系统 MUST 将英文字符串解析为 AccountingType 枚举
 - **THEN** 系统 MUST 返回解析结果
 
 #### Scenario: Parse invalid accounting type
@@ -152,8 +152,8 @@
 - **THEN** 错误信息 MUST 说明记账类型无效
 
 #### Scenario: Parse valid accounting channel
-- **WHEN** DTO 包含有效的记账渠道字符串
-- **THEN** 系统 MUST 将字符串解析为 AccountingChannel 枚举
+- **WHEN** DTO 包含有效的记账渠道字符串（Cash、AliPay、Wechat、BankCard、Unknown）
+- **THEN** 系统 MUST 将英文字符串解析为 AccountingChannel 枚举
 - **THEN** 系统 MUST 返回解析结果
 
 #### Scenario: Parse invalid accounting channel
