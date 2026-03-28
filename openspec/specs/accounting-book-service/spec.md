@@ -1,15 +1,20 @@
 ## ADDED Requirements
 
 ### Requirement: Create accounting book
-系统 MUST 提供创建账本功能，支持用户创建自定义账本。
+系统 MUST 提供创建账本功能，支持用户创建自定义账本，包括图标选择和记录数量初始化。
 
 #### Scenario: Successfully create book
 - **WHEN** 调用创建账本服务
 - **WHEN** 提供有效的账本标题
+- **WHEN** 提供账本图标（可选，使用默认图标如果未提供）
+- **WHEN** 提供账本描述（可选）
 - **THEN** 系统 MUST 自动生成唯一的账本 ID
 - **THEN** 系统 MUST 创建账本记录
 - **THEN** 系统 MUST 设置创建时间为当前时间
+- **THEN** 系统 MUST 初始化 record_count 为 0
+- **THEN** 系统 MUST 设置图标为用户选择或默认图标
 - **THEN** 系统 MUST 返回创建的账本模型
+- **THEN** 返回的账本模型 MUST 包含 record_count 和 icon 字段
 
 #### Scenario: Create book with empty title
 - **WHEN** 调用创建账本服务
@@ -24,21 +29,24 @@
 - **THEN** 错误信息 MUST 说明标题不能为空
 
 ### Requirement: Get all books
-系统 MUST 提供查询所有账本功能。
+系统 MUST 提供查询所有账本功能，返回账本的完整信息包括记录数量和图标。
 
 #### Scenario: Get all books
 - **WHEN** 调用查询所有账本服务
 - **THEN** 系统 MUST 返回所有账本列表
 - **THEN** 结果 MUST 包含账本 ID、标题、创建时间
+- **THEN** 结果 MUST 包含 record_count（记录数量）
+- **THEN** 结果 MUST 包含 icon（图标）
+- **THEN** 结果 MUST 包含 description（描述）
 
 ### Requirement: Get book by ID
-系统 MUST 提供根据 ID 查询单个账本功能。
+系统 MUST 提供根据 ID 查询单个账本功能，返回账本的完整信息。
 
 #### Scenario: Successfully get book by ID
 - **WHEN** 调用根据 ID 查询账本服务
 - **WHEN** 提供有效的账本 ID
 - **THEN** 系统 MUST 返回对应的账本
-- **THEN** 返回的账本 MUST 包含所有字段
+- **THEN** 返回的账本 MUST 包含所有字段（包括 record_count 和 icon）
 
 #### Scenario: Get non-existent book
 - **WHEN** 调用根据 ID 查询账本服务
@@ -46,37 +54,49 @@
 - **THEN** 系统 MUST 返回 None
 
 ### Requirement: Update book title
-系统 MUST 提供修改账本标题功能。
+系统 MUST 提供修改账本标题、描述和图标功能。
 
-#### Scenario: Successfully update book title
-- **WHEN** 调用修改账本标题服务
-- **WHEN** 提供有效的账本 ID 和新标题
-- **THEN** 系统 MUST 更新账本标题
+#### Scenario: Successfully update book
+- **WHEN** 调用修改账本服务
+- **WHEN** 提供有效的账本 ID
+- **WHEN** 提供新标题（可选）
+- **WHEN** 提供新描述（可选，可设置为 null）
+- **WHEN** 提供新图标（可选，可设置为 null）
+- **THEN** 系统 MUST 更新账本的相应字段
 - **THEN** 系统 MUST 返回更新后的账本
-- **THEN** 其他字段 MUST 保持不变
+- **THEN** 未提供的字段 MUST 保持不变
 
 #### Scenario: Update book title with empty title
-- **WHEN** 调用修改账本标题服务
+- **WHEN** 调用修改账本服务
 - **WHEN** 提供空的新标题
 - **THEN** 系统 MUST 返回错误
 - **THEN** 错误信息 MUST 说明标题不能为空
 
 #### Scenario: Update non-existent book title
-- **WHEN** 调用修改账本标题服务
+- **WHEN** 调用修改账本服务
 - **WHEN** 提供不存在的账本 ID
 - **THEN** 系统 MUST 返回 None
 
 ### Requirement: Delete book
-系统 MUST 提供删除账本功能，将关联记录迁移到默认账本。
+系统 MUST 提供删除账本功能，将关联记录迁移到默认账本，并更新默认账本的记录数量。
 
 #### Scenario: Successfully delete book
 - **WHEN** 调用删除账本服务
 - **WHEN** 提供有效的账本 ID
 - **WHEN** 账本不是默认账本
+- **THEN** 系统 MUST 查询要删除账本的记录数量
 - **THEN** 系统 MUST 将该账本的所有记录迁移到默认账本
+- **THEN** 系统 MUST 更新默认账本的 record_count（加上迁移的记录数量）
 - **THEN** 系统 MUST 删除账本记录
 - **THEN** 系统 MUST 返回 true
 - **THEN** 操作 MUST 在事务中执行，确保数据一致性
+
+#### Scenario: Delete book with no records
+- **WHEN** 调用删除账本服务
+- **WHEN** 账本不包含任何记录
+- **THEN** 系统 MUST 直接删除账本
+- **THEN** 系统 MUST 不更新默认账本的 record_count
+- **THEN** 系统 MUST 返回 true
 
 #### Scenario: Delete non-existent book
 - **WHEN** 调用删除账本服务
@@ -96,6 +116,7 @@
 - **WHEN** 该账本包含记账记录
 - **THEN** 所有记录的 book_id MUST 更新为默认账本 ID
 - **THEN** 记录的其他字段 MUST 保持不变
+- **THEN** 默认账本的 record_count MUST 增加，增加数量等于迁移的记录数
 
 ### Requirement: Get records by book ID
 系统 MUST 提供查询指定账本下所有记录的功能。
@@ -116,7 +137,7 @@
 - **THEN** 两种情况的记录 MUST 合并返回
 
 ### Requirement: Get books paginated
-系统 MUST 提供分页查询账本列表功能。
+系统 MUST 提供分页查询账本列表功能，返回账本的完整信息。
 
 #### Scenario: Get first page of books
 - **WHEN** 调用分页查询账本服务
@@ -128,6 +149,7 @@
 - **THEN** 系统 MUST 返回每页数量
 - **THEN** 系统 MUST 返回总页数
 - **THEN** 结果 MUST 按创建时间倒序排列
+- **THEN** 每个账本 MUST 包含 record_count 和 icon 字段
 
 #### Scenario: Get second page of books
 - **WHEN** 调用分页查询账本服务
@@ -236,7 +258,7 @@
 - **THEN** 系统 MUST 返回空的记录列表
 
 ### Requirement: Create default book
-系统 MUST 提供创建默认账本（未归类账目）功能。
+系统 MUST 提供创建默认账本（未归类账目）功能，包含初始化图标。
 
 #### Scenario: Create default book when not exists
 - **WHEN** 调用创建默认账本服务
@@ -244,6 +266,8 @@
 - **THEN** 系统 MUST 创建 ID 为 10000001 的账本
 - **THEN** 账本标题 MUST 为"未归类账目"
 - **THEN** 创建时间 MUST 为 2000-01-01 00:00:00
+- **THEN** 系统 MUST 初始化 record_count 为 0
+- **THEN** 系统 MUST 设置默认图标
 - **THEN** 系统 MUST 返回成功
 
 #### Scenario: Skip default book creation when exists
