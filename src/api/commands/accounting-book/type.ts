@@ -1,4 +1,5 @@
 import type { AccountingRecord } from '../accounting'
+
 /**
  * Accounting-Book 模块类型定义
  * 与 Rust 后端类型定义对齐
@@ -60,12 +61,37 @@ export type GetBooksPaginatedDto = {
 }
 
 /**
+ * 冲账记录简要信息
+ * 与 Rust 后端 WriteOffRecordDto 对齐
+ */
+export type WriteOffRecord = {
+  id: number
+  amount: number
+  recordTime: string
+  remark?: string
+  channel: string
+}
+
+/**
+ * 冲账详情（HoverCard 按需加载）
+ * 与 Rust 后端 RecordWriteOffDetailsDto 对齐
+ */
+export type RecordWriteOffDetails = {
+  originalAmount: number
+  writeOffRecords: WriteOffRecord[]
+}
+
+/**
  * 记录数量 DTO
  * 与 Rust 后端 RecordWithCountDto 对齐
  * 注意：后端使用了 #[serde(flatten)]，所以 AccountingRecord 的字段会被平铺到外层
  */
 export type RecordWithCountDto = AccountingRecord & {
   relatedCount: number
+  /** 原始金额（冲账前） */
+  originalAmount: number
+  /** 净金额（原始金额 + 冲账金额合计） */
+  netAmount: number
 }
 
 /**

@@ -1,4 +1,5 @@
 use crate::entity::{accounting_book, accounting_record};
+use rust_decimal::Decimal;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait,
     QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
@@ -8,7 +9,8 @@ pub mod dto;
 
 use self::dto::{
     CreateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse,
-    RecordWithCountDto, UpdateBookDto, UpdateBookTitleDto,
+    RecordWithCountDto, RecordWriteOffDetailsDto, UpdateBookDto, UpdateBookTitleDto,
+    WriteOffRecordDto,
 };
 
 /// 默认账本 ID
@@ -375,18 +377,25 @@ impl AccountingBookService {
         // 获取当前页数据（注意：fetch_page 使用 0-based 索引）
         let records = paginator.fetch_page(page - 1).await?;
 
-        // 2.6 批量查询关联记录数量
+        // 2.6 批量查询关联记录数量和冲账金额合计
         let record_ids: Vec<i64> = records.iter().map(|r| r.id).collect();
-        let related_counts = self.get_related_records_count(&record_ids).await?;
+        let aggregates = self.get_write_off_aggregates(&record_ids).await?;
 
-        // 2.7 将关联记录数量注入到每条记录的返回数据中
+        // 2.7 将关联记录数量和净金额注入到每条记录的返回数据中
         let data: Vec<RecordWithCountDto> = records
             .into_iter()
             .map(|record| {
-                let related_count = *related_counts.get(&record.id).unwrap_or(&0);
+                let (related_count, write_off_sum) = aggregates
+                    .get(&record.id)
+                    .copied()
+                    .unwrap_or((0, Decimal::ZERO));
+                let original_amount = record.amount;
+                let net_amount = original_amount + write_off_sum;
                 RecordWithCountDto {
                     record,
                     related_count,
+                    original_amount,
+                    net_amount,
                 }
             })
             .collect();
@@ -401,7 +410,81 @@ impl AccountingBookService {
         })
     }
 
-    /// 批量查询记录的关联记录数量
+    /// 批量查询记录的关联数量和冲账金额合计
+    async fn get_write_off_aggregates(
+        &self,
+        record_ids: &[i64],
+    ) -> Result<std::collections::HashMap<i64, (i64, Decimal)>, Box<dyn std::error::Error>> {
+        if record_ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
+
+        // 查询所有冲账记录
+        let write_offs = accounting_record::Entity::find()
+            .filter(accounting_record::Column::WriteOffId.is_in(record_ids.to_vec()))
+            .all(&self.db)
+            .await?;
+
+        // 按原始记录 ID 分组，计算关联数量和金额合计
+        let mut result = std::collections::HashMap::new();
+        for wo in &write_offs {
+            if let Some(parent_id) = wo.write_off_id {
+                let entry = result.entry(parent_id).or_insert((0i64, Decimal::ZERO));
+                entry.0 += 1;
+                entry.1 += wo.amount;
+            }
+        }
+
+        // 为没有冲账记录的 ID 添加默认值
+        for id in record_ids {
+            if !result.contains_key(id) {
+                result.insert(*id, (0, Decimal::ZERO));
+            }
+        }
+
+        Ok(result)
+    }
+
+    /// 获取记录的冲账详情（HoverCard 按需加载）
+    pub async fn get_record_write_off_details(
+        &self,
+        record_id: i64,
+    ) -> Result<RecordWriteOffDetailsDto, Box<dyn std::error::Error>> {
+        // 查找原始记录
+        let record = accounting_record::Entity::find_by_id(record_id)
+            .one(&self.db)
+            .await?
+            .ok_or("记录不存在")?;
+
+        let original_amount = record.amount;
+
+        // 查询所有冲账记录，按创建时间倒序
+        let write_off_records = accounting_record::Entity::find()
+            .filter(accounting_record::Column::WriteOffId.eq(record_id))
+            .order_by_desc(accounting_record::Column::CreateAt)
+            .all(&self.db)
+            .await?;
+
+        // 转换为 DTO
+        let write_off_dtos: Vec<WriteOffRecordDto> = write_off_records
+            .into_iter()
+            .map(|r| WriteOffRecordDto {
+                id: r.id,
+                amount: r.amount,
+                record_time: r.record_time,
+                remark: r.remark,
+                channel: r.channel,
+            })
+            .collect();
+
+        Ok(RecordWriteOffDetailsDto {
+            original_amount,
+            write_off_records: write_off_dtos,
+        })
+    }
+
+    /// 批量查询记录的关联记录数量（已弃用，请使用 get_write_off_aggregates）
+    #[allow(dead_code)]
     async fn get_related_records_count(
         &self,
         record_ids: &[i64],

@@ -9,6 +9,8 @@ pub enum AccountingType {
     Expenditure,
     InvestmentIncome,
     InvestmentLoss,
+    /// 冲账类型
+    WriteOff,
 }
 
 impl std::str::FromStr for AccountingType {
@@ -20,6 +22,7 @@ impl std::str::FromStr for AccountingType {
             "Expenditure" => Ok(AccountingType::Expenditure),
             "InvestmentIncome" => Ok(AccountingType::InvestmentIncome),
             "InvestmentLoss" => Ok(AccountingType::InvestmentLoss),
+            "WriteOff" => Ok(AccountingType::WriteOff),
             _ => Err(()),
         }
     }
@@ -32,6 +35,7 @@ impl AccountingType {
             AccountingType::Expenditure => "Expenditure",
             AccountingType::InvestmentIncome => "InvestmentIncome",
             AccountingType::InvestmentLoss => "InvestmentLoss",
+            AccountingType::WriteOff => "WriteOff",
         }
     }
 }

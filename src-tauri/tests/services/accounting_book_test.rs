@@ -1,4 +1,6 @@
 use accounting_assistant_lib::entity::accounting_book::{self, ActiveModel, Entity, Model};
+use accounting_assistant_lib::entity::accounting_record;
+use accounting_assistant_lib::enums::{AccountingType, AccountingChannel};
 use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto};
 use accounting_assistant_lib::services::AccountingBookService;
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
@@ -560,6 +562,124 @@ async fn test_get_write_off_records_by_id() {
         let records = service.get_write_off_records_by_id(20240101001).await?;
 
         assert_eq!(records.len(), 2);
+
+        Ok(())
+    }).await.unwrap();
+}
+
+// ==================== get_record_write_off_details 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_write_off_details_success() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        // 创建主记录
+        let master_record = accounting_record::ActiveModel {
+            id: Set(20240101101),
+            amount: Set(Decimal::new(10000, 2)), // 100.00
+            record_time: Set(Local::now().naive_local()),
+            accounting_type: Set(AccountingType::Income),
+            title: Set("主记录".to_string()),
+            channel: Set(AccountingChannel::BankCard),
+            remark: Set(Some("原始备注".to_string())),
+            book_id: Set(Some(DEFAULT_BOOK_ID)),
+            ..Default::default()
+        };
+        master_record.insert(&txn).await?;
+
+        // 创建两条冲账记录
+        let write_off1 = accounting_record::ActiveModel {
+            id: Set(20240101102),
+            amount: Set(Decimal::new(-3000, 2)), // -30.00
+            record_time: Set(Local::now().naive_local()),
+            accounting_type: Set(AccountingType::Expenditure),
+            title: Set("冲账1".to_string()),
+            channel: Set(AccountingChannel::BankCard),
+            remark: Set(Some("第一次冲账".to_string())),
+            write_off_id: Set(Some(20240101101)),
+            book_id: Set(Some(DEFAULT_BOOK_ID)),
+            ..Default::default()
+        };
+        write_off1.insert(&txn).await?;
+
+        let write_off2 = accounting_record::ActiveModel {
+            id: Set(20240101103),
+            amount: Set(Decimal::new(-2000, 2)), // -20.00
+            record_time: Set(Local::now().naive_local()),
+            accounting_type: Set(AccountingType::Expenditure),
+            title: Set("冲账2".to_string()),
+            channel: Set(AccountingChannel::Cash),
+            remark: Set(None),
+            write_off_id: Set(Some(20240101101)),
+            book_id: Set(Some(DEFAULT_BOOK_ID)),
+            ..Default::default()
+        };
+        write_off2.insert(&txn).await?;
+
+        // 获取冲账详情
+        let details = service.get_record_write_off_details(20240101101).await?;
+
+        // 验证原始金额
+        assert_eq!(details.original_amount, Decimal::new(10000, 2));
+
+        // 验证冲账记录数量
+        assert_eq!(details.write_off_records.len(), 2);
+
+        // 验证冲账记录内容
+        let amounts: Vec<Decimal> = details.write_off_records.iter().map(|r| r.amount).collect();
+        assert!(amounts.contains(&Decimal::new(-3000, 2)));
+        assert!(amounts.contains(&Decimal::new(-2000, 2)));
+
+        Ok(())
+    }).await.unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_write_off_details_not_found() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        let result = service.get_record_write_off_details(999999).await;
+
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert_eq!(err.to_string(), "记录不存在");
+
+        Ok(())
+    }).await.unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_write_off_details_empty() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        // 创建主记录（无冲账关联）
+        let master_record = accounting_record::ActiveModel {
+            id: Set(20240101201),
+            amount: Set(Decimal::new(50000, 2)), // 500.00
+            record_time: Set(Local::now().naive_local()),
+            accounting_type: Set(AccountingType::Income),
+            title: Set("无冲账记录".to_string()),
+            channel: Set(AccountingChannel::BankCard),
+            remark: Set(None),
+            book_id: Set(Some(DEFAULT_BOOK_ID)),
+            ..Default::default()
+        };
+        master_record.insert(&txn).await?;
+
+        // 获取冲账详情
+        let details = service.get_record_write_off_details(20240101201).await?;
+
+        // 验证原始金额
+        assert_eq!(details.original_amount, Decimal::new(50000, 2));
+
+        // 验证冲账记录为空
+        assert!(details.write_off_records.is_empty());
 
         Ok(())
     }).await.unwrap();

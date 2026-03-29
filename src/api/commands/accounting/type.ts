@@ -79,3 +79,20 @@ export type PaginatedResult<T> = {
   pageSize: number
   totalPages: number
 }
+
+/**
+ * 创建冲账记录 DTO
+ * 与 Rust 后端 CreateWriteOffRecordDto 对齐
+ */
+export type CreateWriteOffRecordDto = {
+  /** 被冲账的原始记录 ID */
+  originalRecordId: number
+  /** 冲账金额（支持正负数） */
+  amount: number
+  /** 渠道（可选，默认继承原始记录渠道） */
+  channel?: string
+  /** 备注 */
+  remark?: string
+  /** 记录时间（可选，默认当前时间，格式 "YYYY-MM-DD HH:mm:ss"） */
+  recordTime?: string
+}

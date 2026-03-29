@@ -17,6 +17,7 @@ import type {
   RecordWithCountDto,
   GetRecordsByBookIdPaginatedDto,
   BookStats,
+  RecordWriteOffDetails,
 } from './type'
 
 // 导出类型
@@ -95,6 +96,13 @@ export const getBookStats = (bookId: number) =>
  */
 export const getAllBooksStats = () => tryCMD<BookStats[]>('get_all_books_stats')
 
+/**
+ * 查询记录的冲账详情（HoverCard 按需加载）
+ * 对应 Rust 后端 get_record_write_off_details 命令
+ */
+export const getRecordWriteOffDetails = (recordId: number) =>
+  tryCMD<RecordWriteOffDetails>('get_record_write_off_details', { recordId })
+
 // 便捷方法
 export const accountingBook = {
   create: createBook,
@@ -103,6 +111,7 @@ export const accountingBook = {
   getAllStats: getAllBooksStats,
   getById: getBookById,
   getPaginated: getBooksPaginated,
+  getRecordWriteOffDetails,
   getRecordsByBookId: getRecordsByBookIdPaginated,
   getStats: getBookStats,
   update: updateBook,

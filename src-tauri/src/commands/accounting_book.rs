@@ -1,5 +1,5 @@
 use crate::entity::accounting_book;
-use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto}};
+use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto, RecordWriteOffDetailsDto}};
 use tauri::State;
 
 /// 创建账本
@@ -117,6 +117,17 @@ pub async fn get_write_off_records_by_id(
     record_id: i64,
 ) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
     service.get_write_off_records_by_id(record_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// 查询记录的冲账详情（HoverCard 按需加载）
+#[tauri::command]
+pub async fn get_record_write_off_details(
+    service: State<'_, AccountingBookService>,
+    record_id: i64,
+) -> Result<RecordWriteOffDetailsDto, String> {
+    service.get_record_write_off_details(record_id)
         .await
         .map_err(|e| e.to_string())
 }

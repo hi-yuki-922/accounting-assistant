@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use chrono::NaiveDateTime;
+use rust_decimal::Decimal;
 use crate::entity::accounting_record;
 use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 
@@ -73,6 +75,31 @@ pub struct RecordWithCountDto {
     pub record: accounting_record::Model,
     /// 冲账关联记录数量
     pub related_count: i64,
+    /// 原始金额（冲账前）
+    pub original_amount: Decimal,
+    /// 净金额（原始金额 + 冲账金额合计）
+    pub net_amount: Decimal,
+}
+
+/// 冲账记录简要信息 DTO（用于 HoverCard 展示）
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WriteOffRecordDto {
+    pub id: i64,
+    pub amount: Decimal,
+    pub record_time: NaiveDateTime,
+    pub remark: Option<String>,
+    pub channel: AccountingChannel,
+}
+
+/// 冲账详情 DTO（HoverCard 按需加载）
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordWriteOffDetailsDto {
+    /// 原始金额
+    pub original_amount: Decimal,
+    /// 冲账记录列表
+    pub write_off_records: Vec<WriteOffRecordDto>,
 }
 
 /// 分页响应结构

@@ -79,3 +79,27 @@ impl ModifyAccountingRecordDto {
         Ok((amount_decimal, parsed_datetime, parsed_accounting_type))
     }
 }
+
+/// 批量入账 DTO
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchPostRecordsDto {
+    /// 要入账的记录 ID 列表
+    pub record_ids: Vec<i64>,
+}
+
+/// 创建冲账记录 DTO
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateWriteOffRecordDto {
+    /// 被冲账的原始记录 ID
+    pub original_record_id: i64,
+    /// 冲账金额（支持正负数）
+    pub amount: f64,
+    /// 渠道（可选，默认继承原始记录渠道）
+    pub channel: Option<String>,
+    /// 备注
+    pub remark: Option<String>,
+    /// 记录时间（可选，默认当前时间）
+    pub record_time: Option<String>,
+}

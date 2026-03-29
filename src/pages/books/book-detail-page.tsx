@@ -1,22 +1,24 @@
 /**
  * 账本详情页面
- * 展示账本信息和记账记录
+ * 展示账本信息和记账记录，支持增删改查、批量入账、冲账等操作
  */
 
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { format } from 'date-fns'
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
+import { ArrowLeft, Edit, Trash2, Plus, CheckCircle } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { toast } from 'sonner'
 
-import type {
-  AccountingType,
-  AccountingChannel,
-  AccountingRecordState,
-} from '@/api/commands'
+import { accounting } from '@/api/commands/accounting'
 import { accountingBook } from '@/api/commands/accounting-book'
 import type { AccountingBook } from '@/api/commands/accounting-book/type'
 import type { RecordWithCountDto } from '@/api/commands/accounting-book/type'
 import { DEFAULT_BOOK_ID } from '@/api/commands/accounting-book/type'
+import type {
+  AccountingType,
+  AccountingChannel,
+  AccountingRecordState,
+} from '@/api/commands/accounting/enums'
 import { Button } from '@/components/ui/button'
 import {
   Pagination,
@@ -27,14 +29,30 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 
+import { AddRecordDialog } from './components/add-record-dialog'
+import { BatchPostConfirmDialog } from './components/batch-post-confirm-dialog'
 import { CreateEditBookDialog } from './components/create-edit-book-dialog'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
+import { DeleteRecordConfirmDialog } from './components/delete-record-confirm-dialog'
+import { EditRecordDialog } from './components/edit-record-dialog'
 import { RecordFilter } from './components/record-filter'
 import { RecordListTable } from './components/record-list-table'
+import { WriteOffDialog } from './components/write-off-dialog'
+
+/** 将后端返回的 Decimal 字符串字段转换为数字 */
+const normalizeRecord = (record: RecordWithCountDto): RecordWithCountDto => ({
+  ...record,
+  amount: Number(record.amount),
+  originalAmount: Number(record.originalAmount),
+  netAmount: Number(record.netAmount),
+})
 
 export const BookDetailPage = () => {
   const navigate = useNavigate()
   const { bookId } = useParams({ from: '/books/$bookId' })
+  const numericBookId = Number(bookId)
+
+  // 基础状态
   const [book, setBook] = useState<AccountingBook | null>(null)
   const [loading, setLoading] = useState(true)
   const [records, setRecords] = useState<RecordWithCountDto[]>([])
@@ -51,10 +69,32 @@ export const BookDetailPage = () => {
     channel: undefined as AccountingChannel | undefined,
     state: undefined as AccountingRecordState | undefined,
   })
+
+  // 账本编辑/删除对话框
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  // 记录操作对话框
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [editRecordDialogOpen, setEditRecordDialogOpen] = useState(false)
+  const [deleteRecordDialogOpen, setDeleteRecordDialogOpen] = useState(false)
+  const [writeOffDialogOpen, setWriteOffDialogOpen] = useState(false)
+  const [batchPostDialogOpen, setBatchPostDialogOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<RecordWithCountDto | null>(
+    null
+  )
+  const [deletingRecord, setDeletingRecord] =
+    useState<RecordWithCountDto | null>(null)
+  const [writeOffRecord, setWriteOffRecord] =
+    useState<RecordWithCountDto | null>(null)
+
+  // 选择和排序状态
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [sortField, setSortField] = useState<string>('recordTime')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [refreshCounter, setRefreshCounter] = useState(0)
 
   // 加载账本详情
   const loadBookDetail = useCallback(async () => {
@@ -62,18 +102,18 @@ export const BookDetailPage = () => {
       return
     }
 
-    const result = await accountingBook.getById(Number(bookId))
+    const result = await accountingBook.getById(numericBookId)
     result.match(
-      (book) => {
-        setBook(book)
+      (b) => {
+        setBook(b)
         setLoading(false)
       },
       (error) => {
-        console.error('Failed to load book detail:', error)
+        toast.error(`加载账本详情失败: ${error.message}`)
         setLoading(false)
       }
     )
-  }, [bookId])
+  }, [bookId, numericBookId])
 
   // 加载记录列表
   const loadRecords = useCallback(async () => {
@@ -81,14 +121,13 @@ export const BookDetailPage = () => {
       return
     }
 
-    // 格式化日期为 ISO 8601 格式（后端 chrono::NaiveDateTime 需要此格式）
     const formatDateTime = (date: Date, isEndTime = false) => {
       const time = isEndTime ? '23:59:59' : '00:00:00'
       return format(date, 'yyyy-MM-dd') + 'T' + time
     }
 
     const result = await accountingBook.getRecordsByBookId({
-      bookId: Number(bookId),
+      bookId: numericBookId,
       page: pagination.page,
       pageSize: pagination.pageSize,
       startTime: filters.startTime
@@ -103,21 +142,29 @@ export const BookDetailPage = () => {
     })
     result.match(
       (response) => {
-        setRecords(response.data)
-        setPagination({
+        setRecords(response.data.map(normalizeRecord))
+        setPagination((prev) => ({
+          ...prev,
           page: response.page,
           pageSize: response.pageSize,
           total: response.total,
           totalPages: response.totalPages,
-        })
+        }))
         setLoading(false)
       },
       (error) => {
-        console.error('Failed to load records:', error)
+        toast.error(`加载记录失败: ${error.message}`)
         setLoading(false)
       }
     )
-  }, [bookId, pagination.page, pagination.pageSize, filters])
+  }, [
+    bookId,
+    numericBookId,
+    pagination.page,
+    pagination.pageSize,
+    filters,
+    refreshCounter,
+  ])
 
   useEffect(() => {
     loadBookDetail()
@@ -127,7 +174,53 @@ export const BookDetailPage = () => {
     loadRecords()
   }, [loadRecords])
 
-  // 处理筛选器变更
+  // 客户端排序记录
+  const sortedRecords = useMemo(() => {
+    const sorted = [...records]
+    const dir = sortDirection === 'asc' ? 1 : -1
+
+    sorted.sort((a, b) => {
+      switch (sortField) {
+        case 'recordTime': {
+          return (
+            dir *
+            (new Date(a.recordTime).getTime() -
+              new Date(b.recordTime).getTime())
+          )
+        }
+        case 'channel': {
+          return dir * a.channel.localeCompare(b.channel)
+        }
+        case 'state': {
+          return dir * a.state.localeCompare(b.state)
+        }
+        case 'relatedCount': {
+          return dir * (a.relatedCount - b.relatedCount)
+        }
+        default: {
+          return 0
+        }
+      }
+    })
+
+    return sorted
+  }, [records, sortField, sortDirection])
+
+  // 刷新到第一页（添加/删除/批量入账后使用）
+  const refreshToFirstPage = () => {
+    setSelectedIds(new Set())
+    setPagination((prev) => ({ ...prev, page: 1 }))
+    setRefreshCounter((c) => c + 1)
+    void loadBookDetail()
+  }
+
+  // 保留当前页刷新（编辑/冲账/入账后使用）
+  const refreshCurrentPage = () => {
+    setSelectedIds(new Set())
+    setRefreshCounter((c) => c + 1)
+  }
+
+  // 筛选器变更
   const handleFilterChange = (newFilters: {
     startTime?: Date | null
     endTime?: Date | null
@@ -139,12 +232,23 @@ export const BookDetailPage = () => {
     setPagination({ ...pagination, page: 1 })
   }
 
-  // 处理页码变更
+  // 页码变更
   const handlePageChange = (page: number) => {
     setPagination({ ...pagination, page })
   }
 
-  // 处理编辑账本
+  // 排序变更
+  const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
+    setSortField(field)
+    setSortDirection(direction)
+  }
+
+  // 选择变更
+  const handleSelectionChange = (ids: Set<number>) => {
+    setSelectedIds(ids)
+  }
+
+  // 编辑账本
   const handleEditBook = async (data: {
     title: string
     description: string
@@ -160,15 +264,16 @@ export const BookDetailPage = () => {
       () => {
         void loadBookDetail()
         setEditDialogOpen(false)
+        toast.success('账本更新成功')
       },
       (error) => {
-        console.error('Failed to update book:', error)
+        toast.error(`更新账本失败: ${error.message}`)
       }
     )
     setSaving(false)
   }
 
-  // 处理删除账本
+  // 删除账本
   const handleDeleteBook = async () => {
     if (!book) {
       return
@@ -181,11 +286,88 @@ export const BookDetailPage = () => {
         navigate({ to: '/books' })
       },
       (error) => {
-        console.error('Failed to delete book:', error)
+        toast.error(`删除账本失败: ${error.message}`)
       }
     )
     setDeleting(false)
   }
+
+  // 记一笔成功
+  const handleAddSuccess = () => {
+    setAddDialogOpen(false)
+    refreshToFirstPage()
+  }
+
+  // 编辑记录
+  const handleEditRecord = (record: RecordWithCountDto) => {
+    setEditingRecord(record)
+    setEditRecordDialogOpen(true)
+  }
+
+  // 编辑成功
+  const handleEditSuccess = () => {
+    setEditRecordDialogOpen(false)
+    setEditingRecord(null)
+    refreshCurrentPage()
+  }
+
+  // 删除记录
+  const handleDeleteRecord = (record: RecordWithCountDto) => {
+    setDeletingRecord(record)
+    setDeleteRecordDialogOpen(true)
+  }
+
+  // 删除成功
+  const handleDeleteSuccess = () => {
+    setDeleteRecordDialogOpen(false)
+    setDeletingRecord(null)
+    refreshToFirstPage()
+  }
+
+  // 单条入账
+  const handlePostRecord = async (record: RecordWithCountDto) => {
+    const result = await accounting.post({ id: record.id })
+    result.match(
+      () => {
+        toast.success('入账成功')
+        refreshCurrentPage()
+      },
+      (error) => {
+        toast.error(`入账失败: ${error.message}`)
+      }
+    )
+  }
+
+  // 冲账
+  const handleWriteOff = (record: RecordWithCountDto) => {
+    setWriteOffRecord(record)
+    setWriteOffDialogOpen(true)
+  }
+
+  // 冲账成功
+  const handleWriteOffSuccess = () => {
+    setWriteOffDialogOpen(false)
+    setWriteOffRecord(null)
+    refreshToFirstPage()
+  }
+
+  // 批量入账
+  const handleBatchPost = () => {
+    if (selectedIds.size === 0) {
+      toast.warning('请先选择要入账的记录')
+      return
+    }
+    setBatchPostDialogOpen(true)
+  }
+
+  // 批量入账成功
+  const handleBatchPostSuccess = () => {
+    setBatchPostDialogOpen(false)
+    refreshToFirstPage()
+  }
+
+  // 选中的记录列表（用于批量入账确认对话框）
+  const selectedRecords = records.filter((r) => selectedIds.has(r.id))
 
   // 生成页码数组
   const getPageNumbers = () => {
@@ -265,10 +447,30 @@ export const BookDetailPage = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {/* 记一笔按钮 */}
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            记一笔
+          </Button>
+
+          {/* 批量入账按钮 */}
+          <Button
+            variant="outline"
+            onClick={handleBatchPost}
+            disabled={selectedIds.size === 0}
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            批量入账
+            {selectedIds.size > 0 && ` (${selectedIds.size})`}
+          </Button>
+
+          {/* 编辑账本 */}
           <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
             <Edit className="mr-2 h-4 w-4" />
             编辑
           </Button>
+
+          {/* 删除账本 */}
           {!isDefaultBook && (
             <Button
               variant="destructive"
@@ -310,11 +512,23 @@ export const BookDetailPage = () => {
           </div>
           <p className="text-gray-600 dark:text-gray-400 mb-2">暂无记账记录</p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            点击上方按钮添加第一条记录
+            点击"记一笔"添加第一条记录
           </p>
         </div>
       ) : (
-        <RecordListTable records={records} loading={loading} />
+        <RecordListTable
+          records={sortedRecords}
+          loading={loading}
+          selectedIds={selectedIds}
+          onSelectionChange={handleSelectionChange}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSortChange={handleSortChange}
+          onEdit={handleEditRecord}
+          onDelete={handleDeleteRecord}
+          onPost={handlePostRecord}
+          onWriteOff={handleWriteOff}
+        />
       )}
 
       {/* 分页 */}
@@ -371,6 +585,61 @@ export const BookDetailPage = () => {
         </div>
       )}
 
+      {/* 记一笔对话框 */}
+      <AddRecordDialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onSuccess={handleAddSuccess}
+        bookId={numericBookId}
+      />
+
+      {/* 编辑记录对话框 */}
+      {editingRecord && (
+        <EditRecordDialog
+          open={editRecordDialogOpen}
+          onClose={() => {
+            setEditRecordDialogOpen(false)
+            setEditingRecord(null)
+          }}
+          onSuccess={handleEditSuccess}
+          record={editingRecord}
+        />
+      )}
+
+      {/* 删除记录确认对话框 */}
+      {deletingRecord && (
+        <DeleteRecordConfirmDialog
+          open={deleteRecordDialogOpen}
+          onClose={() => {
+            setDeleteRecordDialogOpen(false)
+            setDeletingRecord(null)
+          }}
+          onSuccess={handleDeleteSuccess}
+          record={deletingRecord}
+        />
+      )}
+
+      {/* 冲账对话框 */}
+      {writeOffRecord && (
+        <WriteOffDialog
+          open={writeOffDialogOpen}
+          onClose={() => {
+            setWriteOffDialogOpen(false)
+            setWriteOffRecord(null)
+          }}
+          onSuccess={handleWriteOffSuccess}
+          record={writeOffRecord}
+        />
+      )}
+
+      {/* 批量入账确认对话框 */}
+      <BatchPostConfirmDialog
+        open={batchPostDialogOpen}
+        onClose={() => setBatchPostDialogOpen(false)}
+        onSuccess={handleBatchPostSuccess}
+        selectedRecords={selectedRecords}
+      />
+
       {/* 编辑账本对话框 */}
       {book && (
         <CreateEditBookDialog
@@ -382,7 +651,7 @@ export const BookDetailPage = () => {
         />
       )}
 
-      {/* 删除确认对话框 */}
+      {/* 删除账本确认对话框 */}
       {book && (
         <DeleteBookConfirmDialog
           open={deleteDialogOpen}

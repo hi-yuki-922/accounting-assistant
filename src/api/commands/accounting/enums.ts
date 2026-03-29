@@ -12,6 +12,7 @@ export const AccountingType = {
   Expenditure: 'Expenditure',
   InvestmentIncome: 'InvestmentIncome',
   InvestmentLoss: 'InvestmentLoss',
+  WriteOff: 'WriteOff',
 } as const
 
 export type AccountingType =
@@ -57,6 +58,7 @@ export const ACCOUNTING_TYPE_DISPLAY_TEXT = {
   [AccountingType.Expenditure]: '支出',
   [AccountingType.InvestmentIncome]: '投资收益',
   [AccountingType.InvestmentLoss]: '投资亏损',
+  [AccountingType.WriteOff]: '冲账',
 } as const
 
 /**
