@@ -127,3 +127,29 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  @keyframes shake {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+      transform: rotate(0.5deg);
+    }
+    20%,
+    40%,
+    60%,
+    80% {
+      transform: rotate(-0.5deg);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 1.2s ease-in-out infinite;
+  }
+}

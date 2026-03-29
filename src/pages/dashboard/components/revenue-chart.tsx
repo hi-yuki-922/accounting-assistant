@@ -75,9 +75,7 @@ export const RevenueChart = ({ data, className }: RevenueChartProps) => {
                 tickLine={false}
                 tickFormatter={formatCurrencyValue}
               />
-              <ChartTooltip
-                content={<ChartTooltipContent formatter={formatTooltipValue} />}
-              />
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Legend
                 verticalAlign="top"
                 height={36}

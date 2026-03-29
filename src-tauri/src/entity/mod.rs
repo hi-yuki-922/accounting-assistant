@@ -3,6 +3,9 @@ pub mod accounting_record_seq;
 pub mod accounting_book;
 pub mod accounting_book_seq;
 pub mod attachment;
+pub mod chat_session;
+pub mod chat_message;
+pub mod chat_message_seq;
 mod prelude;
 
 pub async fn with_install_entities (db: &sea_orm::DatabaseConnection) -> Result<(), Box<dyn std::error::Error>> {
@@ -12,6 +15,9 @@ pub async fn with_install_entities (db: &sea_orm::DatabaseConnection) -> Result<
       .register(accounting_book::Entity)
       .register(accounting_book_seq::Entity)
       .register(attachment::Entity)
+      .register(chat_session::Entity)
+      .register(chat_message::Entity)
+      .register(chat_message_seq::Entity)
       .sync(db)
       .await?;
 

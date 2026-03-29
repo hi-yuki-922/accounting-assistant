@@ -1,9 +1,17 @@
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait};
 use crate::entity::{accounting_book, accounting_record};
+use rust_decimal::Decimal;
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
+};
 
 pub mod dto;
 
-use self::dto::{CreateBookDto, UpdateBookTitleDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto};
+use self::dto::{
+    CreateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse,
+    RecordWithCountDto, RecordWriteOffDetailsDto, UpdateBookDto, UpdateBookTitleDto,
+    WriteOffRecordDto,
+};
 
 /// 默认账本 ID
 pub const DEFAULT_BOOK_ID: i64 = 10000001;
@@ -34,12 +42,16 @@ impl AccountingBookService {
         }
 
         // 创建默认账本
-        let default_create_time = chrono::NaiveDateTime::parse_from_str("2000-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")?;
+        let default_create_time =
+            chrono::NaiveDateTime::parse_from_str("2000-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")?;
 
         let new_book = accounting_book::ActiveModel {
             id: Set(DEFAULT_BOOK_ID),
             title: Set("未归类账目".to_string()),
+            description: Set(None),
             create_at: Set(default_create_time),
+            record_count: Set(0),
+            icon: Set(Some("folder".to_string())),
         };
 
         new_book.insert(&self.db).await?;
@@ -63,7 +75,10 @@ impl AccountingBookService {
         let new_book = accounting_book::ActiveModel {
             id: Set(book_id),
             title: Set(input.title),
+            description: Set(input.description),
             create_at: Set(chrono::Local::now().naive_local()),
+            record_count: Set(0),
+            icon: Set(input.icon),
         };
 
         let book = new_book.insert(&self.db).await?;
@@ -74,9 +89,7 @@ impl AccountingBookService {
     pub async fn get_books(
         &self,
     ) -> Result<Vec<accounting_book::Model>, Box<dyn std::error::Error>> {
-        let books = accounting_book::Entity::find()
-            .all(&self.db)
-            .await?;
+        let books = accounting_book::Entity::find().all(&self.db).await?;
         Ok(books)
     }
 
@@ -92,15 +105,11 @@ impl AccountingBookService {
         Ok(book)
     }
 
-    /// 修改账本标题
-    pub async fn update_book_title(
+    /// 更新账本信息
+    pub async fn update_book(
         &self,
-        input: UpdateBookTitleDto,
+        input: UpdateBookDto,
     ) -> Result<Option<accounting_book::Model>, Box<dyn std::error::Error>> {
-        if input.new_title.trim().is_empty() {
-            return Err("账本标题不能为空".into());
-        }
-
         let book = accounting_book::Entity::find()
             .filter(accounting_book::Column::Id.eq(input.id))
             .one(&self.db)
@@ -109,7 +118,22 @@ impl AccountingBookService {
         match book {
             Some(book) => {
                 let mut active_book: accounting_book::ActiveModel = book.into();
-                active_book.title = Set(input.new_title);
+
+                // 只更新提供的字段
+                if let Some(title) = input.title {
+                    if title.trim().is_empty() {
+                        return Err("账本标题不能为空".into());
+                    }
+                    active_book.title = Set(title);
+                }
+
+                if let Some(description) = input.description {
+                    active_book.description = Set(description);
+                }
+
+                if let Some(icon) = input.icon {
+                    active_book.icon = Set(icon);
+                }
 
                 let updated_book = active_book.update(&self.db).await?;
                 Ok(Some(updated_book))
@@ -118,11 +142,22 @@ impl AccountingBookService {
         }
     }
 
-    /// 删除账本（将关联记录迁移到默认账本）
-    pub async fn delete_book(
+    /// 修改账本标题（已弃用，请使用 update_book）
+    pub async fn update_book_title(
         &self,
-        id: i64,
-    ) -> Result<bool, Box<dyn std::error::Error>> {
+        input: UpdateBookTitleDto,
+    ) -> Result<Option<accounting_book::Model>, Box<dyn std::error::Error>> {
+        self.update_book(UpdateBookDto {
+            id: input.id,
+            title: Some(input.new_title),
+            description: None,
+            icon: None,
+        })
+        .await
+    }
+
+    /// 删除账本（将关联记录迁移到默认账本）
+    pub async fn delete_book(&self, id: i64) -> Result<bool, Box<dyn std::error::Error>> {
         // 禁止删除默认账本
         if id == DEFAULT_BOOK_ID {
             return Err("默认账本不能删除".into());
@@ -140,17 +175,33 @@ impl AccountingBookService {
             return Ok(false);
         }
 
+        let _book = book.unwrap();
+
         // 将该账本的所有记录迁移到默认账本
         let update = accounting_record::ActiveModel {
             book_id: Set(Some(DEFAULT_BOOK_ID)),
             ..Default::default()
         };
 
-        accounting_record::Entity::update_many()
+        let update_result = accounting_record::Entity::update_many()
             .filter(accounting_record::Column::BookId.eq(id))
             .set(update)
             .exec(&txn)
             .await?;
+
+        // 更新默认账本的 record_count
+        if update_result.rows_affected > 0 {
+            let mut default_book = accounting_book::ActiveModel::from(
+                accounting_book::Entity::find()
+                    .filter(accounting_book::Column::Id.eq(DEFAULT_BOOK_ID))
+                    .one(&txn)
+                    .await?
+                    .ok_or("默认账本不存在")?,
+            );
+            default_book.record_count =
+                Set(default_book.record_count.as_ref() + update_result.rows_affected as i32);
+            default_book.update(&txn).await?;
+        }
 
         // 删除账本
         accounting_book::Entity::delete_many()
@@ -182,8 +233,9 @@ impl AccountingBookService {
     ) -> Result<Vec<accounting_record::Model>, Box<dyn std::error::Error>> {
         let records = accounting_record::Entity::find()
             .filter(
-                accounting_record::Column::BookId.is_null()
-                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID))
+                accounting_record::Column::BookId
+                    .is_null()
+                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID)),
             )
             .all(&self.db)
             .await?;
@@ -201,12 +253,14 @@ impl AccountingBookService {
         let page_size = input.page_size;
 
         // 获取总数量
-        let total = accounting_book::Entity::find()
-            .count(&self.db)
-            .await?;
+        let total = accounting_book::Entity::find().count(&self.db).await?;
 
         // 计算总页数
-        let total_pages = if total == 0 { 0 } else { (total + page_size - 1) / page_size };
+        let total_pages = if total == 0 {
+            0
+        } else {
+            total.div_ceil(page_size)
+        };
 
         // 如果页码超出范围，返回空数据
         if page > total_pages && total > 0 {
@@ -258,11 +312,11 @@ impl AccountingBookService {
         // 构建基础查询条件
         let mut query = if input.book_id == DEFAULT_BOOK_ID {
             // 如果是查询未归类账目，还需要包含 book_id 为 NULL 的记录
-            accounting_record::Entity::find()
-                .filter(
-                    accounting_record::Column::BookId.is_null()
-                        .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID))
-                )
+            accounting_record::Entity::find().filter(
+                accounting_record::Column::BookId
+                    .is_null()
+                    .or(accounting_record::Column::BookId.eq(DEFAULT_BOOK_ID)),
+            )
         } else {
             accounting_record::Entity::find()
                 .filter(accounting_record::Column::BookId.eq(input.book_id))
@@ -298,7 +352,11 @@ impl AccountingBookService {
         let total = query.clone().count(&self.db).await?;
 
         // 计算总页数
-        let total_pages = if total == 0 { 0 } else { (total + page_size - 1) / page_size };
+        let total_pages = if total == 0 {
+            0
+        } else {
+            total.div_ceil(page_size)
+        };
 
         // 如果页码超出范围，返回空数据
         if page > total_pages && total > 0 {
@@ -319,18 +377,25 @@ impl AccountingBookService {
         // 获取当前页数据（注意：fetch_page 使用 0-based 索引）
         let records = paginator.fetch_page(page - 1).await?;
 
-        // 2.6 批量查询关联记录数量
+        // 2.6 批量查询关联记录数量和冲账金额合计
         let record_ids: Vec<i64> = records.iter().map(|r| r.id).collect();
-        let related_counts = self.get_related_records_count(&record_ids).await?;
+        let aggregates = self.get_write_off_aggregates(&record_ids).await?;
 
-        // 2.7 将关联记录数量注入到每条记录的返回数据中
+        // 2.7 将关联记录数量和净金额注入到每条记录的返回数据中
         let data: Vec<RecordWithCountDto> = records
             .into_iter()
             .map(|record| {
-                let related_count = *related_counts.get(&record.id).unwrap_or(&0);
+                let (related_count, write_off_sum) = aggregates
+                    .get(&record.id)
+                    .copied()
+                    .unwrap_or((0, Decimal::ZERO));
+                let original_amount = record.amount;
+                let net_amount = original_amount + write_off_sum;
                 RecordWithCountDto {
                     record,
                     related_count,
+                    original_amount,
+                    net_amount,
                 }
             })
             .collect();
@@ -345,7 +410,81 @@ impl AccountingBookService {
         })
     }
 
-    /// 批量查询记录的关联记录数量
+    /// 批量查询记录的关联数量和冲账金额合计
+    async fn get_write_off_aggregates(
+        &self,
+        record_ids: &[i64],
+    ) -> Result<std::collections::HashMap<i64, (i64, Decimal)>, Box<dyn std::error::Error>> {
+        if record_ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
+
+        // 查询所有冲账记录
+        let write_offs = accounting_record::Entity::find()
+            .filter(accounting_record::Column::WriteOffId.is_in(record_ids.to_vec()))
+            .all(&self.db)
+            .await?;
+
+        // 按原始记录 ID 分组，计算关联数量和金额合计
+        let mut result = std::collections::HashMap::new();
+        for wo in &write_offs {
+            if let Some(parent_id) = wo.write_off_id {
+                let entry = result.entry(parent_id).or_insert((0i64, Decimal::ZERO));
+                entry.0 += 1;
+                entry.1 += wo.amount;
+            }
+        }
+
+        // 为没有冲账记录的 ID 添加默认值
+        for id in record_ids {
+            if !result.contains_key(id) {
+                result.insert(*id, (0, Decimal::ZERO));
+            }
+        }
+
+        Ok(result)
+    }
+
+    /// 获取记录的冲账详情（HoverCard 按需加载）
+    pub async fn get_record_write_off_details(
+        &self,
+        record_id: i64,
+    ) -> Result<RecordWriteOffDetailsDto, Box<dyn std::error::Error>> {
+        // 查找原始记录
+        let record = accounting_record::Entity::find_by_id(record_id)
+            .one(&self.db)
+            .await?
+            .ok_or("记录不存在")?;
+
+        let original_amount = record.amount;
+
+        // 查询所有冲账记录，按创建时间倒序
+        let write_off_records = accounting_record::Entity::find()
+            .filter(accounting_record::Column::WriteOffId.eq(record_id))
+            .order_by_desc(accounting_record::Column::CreateAt)
+            .all(&self.db)
+            .await?;
+
+        // 转换为 DTO
+        let write_off_dtos: Vec<WriteOffRecordDto> = write_off_records
+            .into_iter()
+            .map(|r| WriteOffRecordDto {
+                id: r.id,
+                amount: r.amount,
+                record_time: r.record_time,
+                remark: r.remark,
+                channel: r.channel,
+            })
+            .collect();
+
+        Ok(RecordWriteOffDetailsDto {
+            original_amount,
+            write_off_records: write_off_dtos,
+        })
+    }
+
+    /// 批量查询记录的关联记录数量（已弃用，请使用 get_write_off_aggregates）
+    #[allow(dead_code)]
     async fn get_related_records_count(
         &self,
         record_ids: &[i64],

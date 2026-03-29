@@ -4,6 +4,7 @@ use rust_decimal::Decimal;
 use chrono::NaiveDateTime;
 
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AddAccountingRecordDto {
     pub amount: f64,
     pub record_time: String,  // Format: "YYYY-MM-DD HH:MM:SS"
@@ -16,6 +17,7 @@ pub struct AddAccountingRecordDto {
 }
 
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ModifyAccountingRecordDto {
     pub id: i64,
     pub amount: Option<f64>,                    // New amount as float
@@ -60,7 +62,7 @@ impl ModifyAccountingRecordDto {
 
         // Parse optional date string to NaiveDateTime if provided
         let parsed_datetime = if let Some(date_str) = self.record_time.as_ref() {
-            Some(NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
+            Some(NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S")
                 .map_err(|_| "Invalid date format, expected YYYY-MM-DD HH:MM:SS".to_string())?)
         } else {
             None
@@ -76,4 +78,28 @@ impl ModifyAccountingRecordDto {
 
         Ok((amount_decimal, parsed_datetime, parsed_accounting_type))
     }
+}
+
+/// 批量入账 DTO
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchPostRecordsDto {
+    /// 要入账的记录 ID 列表
+    pub record_ids: Vec<i64>,
+}
+
+/// 创建冲账记录 DTO
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateWriteOffRecordDto {
+    /// 被冲账的原始记录 ID
+    pub original_record_id: i64,
+    /// 冲账金额（支持正负数）
+    pub amount: f64,
+    /// 渠道（可选，默认继承原始记录渠道）
+    pub channel: Option<String>,
+    /// 备注
+    pub remark: Option<String>,
+    /// 记录时间（可选，默认当前时间）
+    pub record_time: Option<String>,
 }

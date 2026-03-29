@@ -5,6 +5,7 @@ use sea_orm::entity::prelude::*;
 use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 #[sea_orm(table_name = "accounting_record")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
