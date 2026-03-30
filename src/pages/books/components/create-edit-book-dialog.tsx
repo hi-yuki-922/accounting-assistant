@@ -98,7 +98,7 @@ export const CreateEditBookDialog: React.FC<CreateEditBookDialogProps> = ({
           {/* 标题输入 */}
           <div className="space-y-2">
             <Label htmlFor="book-title">
-              标题 <span className="text-red-500">*</span>
+              标题 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="book-title"
@@ -109,10 +109,10 @@ export const CreateEditBookDialog: React.FC<CreateEditBookDialogProps> = ({
               }}
               placeholder="请输入账本标题"
               maxLength={20}
-              className={error ? 'border-red-500' : ''}
+              className={error ? 'border-destructive' : ''}
             />
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <p className="text-xs text-muted-foreground">
               最多 {title.length}/20 个字符
             </p>
           </div>

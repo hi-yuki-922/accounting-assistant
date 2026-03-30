@@ -59,8 +59,8 @@ export const DeleteRecordConfirmDialog: React.FC<
         <DialogHeader>
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
               </div>
             </div>
             <div>
@@ -82,7 +82,7 @@ export const DeleteRecordConfirmDialog: React.FC<
             </div>
           </div>
 
-          <DialogDescription className="text-sm mt-3 text-red-600 dark:text-red-400">
+          <DialogDescription className="text-sm mt-3 text-destructive">
             此操作无法撤销，删除后数据将无法恢复。
           </DialogDescription>
         </div>

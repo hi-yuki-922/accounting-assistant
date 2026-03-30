@@ -688,7 +688,7 @@ export const RecordListTable = ({
                 {/* 关联数 */}
                 <TableCell className="text-sm text-muted-foreground">
                   {record.relatedCount > 0 ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">
                       {record.relatedCount}
                     </span>
                   ) : (
