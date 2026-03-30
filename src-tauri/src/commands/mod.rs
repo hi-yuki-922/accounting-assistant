@@ -2,6 +2,7 @@ mod accounting;
 mod attachment;
 mod accounting_book;
 mod chat;
+mod customer;
 
 pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
   builder.invoke_handler(tauri::generate_handler![
@@ -36,6 +37,12 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     chat::create_chat_message,
     chat::get_chat_messages,
     chat::update_chat_message_state,
-    chat::update_chat_message_content
+    chat::update_chat_message_content,
+    customer::create_customer,
+    customer::update_customer,
+    customer::delete_customer,
+    customer::get_all_customers,
+    customer::get_customer_by_id,
+    customer::search_customers
   ])
 }
