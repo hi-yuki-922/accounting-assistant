@@ -1,8 +1,8 @@
 {
   "name": "accounting-assistant",
-  "author": "yuki",
   "version": "0.2.0",
   "private": true,
+  "author": "yuki",
   "type": "module",
   "scripts": {
     "dev": "vite",
