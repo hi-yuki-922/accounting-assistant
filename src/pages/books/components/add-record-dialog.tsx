@@ -140,7 +140,7 @@ export const AddRecordDialog: React.FC<AddRecordDialogProps> = ({
           {/* 标题 */}
           <div className="space-y-2">
             <Label htmlFor="record-title">
-              标题 <span className="text-red-500">*</span>
+              标题 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="record-title"
@@ -153,7 +153,7 @@ export const AddRecordDialog: React.FC<AddRecordDialogProps> = ({
           {/* 金额 */}
           <div className="space-y-2">
             <Label htmlFor="record-amount">
-              金额 <span className="text-red-500">*</span>
+              金额 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="record-amount"

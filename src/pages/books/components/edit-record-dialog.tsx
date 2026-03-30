@@ -133,7 +133,7 @@ export const EditRecordDialog: React.FC<EditRecordDialogProps> = ({
           {/* 标题 */}
           <div className="space-y-2">
             <Label htmlFor="edit-title">
-              标题 <span className="text-red-500">*</span>
+              标题 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="edit-title"
@@ -146,7 +146,7 @@ export const EditRecordDialog: React.FC<EditRecordDialogProps> = ({
           {/* 金额 */}
           <div className="space-y-2">
             <Label htmlFor="edit-amount">
-              金额 <span className="text-red-500">*</span>
+              金额 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="edit-amount"

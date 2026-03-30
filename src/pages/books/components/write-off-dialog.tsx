@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 type WriteOffDialogProps = {
   /** 是否打开对话框 */
@@ -142,7 +143,7 @@ export const WriteOffDialog: React.FC<WriteOffDialogProps> = ({
           {/* 冲账金额 */}
           <div className="space-y-2">
             <Label htmlFor="write-off-amount">
-              冲账金额 <span className="text-red-500">*</span>
+              冲账金额 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="write-off-amount"
@@ -159,17 +160,18 @@ export const WriteOffDialog: React.FC<WriteOffDialogProps> = ({
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">冲账后净金额</span>
               <span
-                className={`font-medium ${
+                className={cn(
+                  'font-medium',
                   isNetAmountInvalid
                     ? 'text-red-600 dark:text-red-400'
                     : 'text-green-600 dark:text-green-400'
-                }`}
+                )}
               >
                 {netAmount.toFixed(2)}
               </span>
             </div>
             {isNetAmountInvalid && (
-              <p className="text-xs text-red-500">冲账后净金额不能小于 0</p>
+              <p className="text-xs text-destructive">冲账后净金额不能小于 0</p>
             )}
           </div>
 

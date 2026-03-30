@@ -23,11 +23,13 @@ import { Button } from '@/components/ui/button'
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { Spinner } from '@/components/ui/spinner'
 
 import { AddRecordDialog } from './components/add-record-dialog'
 import { BatchPostConfirmDialog } from './components/batch-post-confirm-dialog'
@@ -408,7 +410,8 @@ export const BookDetailPage = () => {
   if (loading && !book) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">加载中...</div>
+        <Spinner className="size-6" />
+        <span className="ml-2 text-muted-foreground">加载中...</span>
       </div>
     )
   }
@@ -416,7 +419,7 @@ export const BookDetailPage = () => {
   if (!book) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">账本不存在</div>
+        <span className="text-muted-foreground">账本不存在</span>
       </div>
     )
   }
@@ -436,11 +439,9 @@ export const BookDetailPage = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {book.title}
-            </h1>
+            <h1 className="text-2xl font-bold text-foreground">{book.title}</h1>
             {book.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {book.description}
               </p>
             )}
@@ -495,8 +496,8 @@ export const BookDetailPage = () => {
 
       {/* 记录列表 */}
       {records.length === 0 && !loading ? (
-        <div className="flex flex-col items-center justify-center h-64 bg-gray-50 dark:bg-gray-900 rounded-lg">
-          <div className="w-16 h-16 mb-4 text-gray-400">
+        <div className="flex flex-col items-center justify-center h-64 bg-muted/50 rounded-lg">
+          <div className="w-16 h-16 mb-4 text-muted-foreground">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -510,8 +511,8 @@ export const BookDetailPage = () => {
               />
             </svg>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-2">暂无记账记录</p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
+          <p className="text-muted-foreground mb-2">暂无记账记录</p>
+          <p className="text-sm text-muted-foreground">
             点击"记一笔"添加第一条记录
           </p>
         </div>
@@ -667,21 +668,3 @@ export const BookDetailPage = () => {
     </div>
   )
 }
-
-const PaginationEllipsis = () => (
-  <span className="flex h-8 w-8 items-center justify-center">
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      className="w-4 h-4 text-gray-400"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6.75 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zM12 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zM17.25 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-      />
-    </svg>
-  </span>
-)

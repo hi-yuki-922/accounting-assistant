@@ -80,13 +80,11 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
+    <div className="bg-card rounded-lg border p-4 mb-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5 text-gray-500" />
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            筛选条件
-          </h3>
+          <Filter className="w-5 h-5 text-muted-foreground" />
+          <h3 className="text-sm font-semibold text-foreground">筛选条件</h3>
         </div>
       </div>
 
