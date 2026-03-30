@@ -74,22 +74,22 @@ export const BookCard: React.FC<BookCardProps> = ({
           <div className="flex items-center space-x-4 flex-1">
             {/* 图标 */}
             <div className="shrink-0">
-              <div className="w-14 h-14 rounded-lg bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 flex items-center justify-center">
-                <IconComponent className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
+                <IconComponent className="w-7 h-7 text-primary" />
               </div>
             </div>
 
             {/* 内容 */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+              <h3 className="text-lg font-semibold text-foreground truncate">
                 {book.title}
               </h3>
               {book.description && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                   {book.description}
                 </p>
               )}
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 {book.recordCount} 条记录
               </p>
             </div>
@@ -101,8 +101,9 @@ export const BookCard: React.FC<BookCardProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                 onClick={(e) => e.stopPropagation()}
+                aria-label={`操作：${book.title}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -118,7 +119,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               </DropdownMenuItem>
               {!isDefault && (
                 <DropdownMenuItem
-                  className="text-red-600 dark:text-red-400"
+                  className="text-destructive"
                   onClick={(e) => {
                     e.stopPropagation()
                     onDelete?.()

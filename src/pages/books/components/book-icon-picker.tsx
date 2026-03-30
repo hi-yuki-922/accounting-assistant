@@ -18,7 +18,7 @@ export const BookIconPicker: React.FC<BookIconPickerProps> = ({
   selectedIcon,
   onSelectIcon,
 }) => (
-  <div className="grid grid-cols-5 gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+  <div className="grid grid-cols-5 gap-3 p-4 bg-muted rounded-lg">
     {BOOK_ICONS.map((icon) => {
       const IconComponent = icon.component
       const isSelected = selectedIcon === icon.id
@@ -30,10 +30,10 @@ export const BookIconPicker: React.FC<BookIconPickerProps> = ({
           onClick={() => onSelectIcon(icon)}
           className={cn(
             'w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200',
-            'hover:bg-white dark:hover:bg-gray-800',
+            'hover:bg-accent',
             isSelected
-              ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-gray-900'
-              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+              ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
+              : 'bg-card text-muted-foreground'
           )}
           title={icon.name}
         >

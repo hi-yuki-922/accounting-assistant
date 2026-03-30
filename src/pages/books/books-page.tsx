@@ -269,7 +269,7 @@ export const BooksPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">加载中...</div>
+        <div className="text-muted-foreground">加载中...</div>
       </div>
     )
   }
@@ -277,19 +277,15 @@ export const BooksPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          账本管理
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">账本管理</h1>
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              排序模式
-            </span>
+            <span className="text-sm text-muted-foreground">排序模式 </span>
             <Switch
               checked={isSortingMode}
               onCheckedChange={handleToggleSortingMode}
             />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-muted-foreground">
               {isSortingMode ? '开启' : '关闭'}
             </span>
           </div>

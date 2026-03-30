@@ -49,9 +49,7 @@ export const DeleteCustomerConfirmDialog: React.FC<
       <div className="py-4">
         <DialogDescription className="text-base">
           确定要删除客户 "
-          <strong className="text-gray-900 dark:text-gray-100">
-            {customer.name}
-          </strong>
+          <strong className="text-foreground">{customer.name}</strong>
           "（{CUSTOMER_CATEGORY_LABELS[customer.category]}，{customer.phone}
           ）吗？
         </DialogDescription>

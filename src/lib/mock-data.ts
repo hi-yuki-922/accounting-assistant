@@ -27,7 +27,7 @@ import type {
 export const mockStatsCards: StatsCardData[] = [
   {
     icon: Wallet,
-    iconColor: 'text-blue-500',
+    iconColor: 'text-chart-1',
     title: '总资产',
     trend: {
       isPositive: true,
@@ -37,7 +37,7 @@ export const mockStatsCards: StatsCardData[] = [
   },
   {
     icon: TrendingUp,
-    iconColor: 'text-green-500',
+    iconColor: 'text-chart-2',
     title: '本月收入',
     trend: {
       isPositive: true,
@@ -47,7 +47,7 @@ export const mockStatsCards: StatsCardData[] = [
   },
   {
     icon: TrendingDown,
-    iconColor: 'text-red-500',
+    iconColor: 'text-destructive',
     title: '本月支出',
     trend: {
       isPositive: false,
@@ -57,7 +57,7 @@ export const mockStatsCards: StatsCardData[] = [
   },
   {
     icon: PieChart,
-    iconColor: 'text-purple-500',
+    iconColor: 'text-chart-3',
     title: '净资产',
     trend: {
       isPositive: true,

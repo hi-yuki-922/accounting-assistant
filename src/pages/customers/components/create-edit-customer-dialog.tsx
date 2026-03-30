@@ -131,7 +131,7 @@ export const CreateEditCustomerDialog: React.FC<
           {/* 姓名 */}
           <div className="space-y-2">
             <Label htmlFor="customer-name">
-              姓名 <span className="text-red-500">*</span>
+              姓名 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="customer-name"
@@ -141,17 +141,17 @@ export const CreateEditCustomerDialog: React.FC<
                 setErrors((prev) => ({ ...prev, name: '' }))
               }}
               placeholder="请输入客户姓名"
-              className={errors.name ? 'border-red-500' : ''}
+              className={errors.name ? 'border-destructive' : ''}
             />
             {errors.name && (
-              <p className="text-sm text-red-500">{errors.name}</p>
+              <p className="text-sm text-destructive">{errors.name}</p>
             )}
           </div>
 
           {/* 分类 */}
           <div className="space-y-2">
             <Label>
-              分类 <span className="text-red-500">*</span>
+              分类 <span className="text-destructive">*</span>
             </Label>
             <Select
               value={category}
@@ -175,7 +175,7 @@ export const CreateEditCustomerDialog: React.FC<
           {/* 电话 */}
           <div className="space-y-2">
             <Label htmlFor="customer-phone">
-              电话 <span className="text-red-500">*</span>
+              电话 <span className="text-destructive">*</span>
             </Label>
             <Input
               id="customer-phone"
@@ -185,10 +185,10 @@ export const CreateEditCustomerDialog: React.FC<
                 setErrors((prev) => ({ ...prev, phone: '' }))
               }}
               placeholder="请输入联系电话"
-              className={errors.phone ? 'border-red-500' : ''}
+              className={errors.phone ? 'border-destructive' : ''}
             />
             {errors.phone && (
-              <p className="text-sm text-red-500">{errors.phone}</p>
+              <p className="text-sm text-destructive">{errors.phone}</p>
             )}
           </div>
 

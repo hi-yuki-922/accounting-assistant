@@ -60,22 +60,22 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => onEdit(customer)}
+            aria-label={`编辑：${customer.name}`}
           >
             <Edit className="h-4 w-4" />
-            <span className="sr-only">编辑</span>
           </Button>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => onDelete(customer)}
+            aria-label={`删除：${customer.name}`}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
-            <span className="sr-only">删除</span>
           </Button>
         </div>
       </div>

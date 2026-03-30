@@ -148,9 +148,7 @@ export const CustomersPage = () => {
     <div className="container mx-auto px-4 py-8">
       {/* 页头 */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          客户管理
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">客户管理</h1>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           新增客户

@@ -10,6 +10,7 @@ import {
   MessageSquareIcon,
   UsersIcon,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import * as React from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,12 +37,7 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
-
-  const handleThemeToggle = React.useCallback(
-    () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
-    []
-  )
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <SidebarProvider>
@@ -146,11 +142,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
           <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon-sm" onClick={handleThemeToggle}>
-              {theme === 'light' ? (
-                <MoonIcon className="h-4 w-4" />
-              ) : (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+              }
+            >
+              {resolvedTheme === 'dark' ? (
                 <SunIcon className="h-4 w-4" />
+              ) : (
+                <MoonIcon className="h-4 w-4" />
               )}
               <span className="sr-only">切换主题</span>
             </Button>
