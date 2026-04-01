@@ -1,7 +1,7 @@
 use accounting_assistant_lib::entity::accounting_book::{self, ActiveModel, Entity, Model};
 use accounting_assistant_lib::entity::accounting_record;
 use accounting_assistant_lib::enums::{AccountingType, AccountingChannel};
-use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto};
+use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookDto};
 use accounting_assistant_lib::services::AccountingBookService;
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
 use chrono::Local;
@@ -199,12 +199,14 @@ async fn test_update_book_title_success() {
         let book = service.create_book(dto).await?;
 
         // 更新标题
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: book.id,
-            new_title: "新标题".to_string(),
+            title: Some("新标题".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let updated = service.update_book_title(update_dto).await?;
+        let updated = service.update_book(update_dto).await?;
 
         assert!(updated.is_some());
         let updated_book = updated.unwrap();
@@ -230,12 +232,14 @@ async fn test_update_book_empty_title() {
         let book = service.create_book(dto).await?;
 
         // 尝试更新为空标题
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: book.id,
-            new_title: "".to_string(),
+            title: Some("".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let result = service.update_book_title(update_dto).await;
+        let result = service.update_book(update_dto).await;
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "账本标题不能为空");
@@ -259,12 +263,14 @@ async fn test_update_book_not_found() {
         let service = AccountingBookService::new(txn.clone());
 
         // 尝试更新不存在的账本
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: 999999,
-            new_title: "新标题".to_string(),
+            title: Some("新标题".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let updated = service.update_book_title(update_dto).await?;
+        let updated = service.update_book(update_dto).await?;
 
         assert!(updated.is_none());
 

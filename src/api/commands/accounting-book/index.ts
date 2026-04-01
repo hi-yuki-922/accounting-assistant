@@ -11,7 +11,6 @@ import { tryCMD } from '@/lib'
 import type {
   AccountingBook,
   CreateBookDto,
-  UpdateBookTitleDto,
   UpdateBookDto,
   GetBooksPaginatedDto,
   RecordWithCountDto,
@@ -58,13 +57,6 @@ export const getBooksPaginated = (params: GetBooksPaginatedDto) =>
  */
 export const updateBook = (data: UpdateBookDto) =>
   tryCMD<AccountingBook | null>('update_book', { input: data })
-
-/**
- * 修改账本标题（已弃用，请使用 updateBook）
- * 对应 Rust 后端 update_book_title 命令
- */
-export const updateBookTitle = (data: UpdateBookTitleDto) =>
-  tryCMD<AccountingBook | null>('update_book_title', { input: data })
 
 /**
  * 删除账本
@@ -115,5 +107,4 @@ export const accountingBook = {
   getRecordsByBookId: getRecordsByBookIdPaginated,
   getStats: getBookStats,
   update: updateBook,
-  updateTitle: updateBookTitle,
 }

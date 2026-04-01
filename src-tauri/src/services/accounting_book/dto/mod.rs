@@ -25,15 +25,6 @@ pub struct UpdateBookDto {
     pub icon: Option<Option<String>>,
 }
 
-/// 修改账本标题 DTO（已弃用，请使用 UpdateBookDto）
-#[deprecated(since = "0.1.1", note = "请使用 UpdateBookDto 代替")]
-#[derive(Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateBookTitleDto {
-    pub id: i64,
-    pub new_title: String,
-}
-
 /// 分页查询账本请求 DTO
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

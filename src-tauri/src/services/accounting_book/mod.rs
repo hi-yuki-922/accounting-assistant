@@ -2,14 +2,14 @@ use crate::entity::{accounting_book, accounting_record};
 use rust_decimal::Decimal;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
+    QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 
 pub mod dto;
 
 use self::dto::{
     CreateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse,
-    RecordWithCountDto, RecordWriteOffDetailsDto, UpdateBookDto, UpdateBookTitleDto,
+    RecordWithCountDto, RecordWriteOffDetailsDto, UpdateBookDto,
     WriteOffRecordDto,
 };
 
@@ -140,20 +140,6 @@ impl AccountingBookService {
             }
             None => Ok(None),
         }
-    }
-
-    /// 修改账本标题（已弃用，请使用 update_book）
-    pub async fn update_book_title(
-        &self,
-        input: UpdateBookTitleDto,
-    ) -> Result<Option<accounting_book::Model>, Box<dyn std::error::Error>> {
-        self.update_book(UpdateBookDto {
-            id: input.id,
-            title: Some(input.new_title),
-            description: None,
-            icon: None,
-        })
-        .await
     }
 
     /// 删除账本（将关联记录迁移到默认账本）
@@ -481,43 +467,6 @@ impl AccountingBookService {
             original_amount,
             write_off_records: write_off_dtos,
         })
-    }
-
-    /// 批量查询记录的关联记录数量（已弃用，请使用 get_write_off_aggregates）
-    #[allow(dead_code)]
-    async fn get_related_records_count(
-        &self,
-        record_ids: &[i64],
-    ) -> Result<std::collections::HashMap<i64, i64>, Box<dyn std::error::Error>> {
-        if record_ids.is_empty() {
-            return Ok(std::collections::HashMap::new());
-        }
-
-        // 批量查询每条记录的关联数量
-        let counts: Vec<(i64, i64)> = accounting_record::Entity::find()
-            .select_only()
-            .column_as(accounting_record::Column::WriteOffId, "record_id")
-            .column_as(accounting_record::Column::Id.count(), "count")
-            .filter(accounting_record::Column::WriteOffId.is_in(record_ids.to_vec()))
-            .group_by(accounting_record::Column::WriteOffId)
-            .into_tuple::<(i64, i64)>()
-            .all(&self.db)
-            .await?;
-
-        // 转换为 HashMap
-        let mut result = std::collections::HashMap::new();
-        for (record_id, count) in counts {
-            result.insert(record_id, count);
-        }
-
-        // 为没有关联记录的 ID 添加 0
-        for id in record_ids {
-            if !result.contains_key(id) {
-                result.insert(*id, 0);
-            }
-        }
-
-        Ok(result)
     }
 
     /// 根据记录 ID 查询冲账关联记录

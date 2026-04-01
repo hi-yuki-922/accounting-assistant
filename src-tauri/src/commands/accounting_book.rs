@@ -1,5 +1,5 @@
 use crate::entity::accounting_book;
-use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookTitleDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto, RecordWriteOffDetailsDto}};
+use crate::services::accounting_book::{AccountingBookService, dto::{CreateBookDto, UpdateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, PaginatedResponse, RecordWithCountDto, RecordWriteOffDetailsDto}};
 use tauri::State;
 
 /// 创建账本
@@ -41,17 +41,6 @@ pub async fn update_book(
     input: UpdateBookDto,
 ) -> Result<Option<accounting_book::Model>, String> {
     service.update_book(input)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-/// 修改账本标题（已弃用，请使用 update_book）
-#[tauri::command]
-pub async fn update_book_title(
-    service: State<'_, AccountingBookService>,
-    input: UpdateBookTitleDto,
-) -> Result<Option<accounting_book::Model>, String> {
-    service.update_book_title(input)
         .await
         .map_err(|e| e.to_string())
 }

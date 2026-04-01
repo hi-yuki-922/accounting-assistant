@@ -21,7 +21,6 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     accounting_book::get_books,
     accounting_book::get_book_by_id,
     accounting_book::update_book,
-    accounting_book::update_book_title,
     accounting_book::delete_book,
     accounting_book::get_records_by_book_id,
     accounting_book::get_uncategorized_records,
