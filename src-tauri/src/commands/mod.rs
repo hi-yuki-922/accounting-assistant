@@ -3,6 +3,8 @@ mod attachment;
 mod accounting_book;
 mod chat;
 mod customer;
+mod product;
+mod order;
 
 pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
   builder.invoke_handler(tauri::generate_handler![
@@ -42,6 +44,19 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     customer::delete_customer,
     customer::get_all_customers,
     customer::get_customer_by_id,
-    customer::search_customers
+    customer::search_customers,
+    product::create_product,
+    product::update_product,
+    product::delete_product,
+    product::get_all_products,
+    product::get_product_by_id,
+    product::search_products,
+    order::create_order,
+    order::settle_order,
+    order::cancel_order,
+    order::get_all_orders,
+    order::get_order_by_id,
+    order::get_orders_by_customer_id,
+    order::get_orders_by_status
   ])
 }

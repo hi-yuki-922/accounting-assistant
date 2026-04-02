@@ -13,7 +13,8 @@ pub struct AddAccountingRecordDto {
     pub channel: String,
     pub remark: Option<String>,
     pub write_off_id: Option<i64>,
-    pub book_id: Option<i64>
+    pub book_id: Option<i64>,
+    pub order_id: Option<i64>,
 }
 
 #[derive(Deserialize, Serialize)]

@@ -8,6 +8,11 @@ pub mod chat_message;
 pub mod chat_message_seq;
 pub mod customer;
 pub mod customer_seq;
+pub mod product;
+pub mod product_seq;
+pub mod order;
+pub mod order_item;
+pub mod order_seq;
 mod prelude;
 
 pub async fn with_install_entities (db: &sea_orm::DatabaseConnection) -> Result<(), Box<dyn std::error::Error>> {
@@ -22,6 +27,11 @@ pub async fn with_install_entities (db: &sea_orm::DatabaseConnection) -> Result<
       .register(chat_message_seq::Entity)
       .register(customer::Entity)
       .register(customer_seq::Entity)
+      .register(product::Entity)
+      .register(product_seq::Entity)
+      .register(order::Entity)
+      .register(order_item::Entity)
+      .register(order_seq::Entity)
       .sync(db)
       .await?;
 

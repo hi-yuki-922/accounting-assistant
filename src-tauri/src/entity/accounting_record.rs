@@ -23,6 +23,8 @@ pub struct Model {
     pub create_at: NaiveDateTime,
     pub state: AccountingRecordState,
     pub book_id: Option<i64>,
+    /// 关联订单 ID
+    pub order_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -58,13 +60,14 @@ impl ActiveModelBehavior for ActiveModel {
             create_at: sea_orm::ActiveValue::Set(now),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
             book_id: sea_orm::ActiveValue::NotSet,
+            order_id: sea_orm::ActiveValue::NotSet,
         }
     }
 }
 
 impl Model {
     // Generate a unique ID in the format YYYYMMDDNNNNN
-    pub async fn generate_id(db: &DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
+    pub async fn generate_id<C: sea_orm::ConnectionTrait>(db: &C) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
         let date_str = now.format("%Y%m%d").to_string();

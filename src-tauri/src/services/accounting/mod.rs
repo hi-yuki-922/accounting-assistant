@@ -47,6 +47,7 @@ impl AccountingService {
             create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
             book_id: sea_orm::ActiveValue::Set(Option::from(book_id)),
+            order_id: sea_orm::ActiveValue::Set(input.order_id),
         };
 
         let inserted_record = new_record.insert(&self.db).await?;
@@ -301,6 +302,7 @@ impl AccountingService {
             create_at: sea_orm::ActiveValue::Set(Local::now().naive_local()),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::Posted),
             book_id: sea_orm::ActiveValue::Set(Some(book_id)),
+            order_id: sea_orm::ActiveValue::Set(None),
         };
 
         let inserted_record = new_record.insert(&self.db).await?;
@@ -317,5 +319,17 @@ impl AccountingService {
         }
 
         Ok(inserted_record)
+    }
+
+    /// 根据订单 ID 查询关联的记账记录
+    pub async fn get_record_by_order_id(
+        &self,
+        order_id: i64,
+    ) -> Result<Option<Model>, Box<dyn std::error::Error>> {
+        let record = accounting_record::Entity::find()
+            .filter(accounting_record::Column::OrderId.eq(order_id))
+            .one(&self.db)
+            .await?;
+        Ok(record)
     }
 }
