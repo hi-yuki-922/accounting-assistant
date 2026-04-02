@@ -25,6 +25,7 @@ async fn test_add_record_income() {
             remark: Some("1月工资".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(dto).await?;
@@ -56,6 +57,7 @@ async fn test_add_record_expenditure() {
             remark: Some("公司楼下餐厅".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(dto).await?;
@@ -82,6 +84,7 @@ async fn test_add_record_investment_income() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(dto).await?;
@@ -107,6 +110,7 @@ async fn test_add_record_investment_loss() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(dto).await?;
@@ -132,6 +136,7 @@ async fn test_add_record_with_book_id() {
             remark: None,
             write_off_id: None,
             book_id: Some(DEFAULT_BOOK_ID),
+            order_id: None,
         };
 
         let record = service.add_record(dto).await?;
@@ -158,6 +163,7 @@ async fn test_add_record_with_write_off_id() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let master_record = service.add_record(master_dto).await?;
@@ -172,6 +178,7 @@ async fn test_add_record_with_write_off_id() {
             remark: None,
             write_off_id: Some(master_record.id),
             book_id: None,
+            order_id: None,
         };
 
         let write_off_record = service.add_record(write_off_dto).await?;
@@ -198,6 +205,7 @@ async fn test_modify_record_amount() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -237,6 +245,7 @@ async fn test_modify_record_title() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -276,6 +285,7 @@ async fn test_modify_record_remark() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -314,6 +324,7 @@ async fn test_modify_record_remove_remark() {
             remark: Some("原始备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -377,6 +388,7 @@ async fn test_modify_record_after_posting() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -419,6 +431,7 @@ async fn test_post_record() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -467,6 +480,7 @@ async fn test_post_record_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -499,6 +513,7 @@ async fn test_query_record_by_id_directly() {
             remark: Some("测试备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -550,6 +565,7 @@ async fn test_delete_record_success() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -597,6 +613,7 @@ async fn test_delete_record_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -628,6 +645,7 @@ async fn test_delete_record_with_write_off_association() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -713,6 +731,7 @@ async fn test_delete_record_updates_book_count() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
         let record = service.add_record(add_dto).await?;
@@ -752,6 +771,7 @@ async fn test_batch_post_records_success() {
                 remark: None,
                 write_off_id: None,
                 book_id: None,
+                order_id: None,
             };
             let record = service.add_record(dto).await?;
             record_ids.push(record.id);
@@ -816,6 +836,7 @@ async fn test_batch_post_records_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let record = service.add_record(add_dto).await?;
         service.post_record(record.id).await?;
@@ -830,6 +851,7 @@ async fn test_batch_post_records_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let record2 = service.add_record(add_dto2).await?;
 
@@ -863,6 +885,7 @@ async fn test_batch_post_single_record() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let record = service.add_record(add_dto).await?;
 
@@ -895,6 +918,7 @@ async fn test_create_write_off_record_success() {
             remark: Some("原始备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -962,6 +986,7 @@ async fn test_create_write_off_record_original_not_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
 
@@ -998,6 +1023,7 @@ async fn test_create_write_off_record_cannot_write_off_write_off() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1046,6 +1072,7 @@ async fn test_create_write_off_record_amount_exceeds_original() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1084,6 +1111,7 @@ async fn test_create_write_off_record_cumulative_amount_exceeds() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1132,6 +1160,7 @@ async fn test_create_write_off_record_custom_channel() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1171,6 +1200,7 @@ async fn test_create_write_off_record_custom_time() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1216,6 +1246,7 @@ async fn test_create_write_off_record_updates_book_count() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
         let original = service.add_record(add_dto).await?;
         service.post_record(original.id).await?;
@@ -1237,6 +1268,57 @@ async fn test_create_write_off_record_updates_book_count() {
             .expect("默认账本应存在");
 
         assert_eq!(book_after.record_count, count_before + 2);
+
+        Ok(())
+    }).await.unwrap();
+}
+
+// ==================== get_record_by_order_id 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_by_order_id_with_record() {
+    run_in_transaction(|db| async move {
+        let service = AccountingService::new(db.clone());
+
+        // 创建带 order_id 的记账记录
+        let dto = AddAccountingRecordDto {
+            amount: 200.00,
+            record_time: "2024-01-01 12:00:00".to_string(),
+            accounting_type: "Income".to_string(),
+            title: "销售订单-#1".to_string(),
+            channel: "BankCard".to_string(),
+            remark: None,
+            write_off_id: None,
+            book_id: None,
+            order_id: Some(2024010100001),
+        };
+
+        let record = service.add_record(dto).await?;
+        assert_eq!(record.order_id, Some(2024010100001));
+
+        // 根据 order_id 查询
+        let found = service.get_record_by_order_id(2024010100001).await?;
+
+        assert!(found.is_some());
+        let found_record = found.unwrap();
+        assert_eq!(found_record.id, record.id);
+        assert_eq!(found_record.order_id, Some(2024010100001));
+        assert_eq!(found_record.title, "销售订单-#1");
+
+        Ok(())
+    }).await.unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_by_order_id_no_record() {
+    run_in_transaction(|db| async move {
+        let service = AccountingService::new(db.clone());
+
+        let found = service.get_record_by_order_id(999999).await?;
+
+        assert!(found.is_none());
 
         Ok(())
     }).await.unwrap();
