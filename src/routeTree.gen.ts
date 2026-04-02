@@ -10,18 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as ChatbotRouteImport } from './routes/chatbot'
 import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as CustomersIndexRouteImport } from './routes/customers.index'
 import { Route as BooksIndexRouteImport } from './routes/books.index'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as BooksBookIdRouteImport } from './routes/books.$bookId'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -49,6 +64,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrdersRoute,
+} as any)
 const CustomersIndexRoute = CustomersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -58,6 +83,11 @@ const BooksIndexRoute = BooksIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BooksRoute,
+} as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => OrdersRoute,
 } as any)
 const BooksBookIdRoute = BooksBookIdRouteImport.update({
   id: '/$bookId',
@@ -71,10 +101,15 @@ export interface FileRoutesByFullPath {
   '/chatbot': typeof ChatbotRoute
   '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books/': typeof BooksIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,8 +117,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books': typeof BooksIndexRoute
   '/customers': typeof CustomersIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/products': typeof ProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,10 +130,15 @@ export interface FileRoutesById {
   '/chatbot': typeof ChatbotRoute
   '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books/': typeof BooksIndexRoute
   '/customers/': typeof CustomersIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,10 +148,15 @@ export interface FileRouteTypes {
     | '/chatbot'
     | '/customers'
     | '/dashboard'
+    | '/orders'
+    | '/products'
     | '/settings'
     | '/books/$bookId'
+    | '/orders/$orderId'
     | '/books/'
     | '/customers/'
+    | '/orders/'
+    | '/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -116,8 +164,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/settings'
     | '/books/$bookId'
+    | '/orders/$orderId'
     | '/books'
     | '/customers'
+    | '/orders'
+    | '/products'
   id:
     | '__root__'
     | '/'
@@ -125,10 +176,15 @@ export interface FileRouteTypes {
     | '/chatbot'
     | '/customers'
     | '/dashboard'
+    | '/orders'
+    | '/products'
     | '/settings'
     | '/books/$bookId'
+    | '/orders/$orderId'
     | '/books/'
     | '/customers/'
+    | '/orders/'
+    | '/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,6 +193,8 @@ export interface RootRouteChildren {
   ChatbotRoute: typeof ChatbotRoute
   CustomersRoute: typeof CustomersRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  OrdersRoute: typeof OrdersRouteWithChildren
+  ProductsRoute: typeof ProductsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -147,6 +205,20 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -184,6 +256,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products/': {
+      id: '/products/'
+      path: '/'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof OrdersRoute
+    }
     '/customers/': {
       id: '/customers/'
       path: '/'
@@ -197,6 +283,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/books/'
       preLoaderRoute: typeof BooksIndexRouteImport
       parentRoute: typeof BooksRoute
+    }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof OrdersRoute
     }
     '/books/$bookId': {
       id: '/books/$bookId'
@@ -232,12 +325,39 @@ const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
   CustomersRouteChildren,
 )
 
+interface OrdersRouteChildren {
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+}
+
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+}
+
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
+interface ProductsRouteChildren {
+  ProductsIndexRoute: typeof ProductsIndexRoute
+}
+
+const ProductsRouteChildren: ProductsRouteChildren = {
+  ProductsIndexRoute: ProductsIndexRoute,
+}
+
+const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
+  ProductsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BooksRoute: BooksRouteWithChildren,
   ChatbotRoute: ChatbotRoute,
   CustomersRoute: CustomersRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  OrdersRoute: OrdersRouteWithChildren,
+  ProductsRoute: ProductsRouteWithChildren,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
