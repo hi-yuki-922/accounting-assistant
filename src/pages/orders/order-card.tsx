@@ -23,7 +23,8 @@ export type OrderCardProps = {
 }
 
 /** 格式化金额显示 */
-const formatAmount = (amount: number) => `¥${amount.toFixed(2)}`
+const formatAmount = (amount: number | string) =>
+  `¥${Number(amount).toFixed(2)}`
 
 /** 格式化时间显示 */
 const formatTime = (timeStr: string) => {

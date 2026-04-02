@@ -31,7 +31,8 @@ import { CancelOrderConfirmDialog } from './cancel-order-confirm-dialog'
 import { SettleOrderDialog } from './settle-order-dialog'
 
 /** 格式化金额 */
-const formatAmount = (amount: number) => `¥${amount.toFixed(2)}`
+const formatAmount = (amount: number | string) =>
+  `¥${Number(amount).toFixed(2)}`
 
 /** 格式化时间 */
 const formatDateTime = (timeStr: string) =>

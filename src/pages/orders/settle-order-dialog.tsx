@@ -85,7 +85,7 @@ export const SettleOrderDialog: React.FC<SettleOrderDialogProps> = ({
             <div>
               <span className="text-muted-foreground">应收金额：</span>
               <span className="font-medium">
-                ¥{order.totalAmount.toFixed(2)}
+                ¥{Number(order.totalAmount).toFixed(2)}
               </span>
             </div>
           </div>

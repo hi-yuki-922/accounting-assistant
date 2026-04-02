@@ -16,12 +16,12 @@ export type ProductCardProps = {
   onDelete: (product: Product) => void
 }
 
-/** 格式化价格显示 */
-const formatPrice = (price?: number) => {
+/** 格式化价格显示（后端 Decimal 序列化为字符串，需兼容处理） */
+const formatPrice = (price?: number | string) => {
   if (price == null) {
     return '-'
   }
-  return `¥${price.toFixed(2)}`
+  return `¥${Number(price).toFixed(2)}`
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({

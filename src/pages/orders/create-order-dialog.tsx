@@ -287,7 +287,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                         >
                           {product.name}
                           <span className="text-muted-foreground ml-2">
-                            ¥{(product.defaultSellPrice ?? 0).toFixed(2)}
+                            ¥{Number(product.defaultSellPrice ?? 0).toFixed(2)}
                           </span>
                         </button>
                       ))}
