@@ -1,16 +1,19 @@
 /**
- * 创建订单对话框组件
- * 支持类型选择、客户选择、明细行管理、商品搜索、金额计算
- * 不包含支付渠道选择（渠道在结账时选择）
+ * 编辑订单对话框
+ * 允许修改 Pending 状态订单的明细和备注
+ * 不可修改订单类型和客户
  */
 
-import { Plus, Trash2, Search, X } from 'lucide-react'
+import { Plus, Trash2, Search } from 'lucide-react'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
 
-import { customerApi } from '@/api/commands/customer'
-import type { Customer } from '@/api/commands/customer/type'
+import { orderApi } from '@/api/commands/order'
+import type { Order, OrderItem } from '@/api/commands/order/type'
+import { ORDER_TYPE_DISPLAY_TEXT } from '@/api/commands/order/type'
 import { productApi } from '@/api/commands/product'
 import type { Product } from '@/api/commands/product/type'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,13 +24,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 /** 明细行类型 */
@@ -42,30 +38,10 @@ type ItemRow = {
   remark: string
 }
 
-export type CreateOrderDialogProps = {
-  open: boolean
-  onClose: () => void
-  onConfirm: (data: {
-    orderType: string
-    customerId?: number
-    items: {
-      productId: number
-      productName: string
-      quantity: number
-      unit: string
-      unitPrice: number
-      remark?: string
-    }[]
-    remark?: string
-    actualAmount?: number
-  }) => void
-  loading?: boolean
-}
-
-let rowKeyCounter = 0
+let editRowKeyCounter = 0
 
 const createEmptyRow = (): ItemRow => ({
-  key: `row-${++rowKeyCounter}`,
+  key: `edit-row-${++editRowKeyCounter}`,
   productId: 0,
   productName: '',
   quantity: '1',
@@ -75,63 +51,57 @@ const createEmptyRow = (): ItemRow => ({
   remark: '',
 })
 
-export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
+const fromOrderItem = (item: OrderItem): ItemRow => ({
+  key: `edit-row-${++editRowKeyCounter}`,
+  productId: item.productId,
+  productName: item.productName,
+  quantity: item.quantity.toString(),
+  unit: item.unit,
+  unitPrice: item.unitPrice.toString(),
+  subtotal: Number(item.subtotal),
+  remark: item.remark ?? '',
+})
+
+export type EditOrderDialogProps = {
+  open: boolean
+  order: Order
+  items: OrderItem[]
+  onClose: () => void
+  onConfirm: () => void
+  loading?: boolean
+}
+
+export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
   open,
+  order,
+  items: initialItems,
   onClose,
   onConfirm,
   loading = false,
 }) => {
-  const [orderType, setOrderType] = useState('Sales')
-  const [customerId, setCustomerId] = useState<number | undefined>()
-  const [customerSearch, setCustomerSearch] = useState('')
-  const [customerSearchResults, setCustomerSearchResults] = useState<
-    Customer[]
-  >([])
-  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  )
-  const customerDropdownRef = useRef<HTMLDivElement>(null)
   const [remark, setRemark] = useState('')
-  const [items, setItems] = useState<ItemRow[]>([createEmptyRow()])
+  const [itemRows, setItemRows] = useState<ItemRow[]>([])
   const [searchResults, setSearchResults] = useState<Product[]>([])
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(
     null
   )
-  const searchDropdownRef = useRef<HTMLDivElement>(null)
 
-  // 重置表单
+  // 初始化
   useEffect(() => {
     if (open) {
-      setOrderType('Sales')
-      setCustomerId(undefined)
-      setCustomerSearch('')
-      setCustomerSearchResults([])
-      setShowCustomerDropdown(false)
-      setSelectedCustomer(null)
-      setRemark('')
-      setItems([createEmptyRow()])
+      setRemark(order.remark ?? '')
+      setItemRows(
+        initialItems.length > 0
+          ? initialItems.map(fromOrderItem)
+          : [createEmptyRow()]
+      )
       setSearchResults([])
       setActiveSearchIndex(null)
     }
-  }, [open])
-
-  // 点击外部关闭下拉
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        customerDropdownRef.current &&
-        !customerDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowCustomerDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, [open, order, initialItems])
 
   // 计算总额
-  const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0)
+  const totalAmount = itemRows.reduce((sum, item) => sum + item.subtotal, 0)
 
   // 搜索商品
   const handleSearchProduct = useCallback(
@@ -153,11 +123,11 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   // 选择商品
   const handleSelectProduct = (product: Product, index: number) => {
     const price =
-      orderType === 'Sales'
+      order.orderType === 'Sales'
         ? product.defaultSellPrice
         : product.defaultPurchasePrice
 
-    setItems((prev) =>
+    setItemRows((prev) =>
       prev.map((item, i) => {
         if (i !== index) {
           return item
@@ -180,49 +150,14 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     setActiveSearchIndex(null)
   }
 
-  // 搜索客户
-  const handleSearchCustomer = useCallback(async (keyword: string) => {
-    setCustomerSearch(keyword)
-    if (!keyword.trim()) {
-      setCustomerSearchResults([])
-      setShowCustomerDropdown(false)
-      return
-    }
-    const result = await customerApi.search(keyword.trim())
-    result.match(
-      (data) => {
-        setCustomerSearchResults(data)
-        setShowCustomerDropdown(true)
-      },
-      () => setCustomerSearchResults([])
-    )
-  }, [])
-
-  // 选择客户
-  const handleSelectCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer)
-    setCustomerId(customer.id)
-    setCustomerSearch(customer.name)
-    setShowCustomerDropdown(false)
-  }
-
-  // 清除客户选择
-  const handleClearCustomer = () => {
-    setSelectedCustomer(null)
-    setCustomerId(undefined)
-    setCustomerSearch('')
-    setCustomerSearchResults([])
-  }
-
   // 更新明细行
   const updateItem = (index: number, field: keyof ItemRow, value: string) => {
-    setItems((prev) =>
+    setItemRows((prev) =>
       prev.map((item, i) => {
         if (i !== index) {
           return item
         }
         const updated = { ...item, [field]: value }
-        // 重算小计
         if (field === 'quantity' || field === 'unitPrice') {
           const subtotal =
             Number.parseFloat(updated.quantity) *
@@ -236,25 +171,24 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
   // 添加明细行
   const handleAddItem = () => {
-    setItems((prev) => [...prev, createEmptyRow()])
+    setItemRows((prev) => [...prev, createEmptyRow()])
   }
 
   // 删除明细行
   const handleRemoveItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index))
+    setItemRows((prev) => prev.filter((_, i) => i !== index))
   }
 
   // 提交
-  const handleSubmit = () => {
-    const validItems = items.filter((item) => item.productName.trim())
+  const handleSubmit = async () => {
+    const validItems = itemRows.filter((item) => item.productName.trim())
     if (validItems.length === 0) {
+      toast.error('订单明细不能为空')
       return
     }
 
-    onConfirm({
-      orderType,
-      customerId,
-      remark: remark.trim() || undefined,
+    const result = await orderApi.update({
+      orderId: order.id,
       items: validItems.map((item) => ({
         productId: item.productId,
         productName: item.productName,
@@ -263,70 +197,38 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         unitPrice: Number.parseFloat(item.unitPrice) || 0,
         remark: item.remark.trim() || undefined,
       })),
+      remark: remark.trim() || undefined,
     })
+
+    result.match(
+      () => {
+        toast.success('订单已更新')
+        onConfirm()
+      },
+      (error) => toast.error(`更新失败: ${error.message}`)
+    )
   }
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>创建订单</DialogTitle>
+          <div className="flex items-center gap-3">
+            <DialogTitle>编辑订单</DialogTitle>
+            <Badge variant="secondary">
+              {ORDER_TYPE_DISPLAY_TEXT[order.orderType]}
+            </Badge>
+            <span className="text-muted-foreground text-sm">
+              {order.orderNo}
+            </span>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* 订单类型 + 客户选择 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>订单类型</Label>
-              <Select value={orderType} onValueChange={setOrderType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Sales">销售订单</SelectItem>
-                  <SelectItem value="Purchase">采购订单</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>客户（可选）</Label>
-              <div className="relative" ref={customerDropdownRef}>
-                <div className="relative">
-                  <Input
-                    placeholder="搜索客户..."
-                    value={customerSearch}
-                    onChange={(e) => handleSearchCustomer(e.target.value)}
-                  />
-                  {selectedCustomer && (
-                    <button
-                      type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2"
-                      onClick={handleClearCustomer}
-                    >
-                      <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                  )}
-                </div>
-                {showCustomerDropdown && customerSearchResults.length > 0 && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg max-h-32 overflow-y-auto">
-                    {customerSearchResults.map((customer) => (
-                      <button
-                        key={customer.id}
-                        type="button"
-                        className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent"
-                        onClick={() => handleSelectCustomer(customer)}
-                      >
-                        {customer.name}
-                        <span className="text-muted-foreground ml-2 text-xs">
-                          {customer.phone}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* 提示：类型和客户不可修改 */}
+          <p className="text-xs text-muted-foreground">
+            订单类型和客户不可修改，仅可编辑明细和备注。
+          </p>
 
           {/* 订单明细 */}
           <div className="space-y-2">
@@ -338,18 +240,13 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               </Button>
             </div>
 
-            {items.map((item, index) => (
+            {itemRows.map((item, index) => (
               <div
                 key={item.key}
                 className="grid grid-cols-12 gap-2 items-start p-3 border rounded-lg"
               >
                 {/* 商品名称（带搜索） */}
-                <div
-                  className="col-span-3 relative"
-                  ref={
-                    activeSearchIndex === index ? searchDropdownRef : undefined
-                  }
-                >
+                <div className="col-span-3 relative">
                   <div className="relative">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
@@ -363,7 +260,6 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                       }}
                     />
                   </div>
-                  {/* 搜索结果下拉 */}
                   {activeSearchIndex === index && searchResults.length > 0 && (
                     <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg max-h-32 overflow-y-auto">
                       {searchResults.map((product) => (
@@ -374,11 +270,6 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                           onClick={() => handleSelectProduct(product, index)}
                         >
                           {product.name}
-                          {product.sku && (
-                            <span className="text-muted-foreground ml-2 text-xs">
-                              {product.sku}
-                            </span>
-                          )}
                           <span className="text-muted-foreground ml-2">
                             ¥{Number(product.defaultSellPrice ?? 0).toFixed(2)}
                           </span>
@@ -403,7 +294,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                   />
                 </div>
 
-                {/* 单位（选择商品后自动填充，只读） */}
+                {/* 单位（只读） */}
                 <div className="col-span-1">
                   <Input
                     className="h-8 text-sm bg-muted"
@@ -437,7 +328,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
 
                 {/* 删除按钮 */}
                 <div className="col-span-2 flex items-center justify-end h-8">
-                  {items.length > 1 && (
+                  {itemRows.length > 1 && (
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -478,9 +369,9 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading || items.length === 0}
+            disabled={loading || itemRows.length === 0}
           >
-            {loading ? '创建中...' : '创建订单'}
+            {loading ? '保存中...' : '保存修改'}
           </Button>
         </DialogFooter>
       </DialogContent>

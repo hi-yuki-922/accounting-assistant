@@ -15,6 +15,7 @@ export type Product = {
   defaultSellPrice?: number
   defaultPurchasePrice?: number
   sku?: string
+  keywords?: string
   remark?: string
   createAt: string
 }
@@ -30,6 +31,7 @@ export type CreateProductDto = {
   defaultSellPrice?: number
   defaultPurchasePrice?: number
   sku?: string
+  keywords?: string
   remark?: string
 }
 
@@ -45,5 +47,6 @@ export type UpdateProductDto = {
   defaultSellPrice?: number | null
   defaultPurchasePrice?: number | null
   sku?: string | null
+  keywords?: string | null
   remark?: string | null
 }

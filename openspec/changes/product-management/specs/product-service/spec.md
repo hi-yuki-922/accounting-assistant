@@ -52,7 +52,7 @@
 - **THEN** 系统返回 None
 
 ### Requirement: 模糊搜索商品
-系统 SHALL 提供 `search_products` 方法，支持按商品名称和分类进行模糊搜索。
+系统 SHALL 提供 `search_products` 方法，支持按商品名称、分类和关键词进行模糊搜索。
 
 #### Scenario: 按名称搜索商品
 - **WHEN** 调用 `search_products` 传入关键词 "苹果"
@@ -61,6 +61,10 @@
 #### Scenario: 按分类搜索商品
 - **WHEN** 调用 `search_products` 传入关键词 "水果"
 - **THEN** 系统返回分类中包含"水果"的所有商品
+
+#### Scenario: 按关键词搜索商品
+- **WHEN** 调用 `search_products` 传入关键词 "六头"
+- **THEN** 系统返回关键词字段中包含"六头"的所有商品（如"六头鲍鱼"）
 
 #### Scenario: 搜索无匹配结果
 - **WHEN** 调用 `search_products` 传入关键词 "不存在"

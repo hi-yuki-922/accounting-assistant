@@ -5,7 +5,15 @@
 
 import { tryCMD } from '@/lib'
 
-import type { Order, OrderDetail, CreateOrderDto, SettleOrderDto } from './type'
+import type {
+  Order,
+  OrderDetail,
+  CreateOrderDto,
+  SettleOrderDto,
+  UpdateOrderDto,
+  QueryOrdersDto,
+  QueryOrdersResult,
+} from './type'
 
 // 导出类型
 export * from './type'
@@ -26,6 +34,12 @@ export const settleOrder = (data: SettleOrderDto) =>
  * 取消订单
  */
 export const cancelOrder = (id: number) => tryCMD<Order>('cancel_order', { id })
+
+/**
+ * 编辑订单
+ */
+export const updateOrder = (data: UpdateOrderDto) =>
+  tryCMD<Order>('update_order', { input: data })
 
 /**
  * 获取全部订单
@@ -50,6 +64,12 @@ export const getOrdersByCustomerId = (customerId: number) =>
 export const getOrdersByStatus = (status: string) =>
   tryCMD<Order[]>('get_orders_by_status', { status })
 
+/**
+ * 分页查询订单
+ */
+export const queryOrders = (data: QueryOrdersDto) =>
+  tryCMD<QueryOrdersResult>('query_orders', { input: data })
+
 // 便捷方法
 export const orderApi = {
   cancel: cancelOrder,
@@ -58,5 +78,7 @@ export const orderApi = {
   getById: getOrderById,
   getByCustomerId: getOrdersByCustomerId,
   getByStatus: getOrdersByStatus,
+  query: queryOrders,
   settle: settleOrder,
+  update: updateOrder,
 }

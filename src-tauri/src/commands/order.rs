@@ -1,7 +1,7 @@
 use tauri::command;
 use tauri::State;
 use crate::services::order::OrderService;
-use crate::services::order::dto::{CreateOrderDto, SettleOrderDto};
+use crate::services::order::dto::{CreateOrderDto, QueryOrdersDto, SettleOrderDto, UpdateOrderDto};
 use crate::entity::order::Model as OrderModel;
 use crate::entity::order_item::Model as OrderItemModel;
 
@@ -11,6 +11,14 @@ use crate::entity::order_item::Model as OrderItemModel;
 pub struct OrderDetail {
     pub order: OrderModel,
     pub items: Vec<OrderItemModel>,
+}
+
+/// 分页查询结果返回类型
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryOrdersResult {
+    pub orders: Vec<OrderModel>,
+    pub total: u64,
 }
 
 #[command]
@@ -39,6 +47,16 @@ pub async fn cancel_order(
     id: i64,
 ) -> Result<OrderModel, String> {
     service.cancel_order(id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn update_order(
+    service: State<'_, OrderService>,
+    input: UpdateOrderDto,
+) -> Result<OrderModel, String> {
+    service.update_order(input)
         .await
         .map_err(|e| e.to_string())
 }
@@ -80,5 +98,16 @@ pub async fn get_orders_by_status(
 ) -> Result<Vec<OrderModel>, String> {
     service.get_orders_by_status(status)
         .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+pub async fn query_orders(
+    service: State<'_, OrderService>,
+    input: QueryOrdersDto,
+) -> Result<QueryOrdersResult, String> {
+    service.query_orders(input)
+        .await
+        .map(|(orders, total)| QueryOrdersResult { orders, total })
         .map_err(|e| e.to_string())
 }

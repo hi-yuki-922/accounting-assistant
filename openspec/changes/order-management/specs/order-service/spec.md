@@ -1,19 +1,20 @@
 ## ADDED Requirements
 
 ### Requirement: 创建订单
-系统 SHALL 提供 `create_order` 方法，接收订单类型、客户 ID（可选）、订单明细列表、支付渠道、备注，创建新订单。
+系统 SHALL 提供 `create_order` 方法，接收订单类型、客户 ID（可选）、订单明细列表、备注，创建新订单。
 
 #### Scenario: 创建销售订单
-- **WHEN** 调用 `create_order` 传入 order_type=Sales、明细列表（含 product_id、product_name、quantity、unit、unit_price）、channel
-- **THEN** 系统生成日期序列 ID 和可读订单编号（ORD-YYYYMMDD-NNNNN）
+- **WHEN** 调用 `create_order` 传入 order_type=Sales、明细列表（含 product_id、product_name、quantity、unit、unit_price）
+- **THEN** 系统生成日期序列 ID 和订单编号（`#N` 格式，N 为当日序号）
 - **THEN** 系统计算 total_amount 为所有明细 subtotal 之和
 - **THEN** 系统设置 actual_amount 等于 total_amount（初始相等）
 - **THEN** 系统设置 status 为 Pending
+- **THEN** 系统设置 channel 为 None（创建阶段不选择支付渠道）
 - **THEN** 系统创建 order 记录和所有 order_item 记录
 - **THEN** 操作 MUST 在事务中执行
 
 #### Scenario: 创建采购订单
-- **WHEN** 调用 `create_order` 传入 order_type=Purchase、明细列表、channel
+- **WHEN** 调用 `create_order` 传入 order_type=Purchase、明细列表
 - **THEN** 系统创建采购订单，逻辑与销售订单一致
 - **THEN** order_type 为 Purchase
 
@@ -30,25 +31,52 @@
 - **WHEN** 调用 `create_order` 时明细列表为空
 - **THEN** 系统 MUST 返回错误，提示订单明细不能为空
 
+### Requirement: 编辑订单（结账前）
+系统 SHALL 提供 `update_order` 方法，允许修改 Pending 状态订单的明细和备注。不可修改订单类型和客户。
+
+#### Scenario: 修改订单明细
+- **WHEN** 调用 `update_order` 传入 Pending 状态的订单 ID 和新的明细列表
+- **THEN** 系统 MUST 删除旧的 order_item 记录，创建新的 order_item 记录
+- **THEN** 系统自动重算 total_amount（为新明细 subtotal 之和）
+- **THEN** 系统自动重算 actual_amount（等于新的 total_amount）
+- **THEN** 操作 MUST 在事务中执行
+
+#### Scenario: 修改订单备注
+- **WHEN** 调用 `update_order` 传入订单 ID 和新的备注内容
+- **THEN** 系统更新订单的 remark 字段
+
+#### Scenario: 编辑已结账的订单
+- **WHEN** 调用 `update_order` 传入已结账（Settled）的订单 ID
+- **THEN** 系统 MUST 返回错误，提示已结账订单不可编辑
+
+#### Scenario: 编辑已取消的订单
+- **WHEN** 调用 `update_order` 传入已取消（Cancelled）的订单 ID
+- **THEN** 系统 MUST 返回错误，提示已取消订单不可编辑
+
+#### Scenario: 编辑不存在的订单
+- **WHEN** 调用 `update_order` 传入不存在的订单 ID
+- **THEN** 系统 MUST 返回错误，提示订单不存在
+
 ### Requirement: 结账订单
-系统 SHALL 提供 `settle_order` 方法，将 Pending 订单结账，自动生成关联的记账记录。
+系统 SHALL 提供 `settle_order` 方法，将 Pending 订单结账，传入支付渠道，自动生成关联的记账记录。
 
 #### Scenario: 销售订单结账
-- **WHEN** 调用 `settle_order` 传入 Pending 状态的销售订单 ID
+- **WHEN** 调用 `settle_order` 传入 Pending 状态的销售订单 ID、channel（支付渠道）、actual_amount（可选）
 - **THEN** 系统 MUST 创建一条 accounting_record，accounting_type 为 Income
-- **THEN** accounting_record.amount 为订单的 actual_amount
-- **THEN** accounting_record.channel 为订单的 channel
+- **THEN** accounting_record.amount 为订单的 actual_amount（如传入则先更新）
+- **THEN** accounting_record.channel 为传入的 channel
 - **THEN** accounting_record.order_id 为订单 ID
 - **THEN** accounting_record.book_id 为 None（归入默认账本）
 - **THEN** accounting_record.title 为 "销售订单-{order_no}"
 - **THEN** accounting_record.state 为 Posted
 - **THEN** 系统 MUST 更新订单 status 为 Settled，settled_at 为当前时间
+- **THEN** 系统 MUST 更新订单 channel 为传入的渠道
 - **THEN** 系统 MUST 更新订单 accounting_record_id 为新创建的记账记录 ID
 - **THEN** 系统 MUST 更新默认账本的 record_count +1
 - **THEN** 以上操作 MUST 在同一事务中执行
 
 #### Scenario: 采购订单结账
-- **WHEN** 调用 `settle_order` 传入 Pending 状态的采购订单 ID
+- **WHEN** 调用 `settle_order` 传入 Pending 状态的采购订单 ID、channel
 - **THEN** 系统 MUST 创建 accounting_record，accounting_type 为 Expenditure
 - **THEN** accounting_record.title 为 "采购订单-{order_no}"
 - **THEN** 其余逻辑与销售订单结账一致
@@ -57,6 +85,10 @@
 - **WHEN** 调用 `settle_order` 传入 actual_amount 参数
 - **THEN** 系统 MUST 更新订单的 actual_amount 为传入值
 - **THEN** accounting_record.amount 使用更新后的 actual_amount
+
+#### Scenario: 结账未指定渠道
+- **WHEN** 调用 `settle_order` 时 channel 为 None
+- **THEN** 系统 MUST 返回错误，提示结账时必须选择支付渠道
 
 #### Scenario: 结账已结账的订单
 - **WHEN** 调用 `settle_order` 传入已结账（Settled）的订单 ID
@@ -117,3 +149,31 @@
 #### Scenario: 查询待结账订单
 - **WHEN** 调用 `get_orders_by_status` 传入 OrderStatus::Pending
 - **THEN** 系统返回所有 Pending 状态的订单
+
+### Requirement: 分页筛选查询订单
+系统 SHALL 提供 `query_orders` 方法，支持多维度筛选和分页查询订单。
+
+#### Scenario: 按时间范围筛选
+- **WHEN** 调用 `query_orders` 传入时间范围（start_time, end_time）
+- **THEN** 系统返回创建时间在范围内的订单
+
+#### Scenario: 按金额范围筛选
+- **WHEN** 调用 `query_orders` 传入金额范围（min_amount, max_amount）
+- **THEN** 系统返回 actual_amount 在范围内的订单
+
+#### Scenario: 按支付渠道筛选
+- **WHEN** 调用 `query_orders` 传入 channel
+- **THEN** 系统返回匹配支付渠道的订单
+
+#### Scenario: 按订单类型筛选
+- **WHEN** 调用 `query_orders` 传入 order_type
+- **THEN** 系统返回匹配订单类型的订单
+
+#### Scenario: 组合筛选
+- **WHEN** 调用 `query_orders` 传入多个筛选条件
+- **THEN** 系统返回同时满足所有条件的订单
+
+#### Scenario: 分页查询
+- **WHEN** 调用 `query_orders` 传入 page 和 page_size
+- **THEN** 系统返回对应页的订单列表和总数
+- **THEN** 结果按创建时间倒序排列

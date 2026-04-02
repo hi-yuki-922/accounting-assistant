@@ -24,6 +24,8 @@ pub struct Model {
     pub default_purchase_price: Option<Decimal>,
     /// 商品编码
     pub sku: Option<String>,
+    /// 检索关键词，多个关键词以分号分隔
+    pub keywords: Option<String>,
     /// 备注
     pub remark: Option<String>,
     /// 创建时间
@@ -46,6 +48,7 @@ impl ActiveModelBehavior for ActiveModel {
             default_sell_price: sea_orm::ActiveValue::NotSet,
             default_purchase_price: sea_orm::ActiveValue::NotSet,
             sku: sea_orm::ActiveValue::NotSet,
+            keywords: sea_orm::ActiveValue::NotSet,
             remark: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
         }

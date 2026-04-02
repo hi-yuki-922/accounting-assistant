@@ -9,13 +9,16 @@
 - 新增商品相关的 Tauri IPC Commands
 - 新增前端商品管理页面（路由 `/products`），包含商品列表、创建、编辑、删除功能
 - 新增 `ProductCategory` 枚举，用于商品分类
+- 新增 `keywords` 字段（`Option<String>`），以分号分隔存储多个关键词，用于模糊搜索和 AI 检索
+- 优化计量单位输入交互，提供常用单位 Chips 快捷选择 + 自由输入
+- 优化关键词输入交互，使用 Tag 输入模式（回车添加、点击删除）
 
 ## Capabilities
 
 ### New Capabilities
-- `product-entity`: 商品实体定义，包含字段、序列、枚举（ProductCategory）
-- `product-service`: 商品服务层，提供 CRUD、模糊搜索、分页查询
-- `product-frontend`: 前端商品管理页面，路由 `/products`，含列表/创建/编辑/删除
+- `product-entity`: 商品实体定义，包含字段（含 keywords）、序列、枚举（ProductCategory）
+- `product-service`: 商品服务层，提供 CRUD、模糊搜索（覆盖 name/category/keywords）、分页查询
+- `product-frontend`: 前端商品管理页面，路由 `/products`，含列表/创建/编辑/删除，计量单位 Chips 快捷选择，关键词 Tag 输入
 
 ### Modified Capabilities
 

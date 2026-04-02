@@ -54,9 +54,11 @@ pub fn with_install_tauri_commands(builder: tauri::Builder<tauri::Wry>) -> tauri
     order::create_order,
     order::settle_order,
     order::cancel_order,
+    order::update_order,
     order::get_all_orders,
     order::get_order_by_id,
     order::get_orders_by_customer_id,
-    order::get_orders_by_status
+    order::get_orders_by_status,
+    order::query_orders
   ])
 }

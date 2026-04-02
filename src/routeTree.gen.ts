@@ -21,7 +21,6 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as CustomersIndexRouteImport } from './routes/customers.index'
 import { Route as BooksIndexRouteImport } from './routes/books.index'
-import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as BooksBookIdRouteImport } from './routes/books.$bookId'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -84,11 +83,6 @@ const BooksIndexRoute = BooksIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BooksRoute,
 } as any)
-const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => OrdersRoute,
-} as any)
 const BooksBookIdRoute = BooksBookIdRouteImport.update({
   id: '/$bookId',
   path: '/$bookId',
@@ -105,7 +99,6 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books/': typeof BooksIndexRoute
   '/customers/': typeof CustomersIndexRoute
   '/orders/': typeof OrdersIndexRoute
@@ -117,7 +110,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books': typeof BooksIndexRoute
   '/customers': typeof CustomersIndexRoute
   '/orders': typeof OrdersIndexRoute
@@ -134,7 +126,6 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/books/': typeof BooksIndexRoute
   '/customers/': typeof CustomersIndexRoute
   '/orders/': typeof OrdersIndexRoute
@@ -152,7 +143,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/books/$bookId'
-    | '/orders/$orderId'
     | '/books/'
     | '/customers/'
     | '/orders/'
@@ -164,7 +154,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/settings'
     | '/books/$bookId'
-    | '/orders/$orderId'
     | '/books'
     | '/customers'
     | '/orders'
@@ -180,7 +169,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/books/$bookId'
-    | '/orders/$orderId'
     | '/books/'
     | '/customers/'
     | '/orders/'
@@ -284,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BooksIndexRouteImport
       parentRoute: typeof BooksRoute
     }
-    '/orders/$orderId': {
-      id: '/orders/$orderId'
-      path: '/$orderId'
-      fullPath: '/orders/$orderId'
-      preLoaderRoute: typeof OrdersOrderIdRouteImport
-      parentRoute: typeof OrdersRoute
-    }
     '/books/$bookId': {
       id: '/books/$bookId'
       path: '/$bookId'
@@ -326,12 +307,10 @@ const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
 )
 
 interface OrdersRouteChildren {
-  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
 }
 
 const OrdersRouteChildren: OrdersRouteChildren = {
-  OrdersOrderIdRoute: OrdersOrderIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
 }
 

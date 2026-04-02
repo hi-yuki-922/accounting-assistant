@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sea_orm::{TryGetable, DbErr, Value};
+use sea_orm::sea_query::Nullable;
 use sea_orm::sea_query::{ColumnType as SeaQueryColumnType, StringLen};
 use strum::{Display, EnumIter};
 
@@ -130,13 +131,13 @@ impl sea_orm::TryFromU64 for AccountingType {
 // Implement SeaORM conversion traits for AccountingChannel
 impl TryGetable for AccountingChannel {
     fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
+        let value: String = res.try_get_by(idx)?;
         value.parse::<AccountingChannel>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingChannel"))))
     }
 
     fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
-        let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
+        let value: String = res.try_get(pre, col)?;
         value.parse::<AccountingChannel>()
             .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid AccountingChannel"))))
     }
@@ -175,6 +176,12 @@ impl From<AccountingChannel> for Value {
 impl sea_orm::TryFromU64 for AccountingChannel {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
         Err(DbErr::Type(String::from("Cannot convert u64 to AccountingChannel")))
+    }
+}
+
+impl Nullable for AccountingChannel {
+    fn null() -> Value {
+        Value::String(None)
     }
 }
 

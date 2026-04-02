@@ -17,6 +17,8 @@ pub struct CreateProductDto {
     pub default_purchase_price: Option<Decimal>,
     /// 商品编码（可选）
     pub sku: Option<String>,
+    /// 检索关键词，多个以分号分隔（可选）
+    pub keywords: Option<String>,
     /// 备注（可选）
     pub remark: Option<String>,
 }
@@ -39,6 +41,8 @@ pub struct UpdateProductDto {
     pub default_purchase_price: Option<Option<Decimal>>,
     /// 商品编码
     pub sku: Option<Option<String>>,
+    /// 检索关键词
+    pub keywords: Option<Option<String>>,
     /// 备注
     pub remark: Option<Option<String>>,
 }

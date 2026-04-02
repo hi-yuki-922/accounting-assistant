@@ -31,3 +31,19 @@
 ## 6. 导航集成
 
 - [x] 6.1 在应用侧边栏导航中添加"商品管理"入口，链接到 `/products`
+
+## 7. 关键词字段支持
+
+- [x] 7.1 在 `product` 实体中新增 `keywords: Option<String>` 字段，更新 entity 定义
+- [x] 7.2 更新 `CreateProductDto` 和 `UpdateProductDto`，增加 `keywords` 可选字段
+- [x] 7.3 更新 `search_products` 服务方法，将 `keywords` 列加入模糊搜索 OR 条件
+- [x] 7.4 更新前端 TypeScript 类型定义（Product、CreateProductDto、UpdateProductDto），增加 `keywords` 字段
+
+## 8. 计量单位 Chips 快捷选择
+
+- [x] 8.1 在创建/编辑商品对话框中，为计量单位输入框增加常用单位 Chips 快捷选择（预设列表：斤、公斤、个、件、箱、盒、袋、瓶、包）
+
+## 9. 关键词 Tag 输入组件
+
+- [x] 9.1 实现关键词 Tag 输入组件（回车添加 Tag、点击 × 删除 Tag、编辑时解析分号字符串回 Tag 列表）
+- [x] 9.2 在创建/编辑商品对话框中集成关键词 Tag 输入组件，提交时将 Tag 列表拼接为分号分隔字符串

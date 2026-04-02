@@ -11,7 +11,7 @@ use crate::enums::{AccountingChannel, OrderType, OrderStatus};
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: i64,
-    /// 可读订单编号（格式 ORD-YYYYMMDD-NNNNN）
+    /// 可读订单编号（格式 #N，如 #1, #2，当日序号）
     pub order_no: String,
     /// 订单类型（Sales / Purchase）
     pub order_type: OrderType,
@@ -25,7 +25,7 @@ pub struct Model {
     pub actual_amount: Decimal,
     /// 订单状态
     pub status: OrderStatus,
-    /// 支付/收款渠道
+    /// 支付/收款渠道（创建时默认 Unknown，结账时更新）
     pub channel: AccountingChannel,
     /// 结账时关联的记账记录 ID
     pub accounting_record_id: Option<i64>,

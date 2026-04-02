@@ -1,11 +1,14 @@
 /**
  * 结账确认对话框组件
- * 显示订单摘要、可修改实收金额
+ * 显示订单摘要、支付渠道选择（必填）、可修改实收金额
  */
 
 import { useState, useEffect } from 'react'
 
-import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
+import {
+  AccountingChannel,
+  ACCOUNTING_CHANNEL_DISPLAY_TEXT,
+} from '@/api/commands/accounting/enums'
 import type { Order } from '@/api/commands/order/type'
 import { ORDER_TYPE_DISPLAY_TEXT } from '@/api/commands/order/type'
 import { Button } from '@/components/ui/button'
@@ -19,12 +22,19 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export type SettleOrderDialogProps = {
   open: boolean
   order: Order | null
   onClose: () => void
-  onConfirm: (actualAmount: number) => void
+  onConfirm: (data: { channel: string; actualAmount: number }) => void
   loading?: boolean
 }
 
@@ -35,11 +45,15 @@ export const SettleOrderDialog: React.FC<SettleOrderDialogProps> = ({
   onConfirm,
   loading = false,
 }) => {
+  const [channel, setChannel] = useState<string>('')
   const [actualAmount, setActualAmount] = useState('')
+  const [channelError, setChannelError] = useState(false)
 
   useEffect(() => {
     if (open && order) {
+      setChannel('')
       setActualAmount(order.actualAmount.toString())
+      setChannelError(false)
     }
   }, [open, order])
 
@@ -48,11 +62,15 @@ export const SettleOrderDialog: React.FC<SettleOrderDialogProps> = ({
   }
 
   const handleSubmit = () => {
+    if (!channel) {
+      setChannelError(true)
+      return
+    }
     const amount = Number.parseFloat(actualAmount)
     if (Number.isNaN(amount) || amount < 0) {
       return
     }
-    onConfirm(amount)
+    onConfirm({ channel, actualAmount: amount })
   }
 
   return (
@@ -75,19 +93,43 @@ export const SettleOrderDialog: React.FC<SettleOrderDialogProps> = ({
               <span className="font-medium">{order.orderNo}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">支付渠道：</span>
-              <span className="font-medium">
-                {ACCOUNTING_CHANNEL_DISPLAY_TEXT[
-                  order.channel as keyof typeof ACCOUNTING_CHANNEL_DISPLAY_TEXT
-                ] ?? order.channel}
-              </span>
-            </div>
-            <div>
               <span className="text-muted-foreground">应收金额：</span>
               <span className="font-medium">
                 ¥{Number(order.totalAmount).toFixed(2)}
               </span>
             </div>
+          </div>
+
+          {/* 支付渠道选择（必填） */}
+          <div className="space-y-2">
+            <Label>
+              支付渠道 <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={channel}
+              onValueChange={(val) => {
+                setChannel(val)
+                setChannelError(false)
+              }}
+            >
+              <SelectTrigger
+                className={channelError ? 'border-destructive' : ''}
+              >
+                <SelectValue placeholder="请选择支付渠道" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(ACCOUNTING_CHANNEL_DISPLAY_TEXT)
+                  .filter(([key]) => key !== AccountingChannel.Unknown)
+                  .map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {channelError && (
+              <p className="text-xs text-destructive">请选择支付渠道</p>
+            )}
           </div>
 
           {/* 实收金额输入 */}

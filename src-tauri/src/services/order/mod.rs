@@ -3,8 +3,8 @@ pub mod dto;
 use rust_decimal::Decimal;
 use chrono::Local;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder,
-    Set, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
+    PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 use crate::entity::order::{self, ActiveModel as OrderActiveModel, Model as OrderModel};
 use crate::entity::order_item::{self, ActiveModel as OrderItemActiveModel};
@@ -12,7 +12,27 @@ use crate::entity::accounting_record::{self, ActiveModel as AccountingActiveMode
 use crate::entity::accounting_book;
 use crate::enums::{AccountingChannel, AccountingRecordState, AccountingType, OrderStatus, OrderType};
 use crate::services::accounting_book::DEFAULT_BOOK_ID;
-use self::dto::{CreateOrderDto, SettleOrderDto};
+use self::dto::{CreateOrderDto, QueryOrdersDto, SettleOrderDto, UpdateOrderDto};
+
+/// 解析时间字符串，支持多种格式
+fn parse_datetime(s: &str, is_end: bool) -> Result<chrono::NaiveDateTime, Box<dyn std::error::Error>> {
+    // 尝试 ISO 格式
+    if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S") {
+        return Ok(dt);
+    }
+    // 尝试标准格式
+    if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S") {
+        return Ok(dt);
+    }
+    // 尝试仅日期
+    let date = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")?;
+    let time = if is_end {
+        date.and_hms_opt(23, 59, 59).unwrap()
+    } else {
+        date.and_hms_opt(0, 0, 0).unwrap()
+    };
+    Ok(time)
+}
 
 /// 订单服务
 #[derive(Debug)]
@@ -38,8 +58,6 @@ impl OrderService {
         // 解析枚举
         let order_type = input.order_type.parse::<OrderType>()
             .map_err(|_| "无效的订单类型".to_string())?;
-        let channel = input.channel.parse::<AccountingChannel>()
-            .map_err(|_| "无效的支付渠道".to_string())?;
 
         // 计算总额
         let total_amount: Decimal = input.items.iter()
@@ -53,12 +71,11 @@ impl OrderService {
         // 生成订单 ID 和编号
         let id = OrderModel::generate_id(&txn).await?;
         let now = Local::now();
-        let date_str = now.format("%Y%m%d").to_string();
-        // 从 ID 中提取序列号部分（后5位）
+        // 从 ID 中提取序列号部分（后5位），拼接为 #N 格式
         let seq_part = id % 100000;
-        let order_no = format!("ORD-{}-{:05}", date_str, seq_part);
+        let order_no = format!("#{}", seq_part);
 
-        // 创建订单
+        // 创建订单（channel 为 None，结账时才写入）
         let order_active = OrderActiveModel {
             id: Set(id),
             order_no: Set(order_no.clone()),
@@ -67,7 +84,7 @@ impl OrderService {
             total_amount: Set(total_amount),
             actual_amount: Set(actual_amount),
             status: Set(OrderStatus::Pending),
-            channel: Set(channel),
+            channel: Set(AccountingChannel::Unknown),
             accounting_record_id: Set(None),
             remark: Set(input.remark),
             create_at: Set(now.naive_local()),
@@ -119,6 +136,10 @@ impl OrderService {
             return Err("订单已取消".into());
         }
 
+        // 解析并校验支付渠道
+        let channel = input.channel.parse::<AccountingChannel>()
+            .map_err(|_| "结账时必须选择有效的支付渠道".to_string())?;
+
         // 确定实收金额
         let actual_amount = input.actual_amount.unwrap_or(order.actual_amount);
 
@@ -139,7 +160,7 @@ impl OrderService {
             record_time: Set(now),
             accounting_type: Set(accounting_type),
             title: Set(title),
-            channel: Set(order.channel.clone()),
+            channel: Set(channel.clone()),
             remark: Set(None),
             write_off_id: Set(None),
             create_at: Set(now),
@@ -153,6 +174,7 @@ impl OrderService {
         // 更新订单状态
         let mut order_active: OrderActiveModel = order.into();
         order_active.status = Set(OrderStatus::Settled);
+        order_active.channel = Set(channel);
         order_active.accounting_record_id = Set(Some(inserted_record.id));
         order_active.actual_amount = Set(actual_amount);
         order_active.settled_at = Set(Some(now));
@@ -194,6 +216,73 @@ impl OrderService {
         let mut order_active: OrderActiveModel = order.into();
         order_active.status = Set(OrderStatus::Cancelled);
         let updated_order = order_active.update(&self.db).await?;
+
+        Ok(updated_order)
+    }
+
+    /// 编辑订单（仅允许修改 Pending 状态的明细和备注）
+    pub async fn update_order(
+        &self,
+        input: UpdateOrderDto,
+    ) -> Result<OrderModel, Box<dyn std::error::Error>> {
+        let txn = self.db.begin().await?;
+
+        // 查找订单
+        let order = order::Entity::find_by_id(input.order_id)
+            .one(&txn)
+            .await?
+            .ok_or("订单不存在")?;
+
+        // 验证状态
+        if order.status != OrderStatus::Pending {
+            return Err("只有待结账订单可编辑".into());
+        }
+
+        let mut order_active: OrderActiveModel = order.into();
+
+        // 更新备注
+        if let Some(remark) = input.remark {
+            order_active.remark = Set(Some(remark));
+        }
+
+        // 更新明细（替换方式）
+        if let Some(items) = input.items {
+            if items.is_empty() {
+                return Err("订单明细不能为空".into());
+            }
+
+            // 删除旧明细
+            order_item::Entity::delete_many()
+                .filter(order_item::Column::OrderId.eq(input.order_id))
+                .exec(&txn)
+                .await?;
+
+            // 创建新明细并计算总额
+            let mut total_amount = Decimal::ZERO;
+            for item in &items {
+                let subtotal = item.quantity * item.unit_price;
+                let order_item_active = OrderItemActiveModel {
+                    id: sea_orm::ActiveValue::NotSet,
+                    order_id: Set(input.order_id),
+                    product_id: Set(item.product_id),
+                    product_name: Set(item.product_name.clone()),
+                    quantity: Set(item.quantity),
+                    unit: Set(item.unit.clone()),
+                    unit_price: Set(item.unit_price),
+                    subtotal: Set(subtotal),
+                    remark: Set(item.remark.clone()),
+                };
+                order_item_active.insert(&txn).await?;
+                total_amount += subtotal;
+            }
+
+            // 重算金额
+            order_active.total_amount = Set(total_amount);
+            order_active.actual_amount = Set(total_amount);
+        }
+
+        let updated_order = order_active.update(&txn).await?;
+        txn.commit().await?;
 
         Ok(updated_order)
     }
@@ -254,5 +343,68 @@ impl OrderService {
             .all(&self.db)
             .await?;
         Ok(orders)
+    }
+
+    /// 分页查询订单（支持多维度筛选）
+    pub async fn query_orders(
+        &self,
+        input: QueryOrdersDto,
+    ) -> Result<(Vec<OrderModel>, u64), Box<dyn std::error::Error>> {
+        let page = input.page.unwrap_or(1);
+        let page_size = input.page_size.unwrap_or(20);
+
+        let mut condition = Condition::all();
+
+        // 时间范围筛选
+        if let Some(start) = &input.start_time {
+            let start_time = parse_datetime(start, false)
+                .map_err(|_| "无效的开始时间格式".to_string())?;
+            condition = condition.add(order::Column::CreateAt.gte(start_time));
+        }
+
+        if let Some(end) = &input.end_time {
+            let end_time = parse_datetime(end, true)
+                .map_err(|_| "无效的结束时间格式".to_string())?;
+            condition = condition.add(order::Column::CreateAt.lte(end_time));
+        }
+
+        // 状态筛选
+        if let Some(status) = &input.status {
+            let order_status = status.parse::<OrderStatus>()
+                .map_err(|_| "无效的订单状态".to_string())?;
+            condition = condition.add(order::Column::Status.eq(order_status));
+        }
+
+        // 金额范围筛选
+        if let Some(min) = input.min_amount {
+            condition = condition.add(order::Column::ActualAmount.gte(min));
+        }
+        if let Some(max) = input.max_amount {
+            condition = condition.add(order::Column::ActualAmount.lte(max));
+        }
+
+        // 支付渠道筛选
+        if let Some(channel_str) = &input.channel {
+            let channel = channel_str.parse::<AccountingChannel>()
+                .map_err(|_| "无效的支付渠道".to_string())?;
+            condition = condition.add(order::Column::Channel.eq(Some(channel)));
+        }
+
+        // 订单类型筛选
+        if let Some(order_type_str) = &input.order_type {
+            let order_type = order_type_str.parse::<OrderType>()
+                .map_err(|_| "无效的订单类型".to_string())?;
+            condition = condition.add(order::Column::OrderType.eq(order_type));
+        }
+
+        let paginator = order::Entity::find()
+            .filter(condition)
+            .order_by_desc(order::Column::CreateAt)
+            .paginate(&self.db, page_size);
+
+        let total = paginator.num_items().await?;
+        let orders = paginator.fetch_page(page - 1).await?;
+
+        Ok((orders, total))
     }
 }

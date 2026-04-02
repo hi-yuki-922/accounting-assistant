@@ -103,7 +103,6 @@ export type CreateOrderItemDto = {
 export type CreateOrderDto = {
   orderType: string
   customerId?: number
-  channel: string
   items: CreateOrderItemDto[]
   remark?: string
   actualAmount?: number
@@ -114,5 +113,38 @@ export type CreateOrderDto = {
  */
 export type SettleOrderDto = {
   orderId: number
+  channel: string
   actualAmount?: number
+}
+
+/**
+ * 编辑订单 DTO
+ */
+export type UpdateOrderDto = {
+  orderId: number
+  items?: CreateOrderItemDto[]
+  remark?: string
+}
+
+/**
+ * 分页查询订单 DTO
+ */
+export type QueryOrdersDto = {
+  page?: number
+  pageSize?: number
+  startTime?: string
+  endTime?: string
+  status?: string
+  minAmount?: number
+  maxAmount?: number
+  channel?: string
+  orderType?: string
+}
+
+/**
+ * 分页查询结果
+ */
+export type QueryOrdersResult = {
+  orders: Order[]
+  total: number
 }

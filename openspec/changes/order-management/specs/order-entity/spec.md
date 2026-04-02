@@ -3,13 +3,13 @@
 ### Requirement: 订单实体定义
 系统 SHALL 定义 `order` 实体，包含以下字段：
 - `id`: i64，主键，采用日期序列模式生成（`YYYYMMDDNNNNN`）
-- `order_no`: String，可读订单编号（格式 `ORD-YYYYMMDD-NNNNN`）
+- `order_no`: String，可读订单编号（格式 `#N`，如 `#1`, `#2`，当日序号）
 - `order_type`: OrderType，订单类型（Sales / Purchase）
 - `customer_id`: Option\<i64\>，关联客户 ID（散客为 None）
 - `total_amount`: Decimal(19,4)，应收/应付总额（明细小计之和）
 - `actual_amount`: Decimal(19,4)，实收/实付总额（抹零/让利后的最终金额）
 - `status`: OrderStatus，订单状态（Pending / Settled / Cancelled）
-- `channel`: AccountingChannel，支付/收款渠道（复用现有枚举）
+- `channel`: Option\<AccountingChannel\>，支付/收款渠道（创建时为 None，结账时写入）
 - `accounting_record_id`: Option\<i64\>，结账时关联的记账记录 ID
 - `remark`: Option\<String\>，备注
 - `create_at`: NaiveDateTime，创建时间

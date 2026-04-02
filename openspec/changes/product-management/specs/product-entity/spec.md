@@ -9,6 +9,7 @@
 - `default_sell_price`: Option\<Decimal(19,4)\>，参考售价
 - `default_purchase_price`: Option\<Decimal(19,4)\>，参考采购价
 - `sku`: Option\<String\>，商品编码
+- `keywords`: Option\<String\>，检索关键词，多个关键词以分号（`;`）分隔，用于模糊搜索和 AI 检索
 - `remark`: Option\<String\>，备注
 - `create_at`: NaiveDateTime，创建时间
 

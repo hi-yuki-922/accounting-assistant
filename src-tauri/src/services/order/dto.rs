@@ -9,8 +9,6 @@ pub struct CreateOrderDto {
     pub order_type: String,
     /// 客户 ID（散客为 None）
     pub customer_id: Option<i64>,
-    /// 支付渠道
-    pub channel: String,
     /// 订单明细列表
     pub items: Vec<CreateOrderItemDto>,
     /// 备注
@@ -43,6 +41,44 @@ pub struct CreateOrderItemDto {
 pub struct SettleOrderDto {
     /// 订单 ID
     pub order_id: i64,
+    /// 支付渠道（必填）
+    pub channel: String,
     /// 实收金额（可选，不传则使用订单已有的 actual_amount）
     pub actual_amount: Option<Decimal>,
+}
+
+/// 编辑订单 DTO（仅允许修改明细和备注，不可修改类型和客户）
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateOrderDto {
+    /// 订单 ID（必填）
+    pub order_id: i64,
+    /// 订单明细列表（可选，传入则替换原有明细）
+    pub items: Option<Vec<CreateOrderItemDto>>,
+    /// 备注（可选，传入则更新备注）
+    pub remark: Option<String>,
+}
+
+/// 分页查询订单 DTO
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryOrdersDto {
+    /// 页码（从 1 开始）
+    pub page: Option<u64>,
+    /// 每页条数
+    pub page_size: Option<u64>,
+    /// 开始时间（ISO 格式）
+    pub start_time: Option<String>,
+    /// 结束时间（ISO 格式）
+    pub end_time: Option<String>,
+    /// 订单状态筛选
+    pub status: Option<String>,
+    /// 最小金额
+    pub min_amount: Option<Decimal>,
+    /// 最大金额
+    pub max_amount: Option<Decimal>,
+    /// 支付渠道筛选
+    pub channel: Option<String>,
+    /// 订单类型筛选
+    pub order_type: Option<String>,
 }

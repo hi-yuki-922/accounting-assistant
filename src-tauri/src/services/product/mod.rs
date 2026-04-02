@@ -30,6 +30,7 @@ impl ProductService {
             default_sell_price: sea_orm::ActiveValue::Set(input.default_sell_price),
             default_purchase_price: sea_orm::ActiveValue::Set(input.default_purchase_price),
             sku: sea_orm::ActiveValue::Set(input.sku),
+            keywords: sea_orm::ActiveValue::Set(input.keywords),
             remark: sea_orm::ActiveValue::Set(input.remark),
             ..ActiveModel::new()
         };
@@ -74,6 +75,10 @@ impl ProductService {
             active_model.sku = sea_orm::ActiveValue::Set(sku);
         }
 
+        if let Some(keywords) = input.keywords {
+            active_model.keywords = sea_orm::ActiveValue::Set(keywords);
+        }
+
         if let Some(remark) = input.remark {
             active_model.remark = sea_orm::ActiveValue::Set(remark);
         }
@@ -111,7 +116,7 @@ impl ProductService {
         Ok(record)
     }
 
-    /// 按商品名称或分类模糊搜索
+    /// 按商品名称、分类、SKU 或关键词模糊搜索
     pub async fn search_products(&self, keyword: String) -> Result<Vec<Model>, Box<dyn std::error::Error>> {
         let pattern = format!("%{}%", keyword);
         let products = product::Entity::find()
@@ -119,6 +124,8 @@ impl ProductService {
                 Condition::any()
                     .add(product::Column::Name.like(&pattern))
                     .add(product::Column::Category.like(&pattern))
+                    .add(product::Column::Sku.like(&pattern))
+                    .add(product::Column::Keywords.like(&pattern))
             )
             .order_by_desc(product::Column::CreateAt)
             .all(&self.db)

@@ -2,6 +2,7 @@
  * 新增/编辑商品 Dialog 弹窗组件
  */
 
+import { X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 import type {
@@ -9,6 +10,7 @@ import type {
   CreateProductDto,
   UpdateProductDto,
 } from '@/api/commands/product/type'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,6 +23,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
+/** 预设常用单位列表 */
+const COMMON_UNITS = ['斤', '公斤', '个', '件', '箱', '盒', '袋', '瓶', '包']
+
 export type CreateEditProductDialogProps = {
   open: boolean
   product?: Product | null
@@ -28,6 +33,20 @@ export type CreateEditProductDialogProps = {
   onConfirm: (data: CreateProductDto | UpdateProductDto) => void
   loading?: boolean
 }
+
+/** 解析分号分隔的关键词字符串为 Tag 列表 */
+const parseKeywords = (keywords?: string): string[] => {
+  if (!keywords) {
+    return []
+  }
+  return keywords
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+/** 将 Tag 列表拼接为分号分隔字符串 */
+const joinKeywords = (tags: string[]): string => tags.join(';')
 
 export const CreateEditProductDialog: React.FC<
   CreateEditProductDialogProps
@@ -40,6 +59,8 @@ export const CreateEditProductDialog: React.FC<
   const [sellPrice, setSellPrice] = useState('')
   const [purchasePrice, setPurchasePrice] = useState('')
   const [sku, setSku] = useState('')
+  const [keywordsTags, setKeywordsTags] = useState<string[]>([])
+  const [keywordsInput, setKeywordsInput] = useState('')
   const [remark, setRemark] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -52,6 +73,7 @@ export const CreateEditProductDialog: React.FC<
       setSellPrice(product.defaultSellPrice?.toString() ?? '')
       setPurchasePrice(product.defaultPurchasePrice?.toString() ?? '')
       setSku(product.sku ?? '')
+      setKeywordsTags(parseKeywords(product.keywords))
       setRemark(product.remark ?? '')
     } else {
       setName('')
@@ -60,8 +82,10 @@ export const CreateEditProductDialog: React.FC<
       setSellPrice('')
       setPurchasePrice('')
       setSku('')
+      setKeywordsTags([])
       setRemark('')
     }
+    setKeywordsInput('')
     setErrors({})
   }, [product, open])
 
@@ -93,6 +117,9 @@ export const CreateEditProductDialog: React.FC<
       return
     }
 
+    const keywordsStr =
+      keywordsTags.length > 0 ? joinKeywords(keywordsTags) : ''
+
     if (isEdit && product) {
       const dto: UpdateProductDto = {
         id: product.id,
@@ -104,6 +131,7 @@ export const CreateEditProductDialog: React.FC<
           ? Number(purchasePrice)
           : null,
         sku: sku.trim() || null,
+        keywords: keywordsStr || null,
         remark: remark.trim() || null,
       }
       onConfirm(dto)
@@ -117,9 +145,32 @@ export const CreateEditProductDialog: React.FC<
           ? Number(purchasePrice)
           : undefined,
         sku: sku.trim() || undefined,
+        keywords: keywordsStr || undefined,
         remark: remark.trim() || undefined,
       }
       onConfirm(dto)
+    }
+  }
+
+  /** 添加关键词 Tag */
+  const handleAddKeyword = () => {
+    const trimmed = keywordsInput.trim()
+    if (trimmed && !keywordsTags.includes(trimmed)) {
+      setKeywordsTags((prev) => [...prev, trimmed])
+    }
+    setKeywordsInput('')
+  }
+
+  /** 删除关键词 Tag */
+  const handleRemoveKeyword = (tag: string) => {
+    setKeywordsTags((prev) => prev.filter((t) => t !== tag))
+  }
+
+  /** 关键词输入框键盘事件 */
+  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddKeyword()
     }
   }
 
@@ -177,6 +228,22 @@ export const CreateEditProductDialog: React.FC<
               placeholder="如：斤、个、箱、盒"
               className={errors.unit ? 'border-destructive' : ''}
             />
+            {/* 常用单位 Chips 快捷选择 */}
+            <div className="flex flex-wrap gap-1.5">
+              {COMMON_UNITS.map((u) => (
+                <Badge
+                  key={u}
+                  variant={unit === u ? 'default' : 'outline'}
+                  className="cursor-pointer select-none"
+                  onClick={() => {
+                    setUnit(u)
+                    setErrors((prev) => ({ ...prev, unit: '' }))
+                  }}
+                >
+                  {u}
+                </Badge>
+              ))}
+            </div>
             {errors.unit && (
               <p className="text-sm text-destructive">{errors.unit}</p>
             )}
@@ -232,6 +299,36 @@ export const CreateEditProductDialog: React.FC<
               value={sku}
               onChange={(e) => setSku(e.target.value)}
               placeholder="请输入商品编码（可选）"
+            />
+          </div>
+
+          {/* 关键词 Tag 输入 */}
+          <div className="space-y-2">
+            <Label htmlFor="product-keywords">关键词</Label>
+            {/* 已添加的 Tag 列表 */}
+            {keywordsTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {keywordsTags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveKeyword(tag)}
+                      className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                      aria-label={`删除关键词：${tag}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <Input
+              id="product-keywords"
+              value={keywordsInput}
+              onChange={(e) => setKeywordsInput(e.target.value)}
+              onKeyDown={handleKeywordKeyDown}
+              placeholder="输入关键词后按回车添加"
             />
           </div>
 
