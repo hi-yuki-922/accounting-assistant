@@ -66,7 +66,8 @@ export const AccountingType = {
   InvestmentIncome: 'InvestmentIncome',
 } as const
 
-export type AccountingType = (typeof AccountingType)[keyof typeof AccountingType]
+export type AccountingType =
+  (typeof AccountingType)[keyof typeof AccountingType]
 
 // 伴随显示文本映射
 export const ACCOUNTING_TYPE_DISPLAY_TEXT = {

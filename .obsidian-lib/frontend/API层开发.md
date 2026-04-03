@@ -84,7 +84,8 @@ export const AccountingType = {
   WriteOff: 'WriteOff',
 } as const
 
-export type AccountingType = (typeof AccountingType)[keyof typeof AccountingType]
+export type AccountingType =
+  (typeof AccountingType)[keyof typeof AccountingType]
 
 export const ACCOUNTING_TYPE_DISPLAY_TEXT = {
   [AccountingType.Income]: '收入',
@@ -111,8 +112,7 @@ export const createCustomer = (data: CreateCustomerDto) =>
   tryCMD<Customer>('create_customer', { input: data })
 
 /** 获取所有客户 */
-export const getAllCustomers = () =>
-  tryCMD<Customer[]>('get_all_customers')
+export const getAllCustomers = () => tryCMD<Customer[]>('get_all_customers')
 
 /** 按 ID 获取客户 */
 export const getCustomerById = (id: number) =>

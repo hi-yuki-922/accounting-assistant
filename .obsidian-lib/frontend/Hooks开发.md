@@ -44,7 +44,9 @@ export const useCustomers = (): UseCustomersState => {
       .mapErr((e) => new Error(`加载客户失败：${e.message}`))
   }, [])
 
-  const createCustomer = async (data: CreateCustomerDto): SafeAsync<Customer> => {
+  const createCustomer = async (
+    data: CreateCustomerDto
+  ): SafeAsync<Customer> => {
     const result = await customerApi.create(data)
     return result
       .map((newCustomer) => {

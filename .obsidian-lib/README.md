@@ -2,6 +2,12 @@
 
 本知识库是 **记账助手（Accounting Assistant）** 项目的开发规范与架构参考，为 Tauri 2.0 + React 19 + Rust (Sea-ORM) 技术栈提供统一的编码指导。
 
+## 公共
+
+| 文档                    | 说明                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| [[common/重要注意事项]] | 开发环境、数据库、金融精度、路径别名、初始化流程、开发命令 |
+
 ## 后端（backend/）
 
 Rust 后端的开发规范，覆盖分层架构各环节。
@@ -27,15 +33,28 @@ Rust 后端的开发规范，覆盖分层架构各环节。
 
 React 19 + TypeScript 前端的开发规范。
 
-| 文档                        | 说明                                                         |
-| --------------------------- | ------------------------------------------------------------ |
-| [[frontend/架构概览]]       | 前端到后端完整调用链：页面 → Hooks → API 层 → Tauri IPC      |
-| [[frontend/TypeScript规范]] | 类型定义使用 `type` 而非 `interface`                         |
-| [[frontend/错误处理]]       | 基于 `neverthrow` 的 `SafeAsync<T>` / `Safe<T>` 错误处理模式 |
-| [[frontend/文件组织]]       | 目录结构与 TanStack Router 文件路由约定                      |
-| [[frontend/API层开发]]      | `src/api/commands/` 模块结构与 Rust 后端对齐方式             |
-| [[frontend/Hooks开发]]      | 自定义 Hook 模板与封装 API 调用的约定                        |
-| [[frontend/组件开发]]       | 函数式组件（箭头函数风格）开发规范                           |
-| [[frontend/样式规范]]       | Tailwind CSS v4 配置与 shadcn/ui 集成                        |
-| [[frontend/路由导航]]       | TanStack Router 文件路由与导航约定                           |
-| [[frontend/AI集成]]         | 智谱 AI 集成：聊天页面 → hooks → Vercel AI SDK               |
+| 文档                           | 说明                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| [[frontend/架构概览]]          | 前端到后端完整调用链：页面 → Hooks → API 层 → Tauri IPC      |
+| [[frontend/TypeScript规范]]    | 类型定义使用 `type` 而非 `interface`                         |
+| [[frontend/错误处理]]          | 基于 `neverthrow` 的 `SafeAsync<T>` / `Safe<T>` 错误处理模式 |
+| [[frontend/文件组织]]          | 目录结构与 TanStack Router 文件路由约定                      |
+| [[frontend/API层开发]]         | `src/api/commands/` 模块结构与 Rust 后端对齐方式             |
+| [[frontend/Hooks开发]]         | 自定义 Hook 模板与封装 API 调用的约定                        |
+| [[frontend/组件开发]]          | 函数式组件（箭头函数风格）开发规范                           |
+| [[frontend/样式规范]]          | Tailwind CSS v4 配置与 shadcn/ui 集成                        |
+| [[frontend/路由导航]]          | TanStack Router 文件路由与导航约定                           |
+| [[frontend/AI集成]]            | 智谱 AI 集成：聊天页面 → hooks → Vercel AI SDK               |
+| [[frontend/Ultracite代码规范]] | Ultracite 代码质量工具与前端编码标准                         |
+
+## 设计（design/）
+
+| 文档                  | 说明                                   |
+| --------------------- | -------------------------------------- |
+| [[design/设计上下文]] | 用户画像、品牌个性、美学方向、设计原则 |
+
+## 技术栈（tech-stack/）
+
+| 文档                  | 说明                               |
+| --------------------- | ---------------------------------- |
+| [[tech-stack/技术栈]] | 前端、后端、开发工具完整技术栈清单 |
