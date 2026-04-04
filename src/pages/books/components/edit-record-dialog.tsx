@@ -100,7 +100,7 @@ export const EditRecordDialog: React.FC<EditRecordDialogProps> = ({
 
     setLoading(true)
 
-    const result = await accounting.modify({
+    const result = await accounting.update({
       id: record.id,
       title: title.trim(),
       amount: amountNum,

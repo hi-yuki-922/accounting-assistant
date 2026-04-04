@@ -1,8 +1,8 @@
-use chrono::{NaiveDateTime};
+use crate::enums::{AccountingChannel, AccountingRecordState, AccountingType};
+use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
-use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -67,7 +67,9 @@ impl ActiveModelBehavior for ActiveModel {
 
 impl Model {
     // Generate a unique ID in the format YYYYMMDDNNNNN
-    pub async fn generate_id<C: sea_orm::ConnectionTrait>(db: &C) -> Result<i64, Box<dyn std::error::Error>> {
+    pub async fn generate_id<C: sea_orm::ConnectionTrait>(
+        db: &C,
+    ) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
         let date_str = now.format("%Y%m%d").to_string();

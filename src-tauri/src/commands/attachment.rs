@@ -1,6 +1,6 @@
 use crate::entity::attachment;
-use crate::services::attachment::AttachmentService;
 use crate::services::attachment::dto::AttachmentInfo;
+use crate::services::attachment::AttachmentService;
 use chrono::{DateTime, Utc};
 use tauri::{AppHandle, State};
 
@@ -16,8 +16,16 @@ pub async fn create_attachment(
     file_content: Vec<u8>,
 ) -> Result<(i64, String), String> {
     service
-        .create_attachment(&app, master_id, file_name, file_suffix, file_size, file_content)
+        .create_attachment(
+            &app,
+            master_id,
+            file_name,
+            file_suffix,
+            file_size,
+            file_content,
+        )
         .await
+        .map_err(|e| e.to_string())
 }
 
 /// 按 ID 删除附件
@@ -26,7 +34,10 @@ pub async fn delete_attachment(
     service: State<'_, AttachmentService>,
     id: i64,
 ) -> Result<(), String> {
-    service.delete_attachment(id).await
+    service
+        .delete_attachment(id)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// 按路径删除附件
@@ -35,7 +46,10 @@ pub async fn delete_attachment_by_path(
     service: State<'_, AttachmentService>,
     path: String,
 ) -> Result<(), String> {
-    service.delete_attachment_by_path(&path).await
+    service
+        .delete_attachment_by_path(&path)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// 查询附件列表
@@ -81,7 +95,8 @@ pub async fn query_attachments(
             end_dt,
             master_id,
         )
-        .await?;
+        .await
+        .map_err(|e| e.to_string())?;
 
     Ok(attachments.into_iter().map(AttachmentInfo::from).collect())
 }
@@ -92,5 +107,8 @@ pub async fn download_attachment(
     service: State<'_, AttachmentService>,
     id: i64,
 ) -> Result<(String, Vec<u8>), String> {
-    service.download_attachment(id).await
+    service
+        .download_attachment(id)
+        .await
+        .map_err(|e| e.to_string())
 }

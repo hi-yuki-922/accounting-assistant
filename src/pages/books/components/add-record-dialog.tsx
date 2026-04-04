@@ -105,7 +105,7 @@ export const AddRecordDialog: React.FC<AddRecordDialogProps> = ({
 
     setLoading(true)
 
-    const result = await accounting.add({
+    const result = await accounting.create({
       title: title.trim(),
       amount: amountNum,
       recordTime: formatRecordTime(date, time),

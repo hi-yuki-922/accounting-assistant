@@ -1,5 +1,5 @@
+use crate::enums::{MessageRole, MessageState};
 use serde::{Deserialize, Serialize};
-use crate::entity::chat_message::{MessageRole, MessageState};
 
 /// 创建会话 DTO
 #[derive(Debug, Clone, Deserialize, Serialize)]

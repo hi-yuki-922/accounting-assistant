@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use sea_orm::{TryGetable, DbErr, Value};
 use sea_orm::sea_query::{ColumnType as SeaQueryColumnType, StringLen};
+use sea_orm::{DbErr, TryGetable, Value};
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumIter};
 
 /// 客户分类枚举
@@ -35,26 +35,34 @@ impl CustomerCategory {
 
 // SeaORM 转换 trait 实现
 impl TryGetable for CustomerCategory {
-    fn try_get_by<I: sea_orm::ColIdx>(res: &sea_orm::QueryResult, idx: I) -> Result<Self, sea_orm::TryGetError> {
+    fn try_get_by<I: sea_orm::ColIdx>(
+        res: &sea_orm::QueryResult,
+        idx: I,
+    ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<CustomerCategory>()
-            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory"))))
+        value.parse::<CustomerCategory>().map_err(|_| {
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory")))
+        })
     }
 
-    fn try_get(res: &sea_orm::QueryResult, pre: &str, col: &str) -> Result<Self, sea_orm::TryGetError> {
+    fn try_get(
+        res: &sea_orm::QueryResult,
+        pre: &str,
+        col: &str,
+    ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<CustomerCategory>()
-            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory"))))
+        value.parse::<CustomerCategory>().map_err(|_| {
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory")))
+        })
     }
 }
 
 impl sea_orm::sea_query::ValueType for CustomerCategory {
     fn try_from(v: Value) -> Result<Self, sea_orm::sea_query::ValueTypeErr> {
         match v {
-            Value::String(Some(s)) => {
-                s.parse::<CustomerCategory>()
-                    .map_err(|_| sea_orm::sea_query::ValueTypeErr)
-            },
+            Value::String(Some(s)) => s
+                .parse::<CustomerCategory>()
+                .map_err(|_| sea_orm::sea_query::ValueTypeErr),
             _ => Err(sea_orm::sea_query::ValueTypeErr),
         }
     }
@@ -80,6 +88,8 @@ impl From<CustomerCategory> for Value {
 
 impl sea_orm::TryFromU64 for CustomerCategory {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
-        Err(DbErr::Type(String::from("Cannot convert u64 to CustomerCategory")))
+        Err(DbErr::Type(String::from(
+            "Cannot convert u64 to CustomerCategory",
+        )))
     }
 }

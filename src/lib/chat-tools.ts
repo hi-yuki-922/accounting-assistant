@@ -37,7 +37,7 @@ export const addRecordTool = tool({
   ),
   execute: async (input: AddAccountingRecordDto) => {
     try {
-      const result = await accounting.add({
+      const result = await accounting.create({
         accountingType: input.accountingType as any,
         amount: input.amount,
         bookId: input.bookId,

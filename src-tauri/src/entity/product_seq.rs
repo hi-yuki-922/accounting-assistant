@@ -6,7 +6,7 @@ use sea_orm::ActiveValue;
 #[sea_orm(table_name = "product_seq")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: i32,  // 日期，格式 YYYYMMDD
+    pub id: i32, // 日期，格式 YYYYMMDD
     pub seq: i32, // 当日流水号
 }
 
@@ -25,10 +25,7 @@ impl Model {
 
         let txn = db.begin().await?;
 
-        let seq_model = Entity::find()
-            .filter(Column::Id.eq(date))
-            .one(&txn)
-            .await?;
+        let seq_model = Entity::find().filter(Column::Id.eq(date)).one(&txn).await?;
 
         let next_seq = match seq_model {
             Some(model) => {
@@ -38,7 +35,7 @@ impl Model {
                 };
                 active_model.update(&txn).await?;
                 model.seq + 1
-            },
+            }
             None => {
                 let new_seq = ActiveModel {
                     id: ActiveValue::Set(date),

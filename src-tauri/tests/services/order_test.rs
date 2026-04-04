@@ -1,10 +1,14 @@
-use accounting_assistant_lib::entity::order_item;
-use accounting_assistant_lib::entity::accounting_record;
 use accounting_assistant_lib::entity::accounting_book;
-use accounting_assistant_lib::enums::{AccountingType, AccountingChannel, AccountingRecordState, OrderStatus, OrderType};
-use accounting_assistant_lib::services::order::dto::{CreateOrderDto, CreateOrderItemDto, SettleOrderDto, UpdateOrderDto, QueryOrdersDto};
-use accounting_assistant_lib::services::OrderService;
+use accounting_assistant_lib::entity::accounting_record;
+use accounting_assistant_lib::entity::order_item;
+use accounting_assistant_lib::enums::{
+    AccountingChannel, AccountingRecordState, AccountingType, OrderStatus, OrderType,
+};
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
+use accounting_assistant_lib::services::order::dto::{
+    CreateOrderDto, CreateOrderItemDto, QueryOrdersDto, SettleOrderDto, UpdateOrderDto,
+};
+use accounting_assistant_lib::services::OrderService;
 use rust_decimal::Decimal;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serial_test::serial;
@@ -12,7 +16,13 @@ use serial_test::serial;
 use crate::context::run_in_transaction;
 
 /// 辅助函数：构造一条商品明细 DTO
-fn make_item(product_id: i64, name: &str, quantity: Decimal, unit: &str, unit_price: Decimal) -> CreateOrderItemDto {
+fn make_item(
+    product_id: i64,
+    name: &str,
+    quantity: Decimal,
+    unit: &str,
+    unit_price: Decimal,
+) -> CreateOrderItemDto {
     CreateOrderItemDto {
         product_id,
         product_name: name.to_string(),
@@ -64,7 +74,9 @@ async fn test_create_order_success() {
         assert_eq!(items.len(), 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -86,7 +98,9 @@ async fn test_create_order_empty_items_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -98,9 +112,13 @@ async fn test_create_order_with_custom_actual_amount() {
         let dto = CreateOrderDto {
             order_type: "Purchase".to_string(),
             customer_id: Some(100),
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: Some(Decimal::new(7500, 2)), // 抹零
         };
@@ -113,7 +131,9 @@ async fn test_create_order_with_custom_actual_amount() {
         assert_eq!(order.actual_amount, Decimal::new(7500, 2));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== update_order 测试 ====================
@@ -128,9 +148,13 @@ async fn test_update_order_pending_success() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: Some("原始备注".to_string()),
             actual_amount: None,
         };
@@ -162,7 +186,9 @@ async fn test_update_order_pending_success() {
         assert_eq!(items.len(), 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -175,9 +201,13 @@ async fn test_update_order_settled_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -193,9 +223,13 @@ async fn test_update_order_settled_error() {
         // 尝试编辑已结账订单
         let update_dto = UpdateOrderDto {
             order_id: order.id,
-            items: Some(vec![
-                make_item(1, "苹果", Decimal::new(5, 0), "斤", Decimal::new(800, 2)),
-            ]),
+            items: Some(vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(5, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )]),
             remark: None,
         };
 
@@ -203,7 +237,9 @@ async fn test_update_order_settled_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -215,9 +251,13 @@ async fn test_update_order_cancelled_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -235,7 +275,9 @@ async fn test_update_order_cancelled_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -247,9 +289,13 @@ async fn test_update_order_empty_items_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -265,7 +311,9 @@ async fn test_update_order_empty_items_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== settle_order 测试 ====================
@@ -279,9 +327,13 @@ async fn test_settle_order_sales_creates_income_record() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -330,7 +382,9 @@ async fn test_settle_order_sales_creates_income_record() {
         assert_eq!(book_after.record_count, count_before + 1);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -342,9 +396,13 @@ async fn test_settle_order_purchase_creates_expenditure_record() {
         let create_dto = CreateOrderDto {
             order_type: "Purchase".to_string(),
             customer_id: Some(100),
-            items: vec![
-                make_item(1, "苹果", Decimal::new(20, 0), "斤", Decimal::new(600, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(20, 0),
+                "斤",
+                Decimal::new(600, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -368,7 +426,9 @@ async fn test_settle_order_purchase_creates_expenditure_record() {
         assert_eq!(record.channel, AccountingChannel::Wechat);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -380,9 +440,13 @@ async fn test_settle_order_with_custom_actual_amount() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -405,7 +469,9 @@ async fn test_settle_order_with_custom_actual_amount() {
         assert_eq!(record.amount, Decimal::new(7500, 2));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -417,9 +483,13 @@ async fn test_settle_order_already_settled_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -442,7 +512,9 @@ async fn test_settle_order_already_settled_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -454,9 +526,13 @@ async fn test_settle_order_cancelled_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -473,7 +549,9 @@ async fn test_settle_order_cancelled_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== cancel_order 测试 ====================
@@ -487,9 +565,13 @@ async fn test_cancel_order_success() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -501,7 +583,9 @@ async fn test_cancel_order_success() {
         assert_eq!(cancelled.id, order.id);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -513,9 +597,13 @@ async fn test_cancel_order_settled_error() {
         let create_dto = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![
-                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
-            ],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -532,7 +620,9 @@ async fn test_cancel_order_settled_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -546,7 +636,9 @@ async fn test_cancel_order_not_found_error() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_all_orders 测试 ====================
@@ -562,7 +654,9 @@ async fn test_get_all_orders_empty() {
         assert!(orders.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -575,9 +669,13 @@ async fn test_get_all_orders_ordered_by_create_at_desc() {
             let dto = CreateOrderDto {
                 order_type: "Sales".to_string(),
                 customer_id: None,
-                items: vec![
-                    make_item(i, &format!("商品{}", i), Decimal::new(1, 0), "个", Decimal::new(100, 2)),
-                ],
+                items: vec![make_item(
+                    i,
+                    &format!("商品{}", i),
+                    Decimal::new(1, 0),
+                    "个",
+                    Decimal::new(100, 2),
+                )],
                 remark: None,
                 actual_amount: None,
             };
@@ -592,7 +690,9 @@ async fn test_get_all_orders_ordered_by_create_at_desc() {
         assert!(orders[1].create_at >= orders[2].create_at);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_order_by_id 测试 ====================
@@ -625,13 +725,18 @@ async fn test_get_order_by_id_with_items() {
         assert_eq!(items.len(), 2);
 
         // 验证明细内容
-        let apple_item = items.iter().find(|i| i.product_name == "苹果").expect("应有苹果明细");
+        let apple_item = items
+            .iter()
+            .find(|i| i.product_name == "苹果")
+            .expect("应有苹果明细");
         assert_eq!(apple_item.quantity, Decimal::new(10, 0));
         assert_eq!(apple_item.unit_price, Decimal::new(800, 2));
         assert_eq!(apple_item.subtotal, Decimal::new(8000, 2));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -645,7 +750,9 @@ async fn test_get_order_by_id_not_found() {
         assert!(result.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_orders_by_customer_id 测试 ====================
@@ -660,7 +767,13 @@ async fn test_get_orders_by_customer_id() {
         let dto1 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: Some(100),
-            items: vec![make_item(1, "苹果", Decimal::new(1, 0), "斤", Decimal::new(800, 2))],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -670,7 +783,13 @@ async fn test_get_orders_by_customer_id() {
         let dto2 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: Some(200),
-            items: vec![make_item(2, "香蕉", Decimal::new(1, 0), "斤", Decimal::new(500, 2))],
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -680,7 +799,13 @@ async fn test_get_orders_by_customer_id() {
         let dto3 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(3, "橙子", Decimal::new(1, 0), "斤", Decimal::new(600, 2))],
+            items: vec![make_item(
+                3,
+                "橙子",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(600, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -697,7 +822,9 @@ async fn test_get_orders_by_customer_id() {
         assert!(none_orders.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_orders_by_status 测试 ====================
@@ -712,7 +839,13 @@ async fn test_get_orders_by_status() {
         let dto1 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(1, "苹果", Decimal::new(1, 0), "斤", Decimal::new(800, 2))],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -721,7 +854,13 @@ async fn test_get_orders_by_status() {
         let dto2 = CreateOrderDto {
             order_type: "Purchase".to_string(),
             customer_id: None,
-            items: vec![make_item(2, "香蕉", Decimal::new(1, 0), "斤", Decimal::new(500, 2))],
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -742,7 +881,9 @@ async fn test_get_orders_by_status() {
         assert_eq!(settled.len(), 1);
         assert_eq!(settled[0].status, OrderStatus::Settled);
 
-        let cancelled = service.get_orders_by_status("Cancelled".to_string()).await?;
+        let cancelled = service
+            .get_orders_by_status("Cancelled".to_string())
+            .await?;
         assert_eq!(cancelled.len(), 1);
         assert_eq!(cancelled[0].status, OrderStatus::Cancelled);
 
@@ -750,7 +891,9 @@ async fn test_get_orders_by_status() {
         assert!(pending.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== query_orders 测试 ====================
@@ -766,7 +909,13 @@ async fn test_query_orders_pagination() {
             let dto = CreateOrderDto {
                 order_type: "Sales".to_string(),
                 customer_id: None,
-                items: vec![make_item(i, &format!("商品{}", i), Decimal::new(1, 0), "个", Decimal::new(100, 2))],
+                items: vec![make_item(
+                    i,
+                    &format!("商品{}", i),
+                    Decimal::new(1, 0),
+                    "个",
+                    Decimal::new(100, 2),
+                )],
                 remark: None,
                 actual_amount: None,
             };
@@ -808,7 +957,9 @@ async fn test_query_orders_pagination() {
         assert_eq!(orders_p3.len(), 1);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -820,7 +971,13 @@ async fn test_query_orders_filter_by_status() {
         let dto1 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(1, "苹果", Decimal::new(1, 0), "斤", Decimal::new(800, 2))],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -837,7 +994,13 @@ async fn test_query_orders_filter_by_status() {
         let dto2 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(2, "香蕉", Decimal::new(1, 0), "斤", Decimal::new(500, 2))],
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -861,7 +1024,9 @@ async fn test_query_orders_filter_by_status() {
         assert_eq!(orders[0].status, OrderStatus::Settled);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -873,7 +1038,13 @@ async fn test_query_orders_filter_by_order_type() {
         let dto1 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(1, "苹果", Decimal::new(1, 0), "斤", Decimal::new(800, 2))],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -882,7 +1053,13 @@ async fn test_query_orders_filter_by_order_type() {
         let dto2 = CreateOrderDto {
             order_type: "Purchase".to_string(),
             customer_id: None,
-            items: vec![make_item(2, "香蕉", Decimal::new(1, 0), "斤", Decimal::new(500, 2))],
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -905,7 +1082,9 @@ async fn test_query_orders_filter_by_order_type() {
         assert_eq!(orders[0].order_type, OrderType::Sales);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -918,7 +1097,13 @@ async fn test_query_orders_filter_by_amount_range() {
         let dto1 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2))],
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -928,7 +1113,13 @@ async fn test_query_orders_filter_by_amount_range() {
         let dto2 = CreateOrderDto {
             order_type: "Sales".to_string(),
             customer_id: None,
-            items: vec![make_item(2, "香蕉", Decimal::new(10, 0), "斤", Decimal::new(500, 2))],
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
             remark: None,
             actual_amount: None,
         };
@@ -940,7 +1131,7 @@ async fn test_query_orders_filter_by_amount_range() {
             start_time: None,
             end_time: None,
             status: None,
-            min_amount: Some(Decimal::new(6000, 2)), // 60.00
+            min_amount: Some(Decimal::new(6000, 2)),  // 60.00
             max_amount: Some(Decimal::new(10000, 2)), // 100.00
             channel: None,
             order_type: None,
@@ -951,7 +1142,9 @@ async fn test_query_orders_filter_by_amount_range() {
         assert_eq!(orders[0].actual_amount, Decimal::new(8000, 2));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -977,5 +1170,7 @@ async fn test_query_orders_no_results() {
         assert!(orders.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }

@@ -39,7 +39,9 @@ async fn test_create_product_success() {
         assert_eq!(product.remark, Some("当季水果".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -67,7 +69,9 @@ async fn test_create_product_minimal_fields() {
         assert_eq!(product.default_sell_price, None);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== update_product 测试 ====================
@@ -111,7 +115,9 @@ async fn test_update_product_success() {
         assert_eq!(updated.sku, Some("SKU001".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -137,7 +143,9 @@ async fn test_update_product_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== delete_product 测试 ====================
@@ -162,13 +170,13 @@ async fn test_delete_product_success() {
 
         service.delete_product(product.id).await?;
 
-        let found = product::Entity::find_by_id(product.id)
-            .one(&db)
-            .await?;
+        let found = product::Entity::find_by_id(product.id).one(&db).await?;
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -182,7 +190,9 @@ async fn test_delete_product_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_all_products 测试 ====================
@@ -198,7 +208,9 @@ async fn test_get_all_products_empty() {
         assert!(products.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -229,7 +241,9 @@ async fn test_get_all_products_ordered_by_create_at_desc() {
         assert_eq!(products[2].name, "商品1");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_product_by_id 测试 ====================
@@ -259,7 +273,9 @@ async fn test_get_product_by_id_found() {
         assert_eq!(found.unit, "箱");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -273,7 +289,9 @@ async fn test_get_product_by_id_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== search_products 测试 ====================
@@ -314,7 +332,9 @@ async fn test_search_products_by_name() {
         assert_eq!(results[0].name, "红富士苹果");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -353,7 +373,9 @@ async fn test_search_products_by_category() {
         assert_eq!(results[0].name, "苹果");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -380,7 +402,9 @@ async fn test_search_products_by_keywords() {
         assert_eq!(results[0].name, "鲍鱼");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -406,5 +430,7 @@ async fn test_search_products_no_match() {
         assert!(results.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }

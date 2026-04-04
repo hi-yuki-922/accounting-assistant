@@ -31,9 +31,9 @@ export const createBook = (data: CreateBookDto) =>
 
 /**
  * 查询所有账本
- * 对应 Rust 后端 get_books 命令
+ * 对应 Rust 后端 get_all_books 命令
  */
-export const getBooks = () => tryCMD<AccountingBook[]>('get_books')
+export const getAllBooks = () => tryCMD<AccountingBook[]>('get_all_books')
 
 /**
  * 根据 ID 查询单个账本
@@ -99,7 +99,7 @@ export const getRecordWriteOffDetails = (recordId: number) =>
 export const accountingBook = {
   create: createBook,
   delete: deleteBook,
-  getAll: getBooks,
+  getAll: getAllBooks,
   getAllStats: getAllBooksStats,
   getById: getBookById,
   getPaginated: getBooksPaginated,

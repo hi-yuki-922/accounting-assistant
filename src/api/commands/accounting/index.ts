@@ -25,18 +25,18 @@ export * from './type'
 export * from './enums'
 
 /**
- * 添加记账记录
- * 对应 Rust 后端 add_accounting_record 命令
+ * 创建记账记录
+ * 对应 Rust 后端 create_accounting_record 命令
  */
-export const addAccountingRecord = (data: AddAccountingRecordDto) =>
-  tryCMD<AccountingRecord>('add_accounting_record', { input: data })
+export const createAccountingRecord = (data: AddAccountingRecordDto) =>
+  tryCMD<AccountingRecord>('create_accounting_record', { input: data })
 
 /**
- * 修改记账记录
- * 对应 Rust 后端 modify_accounting_record 命令
+ * 更新记账记录
+ * 对应 Rust 后端 update_accounting_record 命令
  */
-export const modifyAccountingRecord = (data: ModifyAccountingRecordDto) =>
-  tryCMD<AccountingRecord>('modify_accounting_record', { input: data })
+export const updateAccountingRecord = (data: ModifyAccountingRecordDto) =>
+  tryCMD<AccountingRecord>('update_accounting_record', { input: data })
 
 /**
  * 过账记账记录
@@ -79,11 +79,11 @@ export const accounting = {
   AccountingChannel,
   AccountingRecordState,
   AccountingType,
-  add: addAccountingRecord,
+  create: createAccountingRecord,
   batchPost: batchPostAccountingRecords,
   createWriteOff: createWriteOffRecord,
   delete: deleteAccountingRecord,
   get: getAccountingRecord,
-  modify: modifyAccountingRecord,
+  update: updateAccountingRecord,
   post: postAccountingRecord,
 }

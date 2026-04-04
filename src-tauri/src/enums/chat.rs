@@ -3,46 +3,47 @@ use sea_orm::{DbErr, TryGetable, Value};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumIter};
 
-/// 订单类型枚举
+/// 消息角色枚举
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, EnumIter)]
-pub enum OrderType {
-    /// 销售订单
-    Sales,
-    /// 采购订单
-    Purchase,
+pub enum MessageRole {
+    User,
+    Assistant,
+    System,
 }
 
-impl std::str::FromStr for OrderType {
+impl std::str::FromStr for MessageRole {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Sales" => Ok(OrderType::Sales),
-            "Purchase" => Ok(OrderType::Purchase),
+            "user" => Ok(MessageRole::User),
+            "assistant" => Ok(MessageRole::Assistant),
+            "system" => Ok(MessageRole::System),
             _ => Err(()),
         }
     }
 }
 
-impl OrderType {
+impl MessageRole {
     fn as_str(&self) -> &'static str {
         match self {
-            OrderType::Sales => "Sales",
-            OrderType::Purchase => "Purchase",
+            MessageRole::User => "user",
+            MessageRole::Assistant => "assistant",
+            MessageRole::System => "system",
         }
     }
 }
 
 // SeaORM 转换 trait 实现
-impl TryGetable for OrderType {
+impl TryGetable for MessageRole {
     fn try_get_by<I: sea_orm::ColIdx>(
         res: &sea_orm::QueryResult,
         idx: I,
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<OrderType>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderType")))
-        })
+        value
+            .parse::<MessageRole>()
+            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的消息角色"))))
     }
 
     fn try_get(
@@ -51,24 +52,24 @@ impl TryGetable for OrderType {
         col: &str,
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<OrderType>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderType")))
-        })
+        value
+            .parse::<MessageRole>()
+            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的消息角色"))))
     }
 }
 
-impl sea_orm::sea_query::ValueType for OrderType {
+impl sea_orm::sea_query::ValueType for MessageRole {
     fn try_from(v: Value) -> Result<Self, sea_orm::sea_query::ValueTypeErr> {
         match v {
             Value::String(Some(s)) => s
-                .parse::<OrderType>()
+                .parse::<MessageRole>()
                 .map_err(|_| sea_orm::sea_query::ValueTypeErr),
             _ => Err(sea_orm::sea_query::ValueTypeErr),
         }
     }
 
     fn type_name() -> String {
-        stringify!(OrderType).to_owned()
+        stringify!(MessageRole).to_owned()
     }
 
     fn array_type() -> sea_orm::sea_query::ArrayType {
@@ -80,62 +81,62 @@ impl sea_orm::sea_query::ValueType for OrderType {
     }
 }
 
-impl From<OrderType> for Value {
-    fn from(e: OrderType) -> Value {
+impl From<MessageRole> for Value {
+    fn from(e: MessageRole) -> Value {
         Value::String(Some(e.as_str().to_string()))
     }
 }
 
-impl sea_orm::TryFromU64 for OrderType {
+impl sea_orm::TryFromU64 for MessageRole {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
-        Err(DbErr::Type(String::from("Cannot convert u64 to OrderType")))
+        Err(DbErr::Type(String::from("无法将 u64 转换为 MessageRole")))
     }
 }
 
-/// 订单状态枚举
+/// 消息状态枚举
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, EnumIter)]
-pub enum OrderStatus {
-    /// 待结账
-    Pending,
-    /// 已结账
-    Settled,
-    /// 已取消
-    Cancelled,
+pub enum MessageState {
+    Sending,
+    Sent,
+    Completed,
+    Failed,
 }
 
-impl std::str::FromStr for OrderStatus {
+impl std::str::FromStr for MessageState {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Pending" => Ok(OrderStatus::Pending),
-            "Settled" => Ok(OrderStatus::Settled),
-            "Cancelled" => Ok(OrderStatus::Cancelled),
+            "sending" => Ok(MessageState::Sending),
+            "sent" => Ok(MessageState::Sent),
+            "completed" => Ok(MessageState::Completed),
+            "failed" => Ok(MessageState::Failed),
             _ => Err(()),
         }
     }
 }
 
-impl OrderStatus {
+impl MessageState {
     fn as_str(&self) -> &'static str {
         match self {
-            OrderStatus::Pending => "Pending",
-            OrderStatus::Settled => "Settled",
-            OrderStatus::Cancelled => "Cancelled",
+            MessageState::Sending => "sending",
+            MessageState::Sent => "sent",
+            MessageState::Completed => "completed",
+            MessageState::Failed => "failed",
         }
     }
 }
 
 // SeaORM 转换 trait 实现
-impl TryGetable for OrderStatus {
+impl TryGetable for MessageState {
     fn try_get_by<I: sea_orm::ColIdx>(
         res: &sea_orm::QueryResult,
         idx: I,
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<OrderStatus>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderStatus")))
-        })
+        value
+            .parse::<MessageState>()
+            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的消息状态"))))
     }
 
     fn try_get(
@@ -144,24 +145,24 @@ impl TryGetable for OrderStatus {
         col: &str,
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
-        value.parse::<OrderStatus>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderStatus")))
-        })
+        value
+            .parse::<MessageState>()
+            .map_err(|_| sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的消息状态"))))
     }
 }
 
-impl sea_orm::sea_query::ValueType for OrderStatus {
+impl sea_orm::sea_query::ValueType for MessageState {
     fn try_from(v: Value) -> Result<Self, sea_orm::sea_query::ValueTypeErr> {
         match v {
             Value::String(Some(s)) => s
-                .parse::<OrderStatus>()
+                .parse::<MessageState>()
                 .map_err(|_| sea_orm::sea_query::ValueTypeErr),
             _ => Err(sea_orm::sea_query::ValueTypeErr),
         }
     }
 
     fn type_name() -> String {
-        stringify!(OrderStatus).to_owned()
+        stringify!(MessageState).to_owned()
     }
 
     fn array_type() -> sea_orm::sea_query::ArrayType {
@@ -173,16 +174,14 @@ impl sea_orm::sea_query::ValueType for OrderStatus {
     }
 }
 
-impl From<OrderStatus> for Value {
-    fn from(e: OrderStatus) -> Value {
+impl From<MessageState> for Value {
+    fn from(e: MessageState) -> Value {
         Value::String(Some(e.as_str().to_string()))
     }
 }
 
-impl sea_orm::TryFromU64 for OrderStatus {
+impl sea_orm::TryFromU64 for MessageState {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
-        Err(DbErr::Type(String::from(
-            "Cannot convert u64 to OrderStatus",
-        )))
+        Err(DbErr::Type(String::from("无法将 u64 转换为 MessageState")))
     }
 }

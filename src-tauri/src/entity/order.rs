@@ -1,8 +1,8 @@
+use crate::enums::{AccountingChannel, OrderStatus, OrderType};
 use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
-use crate::enums::{AccountingChannel, OrderType, OrderStatus};
+use serde::{Deserialize, Serialize};
 
 /// 订单实体
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
@@ -64,7 +64,9 @@ impl ActiveModelBehavior for ActiveModel {
 
 impl Model {
     /// 生成唯一订单 ID，格式：YYYYMMDDNNNNN
-    pub async fn generate_id<C: sea_orm::ConnectionTrait>(db: &C) -> Result<i64, Box<dyn std::error::Error>> {
+    pub async fn generate_id<C: sea_orm::ConnectionTrait>(
+        db: &C,
+    ) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
         let date_str = now.format("%Y%m%d").to_string();

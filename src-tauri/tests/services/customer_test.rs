@@ -35,7 +35,9 @@ async fn test_create_customer_success() {
         assert!(customer.create_at.year() > 0);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -61,7 +63,9 @@ async fn test_create_customer_minimal_fields() {
         assert_eq!(customer.address, None);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== update_customer 测试 ====================
@@ -100,7 +104,9 @@ async fn test_update_customer_name() {
         assert_eq!(updated.phone, "13800138000");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -125,7 +131,9 @@ async fn test_update_customer_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== delete_customer 测试 ====================
@@ -149,13 +157,13 @@ async fn test_delete_customer_success() {
 
         service.delete_customer(customer.id).await?;
 
-        let found = customer::Entity::find_by_id(customer.id)
-            .one(&db)
-            .await?;
+        let found = customer::Entity::find_by_id(customer.id).one(&db).await?;
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -169,7 +177,9 @@ async fn test_delete_customer_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_all_customers 测试 ====================
@@ -185,7 +195,9 @@ async fn test_get_all_customers_empty() {
         assert!(customers.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -216,7 +228,9 @@ async fn test_get_all_customers_multiple() {
         assert_eq!(customers[2].name, "客户1");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_customer_by_id 测试 ====================
@@ -245,7 +259,9 @@ async fn test_get_customer_by_id_found() {
         assert_eq!(found.remark, Some("测试备注".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -259,7 +275,9 @@ async fn test_get_customer_by_id_not_found() {
         assert!(result.is_err());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== search_customers 测试 ====================
@@ -298,7 +316,9 @@ async fn test_search_customers_by_name() {
         assert_eq!(results[0].name, "苹果供应商");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -324,7 +344,9 @@ async fn test_search_customers_by_phone() {
         assert_eq!(results[0].phone, "13912345678");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -349,5 +371,7 @@ async fn test_search_customers_no_match() {
         assert!(results.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
