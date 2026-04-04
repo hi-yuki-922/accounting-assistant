@@ -69,7 +69,7 @@ impl ChatService {
         let session = chat_session::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<String>("会话不存在".into())?;
+            .ok_or("会话不存在")?;
 
         let mut active_model: SessionActiveModel = session.into();
         active_model.title = Set(title);
@@ -140,7 +140,7 @@ impl ChatService {
         let message = chat_message::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<String>("消息不存在".into())?;
+            .ok_or("消息不存在")?;
 
         let mut active_model: MessageActiveModel = message.into();
         active_model.state = Set(state);
@@ -159,7 +159,7 @@ impl ChatService {
         let message = chat_message::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<String>("消息不存在".into())?;
+            .ok_or("消息不存在")?;
 
         let mut active_model: MessageActiveModel = message.into();
         active_model.content = Set(content);

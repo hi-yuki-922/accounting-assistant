@@ -1,7 +1,8 @@
 use crate::entity::attachment;
+use serde::{Deserialize, Serialize};
 
 /// 附件信息响应
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachmentInfo {
     pub id: i64,

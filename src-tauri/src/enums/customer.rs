@@ -41,7 +41,7 @@ impl TryGetable for CustomerCategory {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<CustomerCategory>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的客户分类")))
         })
     }
 
@@ -52,7 +52,7 @@ impl TryGetable for CustomerCategory {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<CustomerCategory>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid CustomerCategory")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的客户分类")))
         })
     }
 }
@@ -89,7 +89,7 @@ impl From<CustomerCategory> for Value {
 impl sea_orm::TryFromU64 for CustomerCategory {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
         Err(DbErr::Type(String::from(
-            "Cannot convert u64 to CustomerCategory",
+            "无法将 u64 转换为 CustomerCategory",
         )))
     }
 }

@@ -66,7 +66,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Model {
-    // Generate a unique ID in the format YYYYMMDDNNNNN
+    /// 生成唯一 ID，格式为 YYYYMMDDNNNNN
     pub async fn generate_id<C: sea_orm::ConnectionTrait>(
         db: &C,
     ) -> Result<i64, Box<dyn std::error::Error>> {
@@ -75,7 +75,7 @@ impl Model {
         let date_str = now.format("%Y%m%d").to_string();
         let date_int = date_str.parse::<i32>().unwrap_or(20210101);
 
-        // Get the next sequence number for today
+        // 获取当日的下一个序列号
         let next_seq = super::accounting_record_seq::Model::get_next_sequence(db, date_int).await?;
 
         let id_str = format!("{}{:05}", date_int, next_seq);

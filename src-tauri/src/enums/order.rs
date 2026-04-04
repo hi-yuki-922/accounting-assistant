@@ -41,7 +41,7 @@ impl TryGetable for OrderType {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<OrderType>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderType")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的订单类型")))
         })
     }
 
@@ -52,7 +52,7 @@ impl TryGetable for OrderType {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<OrderType>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderType")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的订单类型")))
         })
     }
 }
@@ -88,7 +88,7 @@ impl From<OrderType> for Value {
 
 impl sea_orm::TryFromU64 for OrderType {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
-        Err(DbErr::Type(String::from("Cannot convert u64 to OrderType")))
+        Err(DbErr::Type(String::from("无法将 u64 转换为 OrderType")))
     }
 }
 
@@ -134,7 +134,7 @@ impl TryGetable for OrderStatus {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get_by(idx).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<OrderStatus>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderStatus")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的订单状态")))
         })
     }
 
@@ -145,7 +145,7 @@ impl TryGetable for OrderStatus {
     ) -> Result<Self, sea_orm::TryGetError> {
         let value: String = res.try_get(pre, col).map_err(sea_orm::TryGetError::DbErr)?;
         value.parse::<OrderStatus>().map_err(|_| {
-            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("Invalid OrderStatus")))
+            sea_orm::TryGetError::DbErr(DbErr::Type(String::from("无效的订单状态")))
         })
     }
 }
@@ -182,7 +182,7 @@ impl From<OrderStatus> for Value {
 impl sea_orm::TryFromU64 for OrderStatus {
     fn try_from_u64(_n: u64) -> Result<Self, DbErr> {
         Err(DbErr::Type(String::from(
-            "Cannot convert u64 to OrderStatus",
+            "无法将 u64 转换为 OrderStatus",
         )))
     }
 }

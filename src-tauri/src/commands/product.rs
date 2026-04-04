@@ -2,6 +2,7 @@ use crate::services::product::dto::{CreateProductDto, UpdateProductDto};
 use crate::services::product::ProductService;
 use tauri::State;
 
+/// 创建商品
 #[tauri::command]
 pub async fn create_product(
     service: State<'_, ProductService>,
@@ -13,6 +14,7 @@ pub async fn create_product(
         .map_err(|e| e.to_string())
 }
 
+/// 更新商品
 #[tauri::command]
 pub async fn update_product(
     service: State<'_, ProductService>,
@@ -24,6 +26,7 @@ pub async fn update_product(
         .map_err(|e| e.to_string())
 }
 
+/// 删除商品
 #[tauri::command]
 pub async fn delete_product(service: State<'_, ProductService>, id: i64) -> Result<bool, String> {
     service
@@ -33,6 +36,7 @@ pub async fn delete_product(service: State<'_, ProductService>, id: i64) -> Resu
         .map_err(|e| e.to_string())
 }
 
+/// 获取所有商品
 #[tauri::command]
 pub async fn get_all_products(
     service: State<'_, ProductService>,
@@ -40,6 +44,7 @@ pub async fn get_all_products(
     service.get_all_products().await.map_err(|e| e.to_string())
 }
 
+/// 根据 ID 获取商品
 #[tauri::command]
 pub async fn get_product_by_id(
     service: State<'_, ProductService>,
@@ -51,6 +56,7 @@ pub async fn get_product_by_id(
         .map_err(|e| e.to_string())
 }
 
+/// 搜索商品
 #[tauri::command]
 pub async fn search_products(
     service: State<'_, ProductService>,

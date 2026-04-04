@@ -155,11 +155,9 @@ impl AccountingBookService {
             .one(&txn)
             .await?;
 
-        if book.is_none() {
+        let Some(_book) = book else {
             return Ok(false);
-        }
-
-        let _book = book.unwrap();
+        };
 
         // 将该账本的所有记录迁移到默认账本
         let update = accounting_record::ActiveModel {

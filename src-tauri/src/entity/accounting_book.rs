@@ -23,7 +23,7 @@ pub enum Relation {}
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
-        panic!("No relations defined")
+        panic!("未定义关联关系")
     }
 }
 

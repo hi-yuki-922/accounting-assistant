@@ -13,7 +13,7 @@ impl AttachmentStorage {
         Ok(app_handle
             .path()
             .app_data_dir()
-            .expect("Failed to get app data directory"))
+            .expect("获取应用数据目录失败"))
     }
 
     /// 获取基础存储目录

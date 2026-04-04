@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 #[sea_orm(table_name = "accounting_record_seq")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: i32, // Date in YYYYMMDD format
+    pub id: i32, // 日期，格式 YYYYMMDD
 
-    pub seq: i32, // Sequence number for the day
+    pub seq: i32, // 当日序列号
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -25,7 +25,7 @@ impl Model {
 
         let next_seq = match seq_model {
             Some(model) => {
-                // Update the existing sequence
+                // 更新现有序列
                 let active_model: ActiveModel = ActiveModel {
                     id: ActiveValue::Unchanged(model.id),
                     seq: ActiveValue::Set(model.seq + 1),
@@ -35,7 +35,7 @@ impl Model {
                 model.seq + 1
             }
             None => {
-                // Create a new sequence for today starting at 1
+                // 创建今日新序列，起始值为 1
                 let new_seq = ActiveModel {
                     id: ActiveValue::Set(date),
                     seq: ActiveValue::Set(1),

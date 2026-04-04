@@ -14,14 +14,14 @@ pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // Get app data directory path
+            // 获取应用数据目录路径
             let app_data_dir = app
                 .path()
                 .app_data_dir()
-                .expect("Failed to get app data directory");
+                .expect("获取应用数据目录失败");
 
-            // Ensure app data directory exists
-            fs::create_dir_all(&app_data_dir).expect("Failed to create app data directory");
+            // 确保应用数据目录存在
+            fs::create_dir_all(&app_data_dir).expect("创建应用数据目录失败");
 
             let rt = tokio::runtime::Runtime::new().unwrap();
 
@@ -31,7 +31,7 @@ pub fn run() {
 
             // 注册实体
             rt.block_on(entity::with_install_entities(conn.clone().as_ref()))
-                .expect("Failed to register entities");
+                .expect("注册实体失败");
 
             // 初始服务
             init_services(app, conn.clone().as_ref(), &rt)?;
@@ -43,5 +43,5 @@ pub fn run() {
     builder = with_install_tauri_commands(builder);
     builder
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("运行 Tauri 应用失败");
 }

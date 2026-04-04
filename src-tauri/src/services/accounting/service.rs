@@ -80,7 +80,7 @@ impl AccountingService {
         let record = accounting_record::Entity::find_by_id(input.id)
             .one(&self.db)
             .await?
-            .ok_or::<String>("记账记录不存在".into())?;
+            .ok_or("记账记录不存在")?;
 
         // 检查记录是否处于待入账状态
         if record.state != AccountingRecordState::PendingPosting {
@@ -121,7 +121,7 @@ impl AccountingService {
         let record = accounting_record::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<String>("记账记录不存在".into())?;
+            .ok_or("记账记录不存在")?;
 
         // 将状态更新为已入账
         let mut active_model: ActiveModel = record.into();

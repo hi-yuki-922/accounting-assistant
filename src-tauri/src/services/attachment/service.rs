@@ -47,7 +47,7 @@ impl AttachmentService {
         // 获取存储路径字符串
         let path_str = storage_path
             .to_str()
-            .ok_or::<Box<dyn std::error::Error>>("存储路径转换为字符串失败".into())?
+            .ok_or("存储路径转换为字符串失败")?
             .to_string();
 
         // 创建数据库记录
@@ -73,7 +73,7 @@ impl AttachmentService {
         let attachment = attachment::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<Box<dyn std::error::Error>>("附件不存在".into())?;
+            .ok_or("附件不存在")?;
 
         // 删除物理文件
         if Path::new(&attachment.path).exists() {
@@ -96,7 +96,7 @@ impl AttachmentService {
             .filter(attachment::Column::Path.eq(path))
             .one(&self.db)
             .await?
-            .ok_or::<Box<dyn std::error::Error>>("附件不存在".into())?;
+            .ok_or("附件不存在")?;
 
         // 删除物理文件
         if Path::new(path).exists() {
@@ -184,7 +184,7 @@ impl AttachmentService {
         let attachment = attachment::Entity::find_by_id(id)
             .one(&self.db)
             .await?
-            .ok_or::<Box<dyn std::error::Error>>("附件不存在".into())?;
+            .ok_or("附件不存在")?;
 
         // 读取文件
         let file_content = AttachmentStorage::read_file(&attachment.path).await?;
