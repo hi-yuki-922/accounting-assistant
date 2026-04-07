@@ -11,8 +11,10 @@ import { toast } from 'sonner'
 
 import { accounting } from '@/api/commands/accounting'
 import { accountingBook } from '@/api/commands/accounting-book'
-import type { AccountingBook } from '@/api/commands/accounting-book/type'
-import type { RecordWithCountDto } from '@/api/commands/accounting-book/type'
+import type {
+  AccountingBook,
+  RecordWithCountDto,
+} from '@/api/commands/accounting-book/type'
 import { DEFAULT_BOOK_ID } from '@/api/commands/accounting-book/type'
 import type {
   AccountingType,
@@ -31,12 +33,11 @@ import {
 } from '@/components/ui/pagination'
 import { Spinner } from '@/components/ui/spinner'
 
-import { AddRecordDialog } from './components/add-record-dialog'
 import { BatchPostConfirmDialog } from './components/batch-post-confirm-dialog'
 import { CreateEditBookDialog } from './components/create-edit-book-dialog'
+import { CreateEditRecordDialog } from './components/create-edit-record-dialog'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
 import { DeleteRecordConfirmDialog } from './components/delete-record-confirm-dialog'
-import { EditRecordDialog } from './components/edit-record-dialog'
 import { RecordFilter } from './components/record-filter'
 import { RecordListTable } from './components/record-list-table'
 import { WriteOffDialog } from './components/write-off-dialog'
@@ -79,14 +80,13 @@ export const BookDetailPage = () => {
   const [deleting, setDeleting] = useState(false)
 
   // 记录操作对话框
-  const [addDialogOpen, setAddDialogOpen] = useState(false)
-  const [editRecordDialogOpen, setEditRecordDialogOpen] = useState(false)
-  const [deleteRecordDialogOpen, setDeleteRecordDialogOpen] = useState(false)
-  const [writeOffDialogOpen, setWriteOffDialogOpen] = useState(false)
-  const [batchPostDialogOpen, setBatchPostDialogOpen] = useState(false)
+  const [recordDialogOpen, setRecordDialogOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<RecordWithCountDto | null>(
     null
   )
+  const [deleteRecordDialogOpen, setDeleteRecordDialogOpen] = useState(false)
+  const [writeOffDialogOpen, setWriteOffDialogOpen] = useState(false)
+  const [batchPostDialogOpen, setBatchPostDialogOpen] = useState(false)
   const [deletingRecord, setDeletingRecord] =
     useState<RecordWithCountDto | null>(null)
   const [writeOffRecord, setWriteOffRecord] =
@@ -295,22 +295,20 @@ export const BookDetailPage = () => {
   }
 
   // 记一笔成功
-  const handleAddSuccess = () => {
-    setAddDialogOpen(false)
-    refreshToFirstPage()
+  const handleRecordSuccess = () => {
+    setRecordDialogOpen(false)
+    setEditingRecord(null)
+    if (editingRecord) {
+      refreshCurrentPage()
+    } else {
+      refreshToFirstPage()
+    }
   }
 
   // 编辑记录
   const handleEditRecord = (record: RecordWithCountDto) => {
     setEditingRecord(record)
-    setEditRecordDialogOpen(true)
-  }
-
-  // 编辑成功
-  const handleEditSuccess = () => {
-    setEditRecordDialogOpen(false)
-    setEditingRecord(null)
-    refreshCurrentPage()
+    setRecordDialogOpen(true)
   }
 
   // 删除记录
@@ -449,7 +447,12 @@ export const BookDetailPage = () => {
         </div>
         <div className="flex items-center space-x-2">
           {/* 记一笔按钮 */}
-          <Button onClick={() => setAddDialogOpen(true)}>
+          <Button
+            onClick={() => {
+              setEditingRecord(null)
+              setRecordDialogOpen(true)
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             记一笔
           </Button>
@@ -586,26 +589,17 @@ export const BookDetailPage = () => {
         </div>
       )}
 
-      {/* 记一笔对话框 */}
-      <AddRecordDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        onSuccess={handleAddSuccess}
+      {/* 记录对话框（新增/编辑） */}
+      <CreateEditRecordDialog
+        open={recordDialogOpen}
+        onClose={() => {
+          setRecordDialogOpen(false)
+          setEditingRecord(null)
+        }}
+        onSuccess={handleRecordSuccess}
         bookId={numericBookId}
+        record={editingRecord}
       />
-
-      {/* 编辑记录对话框 */}
-      {editingRecord && (
-        <EditRecordDialog
-          open={editRecordDialogOpen}
-          onClose={() => {
-            setEditRecordDialogOpen(false)
-            setEditingRecord(null)
-          }}
-          onSuccess={handleEditSuccess}
-          record={editingRecord}
-        />
-      )}
 
       {/* 删除记录确认对话框 */}
       {deletingRecord && (
