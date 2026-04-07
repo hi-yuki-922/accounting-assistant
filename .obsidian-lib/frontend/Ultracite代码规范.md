@@ -95,6 +95,107 @@
 - 提交代码中不要使用 `.only` 或 `.skip`
 - 测试套件保持扁平，避免过多 `describe` 嵌套
 
+## 编码限制规则
+
+以下规则由 Oxlint 自动检查，违反时 `pnpm dlx ultracite check` 会报错。
+
+### no-void
+
+仅**定义函数的返回类型**时可使用 `void`，其它场景禁止使用 `void` 操作符。
+
+```tsx
+// ❌ 错误
+void loadCustomers()
+
+// ✅ 正确
+loadCustomers()
+```
+
+### no-nested-ternary
+
+禁止嵌套三元表达式，以提高代码可读性和可维护性。
+
+```tsx
+// ❌ 错误：嵌套三元
+<Button disabled={loading}>
+  {loading ? '保存中...' : (isEdit ? '保存' : '创建')}
+</Button>
+
+// ✅ 正确：扁平化处理
+<Button disabled={loading}>
+  {isEdit ? '保存' : '创建'}
+</Button>
+```
+
+### no-shadow
+
+禁止变量声明遮蔽外部作用域中声明的变量，避免混淆和难以排查的错误。
+
+```tsx
+// ❌ 错误：回调参数 open 遮蔽了 props 中的 open
+const MyDialog = ({ open, onClose }) => (
+  <Dialog open={open} onOpenChange={(open) => !open && onClose()} />
+)
+
+// ✅ 正确：使用不同的参数名
+const MyDialog = ({ open, onClose }) => (
+  <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()} />
+)
+```
+
+### no-unescaped-entities
+
+JSX 中应使用 HTML 转义字符替代特殊字符（如引号）。
+
+```tsx
+// ❌ 错误：直接使用引号
+<DialogDescription>
+  确定要删除客户 "{customer.name}" 吗？
+</DialogDescription>
+
+// ✅ 正确：使用转义字符
+<DialogDescription>
+  确定要删除客户 &quot;{customer.name}&quot; 吗？
+</DialogDescription>
+```
+
+### prefer-number-properties
+
+禁止将 `parseInt()`、`parseFloat()`、`isNaN()`、`isFinite()`、`NaN`、`Infinity` 用作全局变量，统一使用 `Number` 对象的属性和方法：
+
+- `Number.parseFloat()` 而非 `parseFloat()`
+- `Number.isNaN()` 而非 `isNaN()`（不尝试类型转换，更安全）
+- `Number.isFinite()` 而非 `isFinite()`
+- `Number.POSITIVE_INFINITY` 而非 `Infinity`
+- `Number.NEGATIVE_INFINITY` 而非 `-Infinity`
+
+### no-eq-null
+
+与 `null` 比较时必须使用严格等于运算符 `===`/`!==`，避免 `==`/`!=` 同时匹配 `undefined`。
+
+```tsx
+// ❌ 错误
+if (foo == null) { ... }
+if (baz != null) { ... }
+
+// ✅ 正确
+if (foo === null) { ... }
+if (foo === undefined) { ... }
+if (baz !== null) { ... }
+```
+
+### no-plusplus
+
+禁止一元运算符 `++` 和 `--`，使用 `+= 1` 或 `-= 1` 替代。原因：受自动分号插入规则约束，空格差异可能改变代码语义。
+
+```tsx
+// ❌ 错误
+key: `edit-row-${++editRowKeyCounter}`
+
+// ✅ 正确
+key: `edit-row-${editRowKeyCounter += 1}`
+```
+
 ## Oxlint 无法覆盖的领域
 
 1. **业务逻辑正确性** - 算法验证
