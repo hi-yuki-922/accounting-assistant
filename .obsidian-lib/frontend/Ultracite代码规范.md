@@ -193,7 +193,7 @@ if (baz !== null) { ... }
 key: `edit-row-${++editRowKeyCounter}`
 
 // ✅ 正确
-key: `edit-row-${editRowKeyCounter += 1}`
+key: `edit-row-${(editRowKeyCounter += 1)}`
 ```
 
 ## Oxlint 无法覆盖的领域
