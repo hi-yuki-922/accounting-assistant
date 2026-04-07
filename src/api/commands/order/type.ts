@@ -42,6 +42,37 @@ export const ORDER_STATUS_DISPLAY_TEXT = {
 } as const
 
 /**
+ * 订单业务类型枚举
+ */
+export const OrderSubType = {
+  Wholesale: 'Wholesale',
+  Retail: 'Retail',
+  WholesalePurchase: 'WholesalePurchase',
+  PeerTransfer: 'PeerTransfer',
+} as const
+
+export type OrderSubType = (typeof OrderSubType)[keyof typeof OrderSubType]
+
+export const ORDER_SUB_TYPE_DISPLAY_TEXT: Record<OrderSubType, string> = {
+  Wholesale: '批发',
+  Retail: '零售',
+  WholesalePurchase: '批发进货',
+  PeerTransfer: '同行调货',
+} as const
+
+/** 销售订单可选的业务类型 */
+export const SALES_SUB_TYPES: OrderSubType[] = [
+  OrderSubType.Wholesale,
+  OrderSubType.Retail,
+]
+
+/** 采购订单可选的业务类型 */
+export const PURCHASE_SUB_TYPES: OrderSubType[] = [
+  OrderSubType.WholesalePurchase,
+  OrderSubType.PeerTransfer,
+]
+
+/**
  * 订单模型
  * 与 Rust 后端 order::Model 对齐
  */
@@ -52,9 +83,9 @@ export type Order = {
   customerId?: number
   totalAmount: number
   actualAmount: number
+  subType: string
   status: OrderStatus
   channel: string
-  accountingRecordId?: number
   remark?: string
   createAt: string
   settledAt?: string
@@ -106,6 +137,7 @@ export type CreateOrderDto = {
   items: CreateOrderItemDto[]
   remark?: string
   actualAmount?: number
+  subType?: string
 }
 
 /**
@@ -147,4 +179,33 @@ export type QueryOrdersDto = {
 export type QueryOrdersResult = {
   orders: Order[]
   total: number
+}
+
+/**
+ * 结算预览 — 品类分组项
+ */
+export type SettlePreviewItem = {
+  categoryId: number
+  categoryName: string
+  amount: number
+  bookId: number
+  bookName: string
+}
+
+/**
+ * 结算预览 — 折扣冲账项
+ */
+export type WriteOffPreviewItem = {
+  categoryName: string
+  writeOffAmount: number
+  categoryId: number
+}
+
+/**
+ * 结算预览结果
+ */
+export type SettlePreview = {
+  categoryGroups: SettlePreviewItem[]
+  writeOffPreview?: WriteOffPreviewItem[]
+  discountAmount?: number
 }

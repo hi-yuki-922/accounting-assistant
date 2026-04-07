@@ -7,179 +7,138 @@
 ## Requirements
 
 ### Requirement: 创建订单
-系统 SHALL 提供 `create_order` 方法，接收订单类型、客户 ID（可选）、订单明细列表、备注，创建新订单。
+系统 SHALL 提供创建订单的能力。创建时 MUST 接受 order_type、可选的 customer_id、order_items 数组、可选的 actual_amount 和 sub_type。系统 MUST 验证订单项非空，计算 total_amount 为所有订单项 subtotal 之和，actual_amount 默认等于 total_amount。
 
-#### Scenario: 创建销售订单
-- **WHEN** 调用 `create_order` 传入 order_type=Sales、明细列表（含 product_id、product_name、quantity、unit、unit_price）
-- **THEN** 系统生成日期序列 ID 和订单编号（`#N` 格式，N 为当日序号）
-- **THEN** 系统计算 total_amount 为所有明细 subtotal 之和
-- **THEN** 系统设置 actual_amount 等于 total_amount（初始相等）
-- **THEN** 系统设置 status 为 Pending
-- **THEN** 系统设置 channel 为 None（创建阶段不选择支付渠道）
-- **THEN** 系统创建 order 记录和所有 order_item 记录
-- **THEN** 操作 MUST 在事务中执行
+系统 MUST 根据 order_type 和 customer_id 自动填充 sub_type 默认值（如未提供）：
+- Sales + 有客户 → Wholesale
+- Sales + 无客户 → Retail
+- Purchase → WholesalePurchase
 
-#### Scenario: 创建采购订单
-- **WHEN** 调用 `create_order` 传入 order_type=Purchase、明细列表
-- **THEN** 系统创建采购订单，逻辑与销售订单一致
-- **THEN** order_type 为 Purchase
+系统 MUST 验证 sub_type 与 order_type 的对应关系。
 
-#### Scenario: 创建散客订单
-- **WHEN** 调用 `create_order` 时不传 customer_id（为 None）
-- **THEN** 系统创建订单，customer_id 为 None
+#### Scenario: 创建销售订单自动填充批发类型
+- **WHEN** 创建销售订单，选择了客户，未指定 sub_type
+- **THEN** sub_type 自动设为 Wholesale
 
-#### Scenario: 创建订单时指定实收金额
-- **WHEN** 调用 `create_order` 时传入 actual_amount 与 total_amount 不同
-- **THEN** 系统使用传入的 actual_amount（覆盖默认值）
-- **THEN** actual_amount 可小于 total_amount（让利/抹零）
+#### Scenario: 创建销售订单无客户默认零售
+- **WHEN** 创建销售订单，未选择客户，未指定 sub_type
+- **THEN** sub_type 自动设为 Retail
 
-#### Scenario: 创建订单明细为空
-- **WHEN** 调用 `create_order` 时明细列表为空
-- **THEN** 系统 MUST 返回错误，提示订单明细不能为空
+#### Scenario: 创建采购订单默认批发进货
+- **WHEN** 创建采购订单，未指定 sub_type
+- **THEN** sub_type 自动设为 WholesalePurchase
 
-### Requirement: 编辑订单（结账前）
-系统 SHALL 提供 `update_order` 方法，允许修改 Pending 状态订单的明细和备注。不可修改订单类型和客户。
+#### Scenario: sub_type 与 order_type 不匹配
+- **WHEN** 创建销售订单但 sub_type 为 WholesalePurchase 或 PeerTransfer
+- **THEN** 系统拒绝创建并返回错误
 
-#### Scenario: 修改订单明细
-- **WHEN** 调用 `update_order` 传入 Pending 状态的订单 ID 和新的明细列表
-- **THEN** 系统 MUST 删除旧的 order_item 记录，创建新的 order_item 记录
-- **THEN** 系统自动重算 total_amount（为新明细 subtotal 之和）
-- **THEN** 系统自动重算 actual_amount（等于新的 total_amount）
-- **THEN** 操作 MUST 在事务中执行
+#### Scenario: 成功创建订单
+- **WHEN** 提供有效的订单类型、订单项和金额
+- **THEN** 创建订单记录和关联的订单项记录，返回完整订单数据
 
-#### Scenario: 修改订单备注
-- **WHEN** 调用 `update_order` 传入订单 ID 和新的备注内容
-- **THEN** 系统更新订单的 remark 字段
+### Requirement: 编辑订单
+系统 SHALL 提供编辑 Pending 状态订单的能力，允许修改订单项和备注。编辑时 MUST 重新计算 total_amount 和 actual_amount（actual_amount 重置为新的 total_amount）。订单的 sub_type MUST NOT 允许修改。
 
-#### Scenario: 编辑已结账的订单
-- **WHEN** 调用 `update_order` 传入已结账（Settled）的订单 ID
-- **THEN** 系统 MUST 返回错误，提示已结账订单不可编辑
+#### Scenario: 编辑 Pending 订单
+- **WHEN** 用户修改 Pending 订单的订单项
+- **THEN** 系统更新订单项、重算 total_amount 和 actual_amount，sub_type 不变
 
-#### Scenario: 编辑已取消的订单
-- **WHEN** 调用 `update_order` 传入已取消（Cancelled）的订单 ID
-- **THEN** 系统 MUST 返回错误，提示已取消订单不可编辑
+#### Scenario: 编辑已结算订单被拒绝
+- **WHEN** 用户尝试编辑已结算的订单
+- **THEN** 系统拒绝编辑
 
-#### Scenario: 编辑不存在的订单
-- **WHEN** 调用 `update_order` 传入不存在的订单 ID
-- **THEN** 系统 MUST 返回错误，提示订单不存在
+### Requirement: 结算订单
+系统 SHALL 提供结算 Pending 状态订单的能力。结算 MUST 在单个数据库事务中完成以下步骤：
 
-### Requirement: 结账订单
-系统 SHALL 提供 `settle_order` 方法，将 Pending 订单结账，传入支付渠道，自动生成关联的记账记录。
+1. 验证订单存在且状态为 Pending
+2. 解析支付渠道，确定 final actual_amount
+3. 查询所有 order_item，通过 product_id 获取对应商品的 category_id
+4. 按 category_id 分组 order_items，未设置 category_id 的归入"未分类"品类
+5. 为每个品类分组创建主记账记录：
+   - accounting_type：Sales → Income，Purchase → Expenditure
+   - amount：分组内所有 order_item 的 subtotal 之和
+   - book_id：品类的 sell_book_id（销售）或 purchase_book_id（进货）
+   - title："销售订单-{order_no}" 或 "采购订单-{order_no}"
+   - order_id：当前订单 id
+   - write_off_id：None
+   - state：Posted
+6. 若 total_amount ≠ actual_amount（有折扣），为每个品类分组创建冲账记录：
+   - accounting_type：WriteOff
+   - amount：负数，按比例分摊折扣（最后一条用补差值）
+   - book_id：与主记录相同
+   - title："折扣冲账-{主记录title}"
+   - order_id：当前订单 id
+   - write_off_id：对应的主记账记录 id
+   - state：Posted
+7. 更新对应账本的 record_count（每条记录 +1）
+8. 更新订单状态为 Settled，设置 channel、actual_amount、settled_at
 
-#### Scenario: 销售订单结账
-- **WHEN** 调用 `settle_order` 传入 Pending 状态的销售订单 ID、channel（支付渠道）、actual_amount（可选）
-- **THEN** 系统 MUST 创建一条 accounting_record，accounting_type 为 Income
-- **THEN** accounting_record.amount 为订单的 actual_amount（如传入则先更新）
-- **THEN** accounting_record.channel 为传入的 channel
-- **THEN** accounting_record.order_id 为订单 ID
-- **THEN** accounting_record.book_id 为 None（归入默认账本）
-- **THEN** accounting_record.title 为 "销售订单-{order_no}"
-- **THEN** accounting_record.state 为 Posted
-- **THEN** 系统 MUST 更新订单 status 为 Settled，settled_at 为当前时间
-- **THEN** 系统 MUST 更新订单 channel 为传入的渠道
-- **THEN** 系统 MUST 更新订单 accounting_record_id 为新创建的记账记录 ID
-- **THEN** 系统 MUST 更新默认账本的 record_count +1
-- **THEN** 以上操作 MUST 在同一事务中执行
+#### Scenario: 多品类订单结算
+- **WHEN** 结算包含贝类（subtotal=600）和鱼类（subtotal=410.5）的销售订单，应收 1010.5，实收 1000
+- **THEN** 创建两条 Income 主记录和两条 WriteOff 冲账记录，所有记录在同一事务中
 
-#### Scenario: 采购订单结账
-- **WHEN** 调用 `settle_order` 传入 Pending 状态的采购订单 ID、channel
-- **THEN** 系统 MUST 创建 accounting_record，accounting_type 为 Expenditure
-- **THEN** accounting_record.title 为 "采购订单-{order_no}"
-- **THEN** 其余逻辑与销售订单结账一致
+#### Scenario: 无折扣结算
+- **WHEN** 结算订单，应收等于实收
+- **THEN** 仅创建主记账记录，不创建冲账记录
 
-#### Scenario: 结账时指定实际金额
-- **WHEN** 调用 `settle_order` 传入 actual_amount 参数
-- **THEN** 系统 MUST 更新订单的 actual_amount 为传入值
-- **THEN** accounting_record.amount 使用更新后的 actual_amount
+#### Scenario: 单品类结算
+- **WHEN** 结算所有商品属于同一品类的订单
+- **THEN** 创建一条主记录，如有折扣则创建一条冲账记录
 
-#### Scenario: 结账未指定渠道
-- **WHEN** 调用 `settle_order` 时 channel 为 None
-- **THEN** 系统 MUST 返回错误，提示结账时必须选择支付渠道
+#### Scenario: 订单已结算
+- **WHEN** 尝试结算已结算的订单
+- **THEN** 系统拒绝并返回错误
 
-#### Scenario: 结账已结账的订单
-- **WHEN** 调用 `settle_order` 传入已结账（Settled）的订单 ID
-- **THEN** 系统 MUST 返回错误，提示订单已结账
-
-#### Scenario: 结账已取消的订单
-- **WHEN** 调用 `settle_order` 传入已取消（Cancelled）的订单 ID
-- **THEN** 系统 MUST 返回错误，提示订单已取消
-
-#### Scenario: 结账不存在的订单
-- **WHEN** 调用 `settle_order` 传入不存在的订单 ID
-- **THEN** 系统 MUST 返回错误，提示订单不存在
+#### Scenario: 订单已取消
+- **WHEN** 尝试结算已取消的订单
+- **THEN** 系统拒绝并返回错误
 
 ### Requirement: 取消订单
-系统 SHALL 提供 `cancel_order` 方法，将 Pending 订单标记为已取消。
+系统 SHALL 提供取消 Pending 状态订单的能力。已结算的订单 MUST NOT 允许取消。
 
-#### Scenario: 成功取消订单
-- **WHEN** 调用 `cancel_order` 传入 Pending 状态的订单 ID
-- **THEN** 系统 MUST 更新订单 status 为 Cancelled
-- **THEN** 系统 MUST 不创建记账记录
+#### Scenario: 取消 Pending 订单
+- **WHEN** 用户取消 Pending 状态的订单
+- **THEN** 订单状态更新为 Cancelled
 
-#### Scenario: 取消已结账的订单
-- **WHEN** 调用 `cancel_order` 传入已结账（Settled）的订单 ID
-- **THEN** 系统 MUST 返回错误，提示已结账订单不可取消
-
-#### Scenario: 取消不存在的订单
-- **WHEN** 调用 `cancel_order` 传入不存在的订单 ID
-- **THEN** 系统 MUST 返回错误，提示订单不存在
+#### Scenario: 取消已结算订单被拒绝
+- **WHEN** 用户尝试取消已结算的订单
+- **THEN** 系统拒绝取消
 
 ### Requirement: 查询所有订单
-系统 SHALL 提供 `get_all_orders` 方法，返回所有订单列表（不含明细）。
+系统 SHALL 提供查询所有订单的能力，按 create_at 降序排列，每条订单包含关联的订单项。
 
-#### Scenario: 查询订单列表
-- **WHEN** 调用 `get_all_orders`
-- **THEN** 系统返回所有订单记录，按创建时间倒序排列
+#### Scenario: 获取订单列表
+- **WHEN** 用户查询所有订单
+- **THEN** 返回所有订单及其订单项，按创建时间降序
 
-### Requirement: 根据 ID 查询订单（含明细）
-系统 SHALL 提供 `get_order_by_id` 方法，返回单个订单及其所有明细。
+### Requirement: 根据 ID 查询订单
+系统 SHALL 提供根据 ID 查询单个订单的能力，包含关联的订单项。
 
-#### Scenario: 查询存在的订单
-- **WHEN** 调用 `get_order_by_id` 传入已存在的订单 ID
-- **THEN** 系统返回订单信息及其所有 order_item 明细
+#### Scenario: 订单存在
+- **WHEN** 查询存在的订单 ID
+- **THEN** 返回订单详情及其订单项
 
-#### Scenario: 查询不存在的订单
-- **WHEN** 调用 `get_order_by_id` 传入不存在的订单 ID
-- **THEN** 系统返回 None
+#### Scenario: 订单不存在
+- **WHEN** 查询不存在的订单 ID
+- **THEN** 返回错误提示
 
-### Requirement: 按客户查询订单
-系统 SHALL 提供 `get_orders_by_customer_id` 方法，返回指定客户的所有订单。
+### Requirement: 根据客户 ID 查询订单
+系统 SHALL 提供根据客户 ID 查询订单的能力。
 
-#### Scenario: 查询客户的订单
-- **WHEN** 调用 `get_orders_by_customer_id` 传入客户 ID
-- **THEN** 系统返回该客户关联的所有订单，按创建时间倒序排列
+#### Scenario: 查询客户订单
+- **WHEN** 根据客户 ID 查询订单
+- **THEN** 返回该客户的所有订单
 
-### Requirement: 按状态筛选订单
-系统 SHALL 提供 `get_orders_by_status` 方法，返回指定状态的订单列表。
+### Requirement: 根据状态查询订单
+系统 SHALL 提供根据订单状态查询订单的能力。
 
-#### Scenario: 查询待结账订单
-- **WHEN** 调用 `get_orders_by_status` 传入 OrderStatus::Pending
-- **THEN** 系统返回所有 Pending 状态的订单
+#### Scenario: 查询指定状态的订单
+- **WHEN** 根据状态筛选订单
+- **THEN** 返回匹配状态的订单列表
 
-### Requirement: 分页筛选查询订单
-系统 SHALL 提供 `query_orders` 方法，支持多维度筛选和分页查询订单。
+### Requirement: 多维度查询订单
+系统 SHALL 提供多维度查询订单的能力，支持时间范围、金额范围、支付渠道、订单类型等筛选条件，并支持分页。
 
-#### Scenario: 按时间范围筛选
-- **WHEN** 调用 `query_orders` 传入时间范围（start_time, end_time）
-- **THEN** 系统返回创建时间在范围内的订单
-
-#### Scenario: 按金额范围筛选
-- **WHEN** 调用 `query_orders` 传入金额范围（min_amount, max_amount）
-- **THEN** 系统返回 actual_amount 在范围内的订单
-
-#### Scenario: 按支付渠道筛选
-- **WHEN** 调用 `query_orders` 传入 channel
-- **THEN** 系统返回匹配支付渠道的订单
-
-#### Scenario: 按订单类型筛选
-- **WHEN** 调用 `query_orders` 传入 order_type
-- **THEN** 系统返回匹配订单类型的订单
-
-#### Scenario: 组合筛选
-- **WHEN** 调用 `query_orders` 传入多个筛选条件
-- **THEN** 系统返回同时满足所有条件的订单
-
-#### Scenario: 分页查询
-- **WHEN** 调用 `query_orders` 传入 page 和 page_size
-- **THEN** 系统返回对应页的订单列表和总数
-- **THEN** 结果按创建时间倒序排列
+#### Scenario: 多条件筛选分页
+- **WHEN** 用户指定多个筛选条件和分页参数
+- **THEN** 返回符合条件的结果并支持分页

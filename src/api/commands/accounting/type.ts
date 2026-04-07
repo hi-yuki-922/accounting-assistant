@@ -31,6 +31,7 @@ export type AccountingRecord = {
   createdAt: string
   state: AccountingRecordState
   bookId?: number
+  orderId?: number
 }
 
 /**

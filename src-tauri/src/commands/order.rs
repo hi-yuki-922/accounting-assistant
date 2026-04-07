@@ -1,8 +1,11 @@
 use crate::entity::order::Model as OrderModel;
 use crate::entity::order_item::Model as OrderItemModel;
-use crate::services::order::dto::{CreateOrderDto, QueryOrdersDto, SettleOrderDto, UpdateOrderDto};
+use crate::services::order::dto::{
+    CreateOrderDto, QueryOrdersDto, SettleOrderDto, SettlePreview, UpdateOrderDto,
+};
 use crate::services::order::OrderService;
-use serde::Serialize;
+use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 use tauri::State;
 
 /// 订单详情返回类型（订单 + 明细列表）
@@ -37,6 +40,25 @@ pub async fn settle_order(
     input: SettleOrderDto,
 ) -> Result<OrderModel, String> {
     service.settle_order(input).await.map_err(|e| e.to_string())
+}
+
+/// 获取结算预览
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetSettlePreviewInput {
+    pub order_id: i64,
+    pub actual_amount: Option<Decimal>,
+}
+
+#[tauri::command]
+pub async fn get_settle_preview(
+    service: State<'_, OrderService>,
+    input: GetSettlePreviewInput,
+) -> Result<SettlePreview, String> {
+    service
+        .get_settle_preview(input.order_id, input.actual_amount)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// 取消订单

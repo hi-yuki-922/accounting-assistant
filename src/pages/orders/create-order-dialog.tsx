@@ -9,6 +9,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 
 import { customerApi } from '@/api/commands/customer'
 import type { Customer } from '@/api/commands/customer/type'
+import {
+  ORDER_SUB_TYPE_DISPLAY_TEXT,
+  SALES_SUB_TYPES,
+  PURCHASE_SUB_TYPES,
+} from '@/api/commands/order/type'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -52,8 +57,17 @@ export type CreateOrderDialogProps = {
     }[]
     remark?: string
     actualAmount?: number
+    subType?: string
   }) => void
   loading?: boolean
+}
+
+/** 根据 order_type 和 customer_id 获取默认 sub_type */
+const getDefaultSubType = (orderType: string, customerId?: number): string => {
+  if (orderType === 'Sales') {
+    return customerId ? 'Wholesale' : 'Retail'
+  }
+  return 'WholesalePurchase'
 }
 
 export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
@@ -63,6 +77,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   loading = false,
 }) => {
   const [orderType, setOrderType] = useState('Sales')
+  const [subType, setSubType] = useState('Wholesale')
   const [customerId, setCustomerId] = useState<number | undefined>()
   const [customerSearch, setCustomerSearch] = useState('')
   const [customerSearchResults, setCustomerSearchResults] = useState<
@@ -80,6 +95,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   useEffect(() => {
     if (open) {
       setOrderType('Sales')
+      setSubType('Wholesale')
       setCustomerId(undefined)
       setCustomerSearch('')
       setCustomerSearchResults([])
@@ -122,21 +138,40 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     )
   }, [])
 
-  // 选择客户
+  // 选择客户 — 联动 subType 默认值
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     setCustomerId(customer.id)
     setCustomerSearch(customer.name)
     setShowCustomerDropdown(false)
+    if (orderType === 'Sales') {
+      setSubType('Wholesale')
+    }
   }
 
-  // 清除客户选择
+  // 清除客户选择 — 联动 subType 默认值
   const handleClearCustomer = () => {
     setSelectedCustomer(null)
     setCustomerId(undefined)
     setCustomerSearch('')
     setCustomerSearchResults([])
+    if (orderType === 'Sales') {
+      setSubType('Retail')
+    }
   }
+
+  // 切换订单类型 — 重置 subType
+  const handleOrderTypeChange = (type: string) => {
+    setOrderType(type)
+    if (type === 'Sales') {
+      setSubType(customerId ? 'Wholesale' : 'Retail')
+    } else {
+      setSubType('WholesalePurchase')
+    }
+  }
+
+  const availableSubTypes =
+    orderType === 'Sales' ? SALES_SUB_TYPES : PURCHASE_SUB_TYPES
 
   // 提交
   const handleSubmit = () => {
@@ -150,6 +185,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
       customerId,
       remark: remark.trim() || undefined,
       items: extractValidItems(items),
+      subType,
     })
   }
 
@@ -161,17 +197,32 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* 订单类型 + 客户选择 */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* 订单类型 + 业务类型 + 客户选择 */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>订单类型</Label>
-              <Select value={orderType} onValueChange={setOrderType}>
+              <Select value={orderType} onValueChange={handleOrderTypeChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Sales">销售订单</SelectItem>
                   <SelectItem value="Purchase">采购订单</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>业务类型</Label>
+              <Select value={subType} onValueChange={setSubType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubTypes.map((st) => (
+                    <SelectItem key={st} value={st}>
+                      {ORDER_SUB_TYPE_DISPLAY_TEXT[st]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

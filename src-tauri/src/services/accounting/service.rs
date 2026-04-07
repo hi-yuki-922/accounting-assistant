@@ -327,15 +327,15 @@ impl AccountingService {
         Ok(inserted_record)
     }
 
-    /// 根据订单 ID 查询关联的记账记录
-    pub async fn get_record_by_order_id(
+    /// 根据订单 ID 查询关联的记账记录（返回所有关联记录，含冲账）
+    pub async fn get_records_by_order_id(
         &self,
         order_id: i64,
-    ) -> Result<Option<Model>, Box<dyn std::error::Error>> {
-        let record = accounting_record::Entity::find()
+    ) -> Result<Vec<Model>, Box<dyn std::error::Error>> {
+        let records = accounting_record::Entity::find()
             .filter(accounting_record::Column::OrderId.eq(order_id))
-            .one(&self.db)
+            .all(&self.db)
             .await?;
-        Ok(record)
+        Ok(records)
     }
 }

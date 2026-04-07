@@ -1,27 +1,40 @@
-## ADDED Requirements
+# 商品实体（product-entity）
+
+## Purpose
+
+定义商品（product）相关的数据库实体，包括商品实体和商品序列实体。
+
+## Requirements
 
 ### Requirement: 商品实体定义
 系统 SHALL 定义 `product` 实体，包含以下字段：
-- `id`: i64，主键，采用日期序列模式生成（`YYYYMMDDNNNNN`）
-- `name`: String，商品名称，非空
-- `category`: Option\<String\>，商品分类
-- `unit`: String，计量单位（如斤、个、箱、盒），非空
-- `default_sell_price`: Option\<Decimal(19,4)\>，参考售价
-- `default_purchase_price`: Option\<Decimal(19,4)\>，参考采购价
-- `sku`: Option\<String\>，商品编码
-- `keywords`: Option\<String\>，检索关键词，多个关键词以分号（`;`）分隔，用于模糊搜索和 AI 检索
-- `remark`: Option\<String\>，备注
-- `create_at`: NaiveDateTime，创建时间
+- `id`: i64，主键，非自增，使用 YYYYMMDDNNNNN 格式生成
+- `name`: String，商品名称
+- `category_id`: Option<i64>，品类外键，关联 `category.id`
+- `category`: Option<String>，品类名称（冗余字段，与 category_id 对应的品类名称同步）
+- `unit`: String，计量单位
+- `default_sell_price`: Option<Decimal(19,4)>，默认销售参考价
+- `default_purchase_price`: Option<Decimal(19,4)>，默认采购参考价
+- `sku`: Option<String>，商品编码
+- `keywords`: Option<String>，搜索关键词，以分号分隔
+- `remark`: Option<String>，备注
+- `create_at`: NaiveDateTime，创建时间戳
 
-#### Scenario: 商品实体注册与同步
-- **WHEN** 应用启动时执行 entity 注册
-- **THEN** `product` 表被创建在 SQLite 数据库中，字段类型与上述定义一致
+#### Scenario: 商品实体包含品类关联
+- **WHEN** 系统创建商品实体定义
+- **THEN** 实体包含 category_id（Option<i64>）字段和 category（Option<String>）冗余字段
 
-### Requirement: 商品序列实体定义
-系统 SHALL 定义 `product_seq` 实体用于生成商品 ID，遵循现有日期序列模式：
-- `date_key`: String，主键（格式 `YYYYMMDD`）
-- `seq`: i32，当日序列号
+#### Scenario: 商品与品类关联关系
+- **WHEN** 定义商品实体的 Relation
+- **THEN** 定义 belongs_to 关系：category_id → category.id
+
+#### Scenario: 商品 ID 生成
+- **WHEN** 创建新商品时调用 ID 生成方法
+- **THEN** 生成格式为 YYYYMMDDNNNNN 的唯一 i64 ID
+
+### Requirement: 商品序列实体
+系统 SHALL 定义 `product_seq` 序列实体，用于商品 ID 的原子生成。使用标准 date_key + seq 模式，返回 YYYYMMDD + 5 位序列号作为 i64。
 
 #### Scenario: 序列原子递增
-- **WHEN** 创建新商品时请求下一个 ID
-- **THEN** 系统在事务中递增当日序列号，返回格式为 `YYYYMMDD` + 5位序列号拼接的 i64 值
+- **WHEN** 并发创建商品时
+- **THEN** 序列号原子递增，保证 ID 唯一

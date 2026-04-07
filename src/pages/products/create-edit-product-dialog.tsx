@@ -99,6 +99,7 @@ export const CreateEditProductDialog = ({
       const dto: UpdateProductDto = {
         id: product.id,
         name: formData.name.trim(),
+        categoryId: formData.categoryId ? Number(formData.categoryId) : null,
         category: formData.category.trim() || null,
         unit: formData.unit.trim(),
         defaultSellPrice: formData.sellPrice.trim()
@@ -115,6 +116,9 @@ export const CreateEditProductDialog = ({
     } else {
       const dto: CreateProductDto = {
         name: formData.name.trim(),
+        categoryId: formData.categoryId
+          ? Number(formData.categoryId)
+          : undefined,
         category: formData.category.trim() || undefined,
         unit: formData.unit.trim(),
         defaultSellPrice: formData.sellPrice.trim()

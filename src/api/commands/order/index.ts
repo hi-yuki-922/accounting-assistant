@@ -13,6 +13,7 @@ import type {
   UpdateOrderDto,
   QueryOrdersDto,
   QueryOrdersResult,
+  SettlePreview,
 } from './type'
 
 // 导出类型
@@ -29,6 +30,14 @@ export const createOrder = (data: CreateOrderDto) =>
  */
 export const settleOrder = (data: SettleOrderDto) =>
   tryCMD<Order>('settle_order', { input: data })
+
+/**
+ * 获取结算预览（按品类分组展示记账预览）
+ */
+export const getSettlePreview = (orderId: number, actualAmount?: number) =>
+  tryCMD<SettlePreview>('get_settle_preview', {
+    input: { orderId, actualAmount },
+  })
 
 /**
  * 取消订单
@@ -80,5 +89,6 @@ export const orderApi = {
   getByStatus: getOrdersByStatus,
   query: queryOrders,
   settle: settleOrder,
+  settlePreview: getSettlePreview,
   update: updateOrder,
 }

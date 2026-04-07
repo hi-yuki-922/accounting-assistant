@@ -1,6 +1,7 @@
 pub mod accounting;
 pub mod accounting_book;
 pub mod attachment;
+pub mod category;
 pub mod chat;
 pub mod customer;
 pub mod order;
@@ -9,6 +10,7 @@ pub mod product;
 pub use accounting::AccountingService;
 pub use accounting_book::AccountingBookService;
 pub use attachment::AttachmentService;
+pub use category::CategoryService;
 pub use chat::ChatService;
 pub use customer::CustomerService;
 pub use order::OrderService;
@@ -27,16 +29,19 @@ pub fn init_services(
     let accounting_service = AccountingService::new(db.clone());
     let attachment_service = AttachmentService::new(db.clone());
     let accounting_book_service = AccountingBookService::new(db.clone());
+    let category_service = CategoryService::new(db.clone());
     let chat_service = ChatService::new(db.clone());
     let customer_service = CustomerService::new(db.clone());
     let product_service = ProductService::new(db.clone());
     let order_service = OrderService::new(db.clone());
 
     rt.block_on(accounting_book_service.create_default_book())?;
+    rt.block_on(category_service.create_default_category())?;
 
     app.manage(accounting_service);
     app.manage(attachment_service);
     app.manage(accounting_book_service);
+    app.manage(category_service);
     app.manage(chat_service);
     app.manage(customer_service);
     app.manage(product_service);

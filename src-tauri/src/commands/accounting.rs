@@ -70,3 +70,15 @@ pub async fn create_write_off_record(
         .await
         .map_err(|e| e.to_string())
 }
+
+/// 根据订单 ID 查询关联的记账记录
+#[tauri::command]
+pub async fn get_records_by_order_id(
+    service: State<'_, AccountingService>,
+    order_id: i64,
+) -> Result<Vec<crate::entity::accounting_record::Model>, String> {
+    service
+        .get_records_by_order_id(order_id)
+        .await
+        .map_err(|e| e.to_string())
+}

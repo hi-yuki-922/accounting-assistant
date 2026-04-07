@@ -11,6 +11,7 @@ import {
   UsersIcon,
   PackageIcon,
   ClipboardListIcon,
+  TagIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
@@ -106,6 +107,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                     <a href="/products" className="flex items-center gap-2">
                       <PackageIcon className="h-4 w-4" />
                       <span>商品管理</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <a href="/categories" className="flex items-center gap-2">
+                      <TagIcon className="h-4 w-4" />
+                      <span>品类管理</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

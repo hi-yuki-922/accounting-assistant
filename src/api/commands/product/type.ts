@@ -10,6 +10,7 @@
 export type Product = {
   id: number
   name: string
+  categoryId?: number
   category?: string
   unit: string
   defaultSellPrice?: number
@@ -26,6 +27,7 @@ export type Product = {
  */
 export type CreateProductDto = {
   name: string
+  categoryId?: number
   category?: string
   unit: string
   defaultSellPrice?: number
@@ -41,8 +43,9 @@ export type CreateProductDto = {
  */
 export type UpdateProductDto = {
   id: number
-  name?: string
+  categoryId?: number | null
   category?: string | null
+  name?: string
   unit?: string
   defaultSellPrice?: number | null
   defaultPurchasePrice?: number | null

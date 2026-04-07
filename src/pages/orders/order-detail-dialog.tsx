@@ -8,12 +8,18 @@ import { Pencil } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 
-import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
+import { getRecordsByOrderId } from '@/api/commands/accounting'
+import {
+  ACCOUNTING_CHANNEL_DISPLAY_TEXT,
+  ACCOUNTING_TYPE_DISPLAY_TEXT,
+} from '@/api/commands/accounting/enums'
+import type { AccountingRecord } from '@/api/commands/accounting/type'
 import { orderApi } from '@/api/commands/order'
 import type { OrderDetail as OrderDetailType } from '@/api/commands/order/type'
 import {
   ORDER_STATUS_DISPLAY_TEXT,
   ORDER_TYPE_DISPLAY_TEXT,
+  ORDER_SUB_TYPE_DISPLAY_TEXT,
 } from '@/api/commands/order/type'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -60,6 +66,9 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
 }) => {
   const [detail, setDetail] = useState<OrderDetailType | null>(null)
   const [loading, setLoading] = useState(true)
+  const [accountingRecords, setAccountingRecords] = useState<
+    AccountingRecord[]
+  >([])
 
   // 弹窗状态
   const [settleDialogOpen, setSettleDialogOpen] = useState(false)
@@ -78,6 +87,12 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
       (data) => {
         setDetail(data)
         setLoading(false)
+        // 已结账订单加载关联记账记录
+        if (data.order.status === 'Settled') {
+          void loadAccountingRecords(orderId)
+        } else {
+          setAccountingRecords([])
+        }
       },
       (error) => {
         toast.error(`加载订单详情失败: ${error.message}`)
@@ -85,6 +100,15 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
       }
     )
   }, [orderId])
+
+  // 加载关联记账记录
+  const loadAccountingRecords = async (oid: number) => {
+    const result = await getRecordsByOrderId(oid)
+    result.match(
+      (records) => setAccountingRecords(records),
+      () => setAccountingRecords([])
+    )
+  }
 
   useEffect(() => {
     if (open && orderId) {
@@ -173,6 +197,18 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
               <Badge variant="secondary">
                 {ORDER_TYPE_DISPLAY_TEXT[order.orderType]}
               </Badge>
+              {order.subType &&
+                ORDER_SUB_TYPE_DISPLAY_TEXT[
+                  order.subType as keyof typeof ORDER_SUB_TYPE_DISPLAY_TEXT
+                ] && (
+                  <Badge variant="outline">
+                    {
+                      ORDER_SUB_TYPE_DISPLAY_TEXT[
+                        order.subType as keyof typeof ORDER_SUB_TYPE_DISPLAY_TEXT
+                      ]
+                    }
+                  </Badge>
+                )}
             </div>
           </DialogHeader>
 
@@ -195,13 +231,17 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
               </div>
             )}
             <div>
-              <span className="text-muted-foreground">应收金额</span>
+              <span className="text-muted-foreground">
+                {order.orderType === 'Purchase' ? '应付金额' : '应收金额'}
+              </span>
               <p className="font-medium mt-1">
                 {formatCurrency(order.totalAmount)}
               </p>
             </div>
             <div>
-              <span className="text-muted-foreground">实收金额</span>
+              <span className="text-muted-foreground">
+                {order.orderType === 'Purchase' ? '实付金额' : '实收金额'}
+              </span>
               <p className="font-medium mt-1">
                 {formatCurrency(order.actualAmount)}
               </p>
@@ -262,19 +302,102 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
           <div className="flex justify-end mt-2 text-sm">
             <div className="flex gap-8">
               <div>
-                <span className="text-muted-foreground">应收：</span>
+                <span className="text-muted-foreground">
+                  {order.orderType === 'Purchase' ? '应付：' : '应收：'}
+                </span>
                 <span className="font-bold text-lg">
                   {formatCurrency(order.totalAmount)}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">实收：</span>
+                <span className="text-muted-foreground">
+                  {order.orderType === 'Purchase' ? '实付：' : '实收：'}
+                </span>
                 <span className="font-bold text-lg">
                   {formatCurrency(order.actualAmount)}
                 </span>
               </div>
             </div>
           </div>
+
+          {/* 关联记账记录（已结账订单显示） */}
+          {order.status === 'Settled' && accountingRecords.length > 0 && (
+            <div className="space-y-2 pt-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                关联记账记录
+              </p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>类型</TableHead>
+                    <TableHead>标题</TableHead>
+                    <TableHead className="text-right">金额</TableHead>
+                    <TableHead>渠道</TableHead>
+                    <TableHead>状态</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {accountingRecords
+                    .filter((r) => !r.writeOffId)
+                    .map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {ACCOUNTING_TYPE_DISPLAY_TEXT[
+                              record.accountingType as keyof typeof ACCOUNTING_TYPE_DISPLAY_TEXT
+                            ] ?? record.accountingType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {record.title}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(record.amount)}
+                        </TableCell>
+                        <TableCell>
+                          {ACCOUNTING_CHANNEL_DISPLAY_TEXT[
+                            record.channel as keyof typeof ACCOUNTING_CHANNEL_DISPLAY_TEXT
+                          ] ?? record.channel}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">已入账</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  {accountingRecords
+                    .filter((r) => r.writeOffId)
+                    .map((record) => (
+                      <TableRow
+                        key={record.id}
+                        className="text-muted-foreground"
+                      >
+                        <TableCell>
+                          <Badge variant="outline">
+                            {ACCOUNTING_TYPE_DISPLAY_TEXT[
+                              record.accountingType as keyof typeof ACCOUNTING_TYPE_DISPLAY_TEXT
+                            ] ?? record.accountingType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {record.title}
+                        </TableCell>
+                        <TableCell className="text-right text-destructive">
+                          {formatCurrency(record.amount)}
+                        </TableCell>
+                        <TableCell>
+                          {ACCOUNTING_CHANNEL_DISPLAY_TEXT[
+                            record.channel as keyof typeof ACCOUNTING_CHANNEL_DISPLAY_TEXT
+                          ] ?? record.channel}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">已入账</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* 操作按钮 */}
           {order.status === 'Pending' && (

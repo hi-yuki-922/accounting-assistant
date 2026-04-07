@@ -12,7 +12,9 @@ pub struct Model {
     pub id: i64,
     /// 商品名称
     pub name: String,
-    /// 商品分类
+    /// 品类外键，关联 category.id
+    pub category_id: Option<i64>,
+    /// 品类名称（冗余字段）
     pub category: Option<String>,
     /// 计量单位（如斤、个、箱）
     pub unit: String,
@@ -32,8 +34,21 @@ pub struct Model {
     pub create_at: NaiveDateTime,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+#[derive(Copy, Clone, Debug, EnumIter)]
+pub enum Relation {
+    Category,
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        match self {
+            Self::Category => Entity::belongs_to(super::category::Entity)
+                .from(Column::CategoryId)
+                .to(super::category::Column::Id)
+                .into(),
+        }
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
@@ -43,6 +58,7 @@ impl ActiveModelBehavior for ActiveModel {
         Self {
             id: sea_orm::ActiveValue::NotSet,
             name: sea_orm::ActiveValue::NotSet,
+            category_id: sea_orm::ActiveValue::NotSet,
             category: sea_orm::ActiveValue::NotSet,
             unit: sea_orm::ActiveValue::NotSet,
             default_sell_price: sea_orm::ActiveValue::NotSet,

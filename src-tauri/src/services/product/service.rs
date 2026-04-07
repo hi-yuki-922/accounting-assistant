@@ -27,6 +27,7 @@ impl ProductService {
         let new_product = ActiveModel {
             id: sea_orm::ActiveValue::Set(id),
             name: sea_orm::ActiveValue::Set(input.name),
+            category_id: sea_orm::ActiveValue::Set(input.category_id),
             category: sea_orm::ActiveValue::Set(input.category),
             unit: sea_orm::ActiveValue::Set(input.unit),
             default_sell_price: sea_orm::ActiveValue::Set(input.default_sell_price),
@@ -55,6 +56,10 @@ impl ProductService {
 
         if let Some(name) = input.name {
             active_model.name = sea_orm::ActiveValue::Set(name);
+        }
+
+        if let Some(category_id) = input.category_id {
+            active_model.category_id = sea_orm::ActiveValue::Set(category_id);
         }
 
         if let Some(category) = input.category {

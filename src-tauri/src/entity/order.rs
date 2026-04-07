@@ -1,4 +1,4 @@
-use crate::enums::{AccountingChannel, OrderStatus, OrderType};
+use crate::enums::{AccountingChannel, OrderStatus, OrderSubType, OrderType};
 use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
 use sea_orm::entity::prelude::*;
@@ -23,12 +23,12 @@ pub struct Model {
     /// 实收/实付总额
     #[sea_orm(column_type = "Decimal(Some((19, 4)))")]
     pub actual_amount: Decimal,
+    /// 订单业务类型
+    pub sub_type: OrderSubType,
     /// 订单状态
     pub status: OrderStatus,
     /// 支付/收款渠道（创建时默认 Unknown，结账时更新）
     pub channel: AccountingChannel,
-    /// 结账时关联的记账记录 ID
-    pub accounting_record_id: Option<i64>,
     /// 备注
     pub remark: Option<String>,
     /// 创建时间
@@ -52,9 +52,9 @@ impl ActiveModelBehavior for ActiveModel {
             customer_id: sea_orm::ActiveValue::NotSet,
             total_amount: sea_orm::ActiveValue::NotSet,
             actual_amount: sea_orm::ActiveValue::NotSet,
+            sub_type: sea_orm::ActiveValue::NotSet,
             status: sea_orm::ActiveValue::NotSet,
             channel: sea_orm::ActiveValue::NotSet,
-            accounting_record_id: sea_orm::ActiveValue::NotSet,
             remark: sea_orm::ActiveValue::NotSet,
             create_at: sea_orm::ActiveValue::Set(now),
             settled_at: sea_orm::ActiveValue::NotSet,

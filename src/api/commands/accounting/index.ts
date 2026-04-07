@@ -74,6 +74,12 @@ export const batchPostAccountingRecords = (recordIds: number[]) =>
 export const createWriteOffRecord = (data: CreateWriteOffRecordDto) =>
   tryCMD<AccountingRecord>('create_write_off_record', { input: data })
 
+/**
+ * 根据订单 ID 查询关联的记账记录
+ */
+export const getRecordsByOrderId = (orderId: number) =>
+  tryCMD<AccountingRecord[]>('get_records_by_order_id', { orderId })
+
 // 便捷方法
 export const accounting = {
   AccountingChannel,
@@ -84,6 +90,7 @@ export const accounting = {
   createWriteOff: createWriteOffRecord,
   delete: deleteAccountingRecord,
   get: getAccountingRecord,
+  getByOrderId: getRecordsByOrderId,
   update: updateAccountingRecord,
   post: postAccountingRecord,
 }

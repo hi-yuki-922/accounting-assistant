@@ -4,11 +4,21 @@
  */
 
 import { X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
+import { categoryApi } from '@/api/commands/category'
+import type { Category } from '@/api/commands/category/type'
 import type { Product } from '@/api/commands/product/type'
 import { Badge } from '@/components/ui/badge'
 import { Field, FieldError, FieldTitle } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 /** 预设常用单位列表 */
@@ -17,6 +27,7 @@ const COMMON_UNITS = ['斤', '公斤', '个', '件', '箱', '盒', '袋', '瓶',
 /** 商品表单数据 */
 export type ProductFormData = {
   name: string
+  categoryId: string
   category: string
   unit: string
   sellPrice: string
@@ -51,6 +62,7 @@ export const joinKeywords = (tags: string[]): string => tags.join(';')
 /** 获取默认表单数据 */
 export const getDefaultProductFormData = (): ProductFormData => ({
   name: '',
+  categoryId: '',
   category: '',
   unit: '',
   sellPrice: '',
@@ -66,6 +78,7 @@ export const getProductFormDataFromProduct = (
   product: Product
 ): ProductFormData => ({
   name: product.name,
+  categoryId: product.categoryId?.toString() ?? '',
   category: product.category ?? '',
   unit: product.unit,
   sellPrice: product.defaultSellPrice?.toString() ?? '',
@@ -107,6 +120,17 @@ export const ProductForm = ({
   onChange,
   errors = {},
 }: ProductFormProps) => {
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    categoryApi.getAll().then((result) => {
+      result.match(
+        (data) => setCategories(data),
+        () => {}
+      )
+    })
+  }, [])
+
   /** 更新单个文本字段 */
   const handleFieldChange = (
     field: keyof ProductFormData,
@@ -158,15 +182,36 @@ export const ProductForm = ({
         {errors.name && <FieldError>{errors.name}</FieldError>}
       </Field>
 
-      {/* 商品分类 */}
+      {/* 商品品类 */}
       <Field orientation="vertical">
-        <FieldTitle>商品分类</FieldTitle>
-        <Input
-          id="product-category"
-          value={value.category}
-          onChange={(e) => handleFieldChange('category', e.target.value)}
-          placeholder="请输入商品分类（可选）"
-        />
+        <FieldTitle>商品品类</FieldTitle>
+        <Select
+          value={value.categoryId || '_none'}
+          onValueChange={(v) => {
+            if (v === '_none') {
+              onChange({ ...value, categoryId: '', category: '' })
+            } else {
+              const cat = categories.find((c) => c.id.toString() === v)
+              onChange({
+                ...value,
+                categoryId: v,
+                category: cat?.name ?? '',
+              })
+            }
+          }}
+        >
+          <SelectTrigger id="product-category">
+            <SelectValue placeholder="选择品类（可选）" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_none">未选择</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id.toString()}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
 
       {/* 计量单位 */}

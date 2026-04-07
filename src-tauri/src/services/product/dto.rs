@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 pub struct CreateProductDto {
     /// 商品名称（必填）
     pub name: String,
-    /// 商品分类（可选）
+    /// 品类 ID（可选）
+    pub category_id: Option<i64>,
+    /// 品类名称（冗余）
     pub category: Option<String>,
     /// 计量单位（必填）
     pub unit: String,
@@ -29,10 +31,12 @@ pub struct CreateProductDto {
 pub struct UpdateProductDto {
     /// 商品 ID
     pub id: i64,
+    /// 品类 ID
+    pub category_id: Option<Option<i64>>,
+    /// 品类名称（冗余）
+    pub category: Option<Option<String>>,
     /// 商品名称
     pub name: Option<String>,
-    /// 商品分类
-    pub category: Option<Option<String>>,
     /// 计量单位
     pub unit: Option<String>,
     /// 参考售价

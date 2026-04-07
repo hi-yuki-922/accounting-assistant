@@ -9,7 +9,10 @@ import { toast } from 'sonner'
 
 import { orderApi } from '@/api/commands/order'
 import type { Order, OrderItem } from '@/api/commands/order/type'
-import { ORDER_TYPE_DISPLAY_TEXT } from '@/api/commands/order/type'
+import {
+  ORDER_TYPE_DISPLAY_TEXT,
+  ORDER_SUB_TYPE_DISPLAY_TEXT,
+} from '@/api/commands/order/type'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -95,6 +98,11 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
             <Badge variant="secondary">
               {ORDER_TYPE_DISPLAY_TEXT[order.orderType]}
             </Badge>
+            {order.subType && ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType] && (
+              <Badge variant="outline">
+                {ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType]}
+              </Badge>
+            )}
             <span className="text-muted-foreground text-sm">
               {order.orderNo}
             </span>
@@ -102,9 +110,9 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* 提示：类型和客户不可修改 */}
+          {/* 提示：类型、客户和业务类型不可修改 */}
           <p className="text-xs text-muted-foreground">
-            订单类型和客户不可修改，仅可编辑明细和备注。
+            订单类型、客户和业务类型不可修改，仅可编辑明细和备注。
           </p>
 
           {/* 订单明细 */}

@@ -3,6 +3,8 @@ pub mod accounting_book_seq;
 pub mod accounting_record;
 pub mod accounting_record_seq;
 pub mod attachment;
+pub mod category;
+pub mod category_seq;
 pub mod chat_message;
 pub mod chat_message_seq;
 pub mod chat_session;
@@ -24,6 +26,8 @@ pub async fn with_install_entities(
         .register(accounting_book::Entity)
         .register(accounting_book_seq::Entity)
         .register(attachment::Entity)
+        .register(category::Entity)
+        .register(category_seq::Entity)
         .register(chat_session::Entity)
         .register(chat_message::Entity)
         .register(chat_message_seq::Entity)

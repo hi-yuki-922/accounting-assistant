@@ -1,6 +1,7 @@
 mod accounting;
 mod accounting_book;
 mod attachment;
+mod category;
 mod chat;
 mod customer;
 mod order;
@@ -16,11 +17,17 @@ pub fn with_install_tauri_commands(
         accounting::delete_accounting_record,
         accounting::batch_post_accounting_records,
         accounting::create_write_off_record,
+        accounting::get_records_by_order_id,
         attachment::create_attachment,
         attachment::delete_attachment,
         attachment::delete_attachment_by_path,
         attachment::query_attachments,
         attachment::download_attachment,
+        category::create_category,
+        category::update_category,
+        category::delete_category,
+        category::get_all_categories,
+        category::get_category_by_id,
         accounting_book::create_book,
         accounting_book::get_all_books,
         accounting_book::get_book_by_id,
@@ -55,6 +62,7 @@ pub fn with_install_tauri_commands(
         product::search_products,
         order::create_order,
         order::settle_order,
+        order::get_settle_preview,
         order::cancel_order,
         order::update_order,
         order::get_all_orders,

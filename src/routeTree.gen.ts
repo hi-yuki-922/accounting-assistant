@@ -15,11 +15,13 @@ import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as ChatbotRouteImport } from './routes/chatbot'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as CustomersIndexRouteImport } from './routes/customers.index'
+import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as BooksIndexRouteImport } from './routes/books.index'
 import { Route as BooksBookIdRouteImport } from './routes/books.$bookId'
 
@@ -53,6 +55,11 @@ const ChatbotRoute = ChatbotRouteImport.update({
   path: '/chatbot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BooksRoute = BooksRouteImport.update({
   id: '/books',
   path: '/books',
@@ -78,6 +85,11 @@ const CustomersIndexRoute = CustomersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CustomersRoute,
 } as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CategoriesRoute,
+} as any)
 const BooksIndexRoute = BooksIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -92,6 +104,7 @@ const BooksBookIdRoute = BooksBookIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/books': typeof BooksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/chatbot': typeof ChatbotRoute
   '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
@@ -100,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/': typeof BooksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/customers/': typeof CustomersIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -111,6 +125,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books': typeof BooksIndexRoute
+  '/categories': typeof CategoriesIndexRoute
   '/customers': typeof CustomersIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -119,6 +134,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/books': typeof BooksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/chatbot': typeof ChatbotRoute
   '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
@@ -127,6 +143,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/': typeof BooksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/customers/': typeof CustomersIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -136,6 +153,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/books'
+    | '/categories'
     | '/chatbot'
     | '/customers'
     | '/dashboard'
@@ -144,6 +162,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/books/$bookId'
     | '/books/'
+    | '/categories/'
     | '/customers/'
     | '/orders/'
     | '/products/'
@@ -155,6 +174,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/books/$bookId'
     | '/books'
+    | '/categories'
     | '/customers'
     | '/orders'
     | '/products'
@@ -162,6 +182,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/books'
+    | '/categories'
     | '/chatbot'
     | '/customers'
     | '/dashboard'
@@ -170,6 +191,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/books/$bookId'
     | '/books/'
+    | '/categories/'
     | '/customers/'
     | '/orders/'
     | '/products/'
@@ -178,6 +200,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BooksRoute: typeof BooksRouteWithChildren
+  CategoriesRoute: typeof CategoriesRouteWithChildren
   ChatbotRoute: typeof ChatbotRoute
   CustomersRoute: typeof CustomersRouteWithChildren
   DashboardRoute: typeof DashboardRoute
@@ -230,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatbotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/books': {
       id: '/books'
       path: '/books'
@@ -265,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersIndexRouteImport
       parentRoute: typeof CustomersRoute
     }
+    '/categories/': {
+      id: '/categories/'
+      path: '/'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof CategoriesRoute
+    }
     '/books/': {
       id: '/books/'
       path: '/'
@@ -293,6 +330,18 @@ const BooksRouteChildren: BooksRouteChildren = {
 }
 
 const BooksRouteWithChildren = BooksRoute._addFileChildren(BooksRouteChildren)
+
+interface CategoriesRouteChildren {
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
+}
+
+const CategoriesRouteChildren: CategoriesRouteChildren = {
+  CategoriesIndexRoute: CategoriesIndexRoute,
+}
+
+const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
+  CategoriesRouteChildren,
+)
 
 interface CustomersRouteChildren {
   CustomersIndexRoute: typeof CustomersIndexRoute
@@ -332,6 +381,7 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BooksRoute: BooksRouteWithChildren,
+  CategoriesRoute: CategoriesRouteWithChildren,
   ChatbotRoute: ChatbotRoute,
   CustomersRoute: CustomersRouteWithChildren,
   DashboardRoute: DashboardRoute,
