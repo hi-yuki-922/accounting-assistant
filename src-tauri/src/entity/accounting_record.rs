@@ -1,8 +1,8 @@
-use chrono::{NaiveDateTime};
+use crate::enums::{AccountingChannel, AccountingRecordState, AccountingType};
+use chrono::NaiveDateTime;
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
-use crate::enums::{AccountingType, AccountingChannel, AccountingRecordState};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +23,8 @@ pub struct Model {
     pub create_at: NaiveDateTime,
     pub state: AccountingRecordState,
     pub book_id: Option<i64>,
+    /// 关联订单 ID
+    pub order_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -58,19 +60,22 @@ impl ActiveModelBehavior for ActiveModel {
             create_at: sea_orm::ActiveValue::Set(now),
             state: sea_orm::ActiveValue::Set(AccountingRecordState::PendingPosting),
             book_id: sea_orm::ActiveValue::NotSet,
+            order_id: sea_orm::ActiveValue::NotSet,
         }
     }
 }
 
 impl Model {
-    // Generate a unique ID in the format YYYYMMDDNNNNN
-    pub async fn generate_id(db: &DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
+    /// 生成唯一 ID，格式为 YYYYMMDDNNNNN
+    pub async fn generate_id<C: sea_orm::ConnectionTrait>(
+        db: &C,
+    ) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();
         let date_str = now.format("%Y%m%d").to_string();
         let date_int = date_str.parse::<i32>().unwrap_or(20210101);
 
-        // Get the next sequence number for today
+        // 获取当日的下一个序列号
         let next_seq = super::accounting_record_seq::Model::get_next_sequence(db, date_int).await?;
 
         let id_str = format!("{}{:05}", date_int, next_seq);

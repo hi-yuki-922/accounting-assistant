@@ -1,9 +1,11 @@
-use sea_orm::{Database, DatabaseConnection};
 use accounting_assistant_lib::entity;
-use accounting_assistant_lib::services::{AccountingService, AttachmentService, AccountingBookService};
+use accounting_assistant_lib::services::{
+    AccountingBookService, AccountingService, AttachmentService,
+};
 use once_cell::sync::Lazy;
-use tempfile::TempDir;
+use sea_orm::{Database, DatabaseConnection};
 use std::sync::Mutex;
+use tempfile::TempDir;
 
 /// 测试选项配置
 #[derive(Debug, Clone)]
@@ -57,7 +59,7 @@ async fn init_db_with_default_book() -> Result<DatabaseConnection, Box<dyn std::
     if options.create_default_book {
         let book_service = AccountingBookService::new(db.clone());
         // 检查是否已存在默认账簿，避免重复创建
-        let books = book_service.get_books().await.unwrap_or_default();
+        let books = book_service.get_all_books().await.unwrap_or_default();
         let has_default = books.iter().any(|b| b.id == 10000001);
 
         if !has_default {
@@ -181,7 +183,9 @@ mod context_tests {
     #[tokio::test]
     async fn test_service_initialization() {
         // 验证服务可以从数据库连接创建
-        let db = init_db_connection_internal().await.expect("Failed to init db");
+        let db = init_db_connection_internal()
+            .await
+            .expect("Failed to init db");
         let _accounting = AccountingService::new(db.clone());
         let _accounting_book = AccountingBookService::new(db);
 
@@ -192,13 +196,15 @@ mod context_tests {
     #[tokio::test]
     async fn test_default_book_creation() {
         // 验证默认账簿创建逻辑
-        let db = init_db_connection_internal().await.expect("Failed to init db");
+        let db = init_db_connection_internal()
+            .await
+            .expect("Failed to init db");
         let service = AccountingBookService::new(db);
 
         let result = service.create_default_book().await;
         assert!(result.is_ok(), "Failed to create default book");
 
-        let books = service.get_books().await.expect("Failed to get books");
+        let books = service.get_all_books().await.expect("Failed to get books");
         let has_default = books.iter().any(|b| b.id == 10000001);
 
         assert!(has_default, "Default book should be created");
@@ -213,7 +219,10 @@ mod context_tests {
         if !temp_dir.exists() {
             cleanup_temp_dir();
             let temp_dir = get_temp_dir();
-            assert!(temp_dir.exists(), "Temp directory should exist after cleanup");
+            assert!(
+                temp_dir.exists(),
+                "Temp directory should exist after cleanup"
+            );
         }
 
         assert!(temp_dir.exists(), "Temp directory should exist");
@@ -242,7 +251,10 @@ mod context_tests {
         let path_2 = temp_dir_2.clone();
 
         // 清理后应该创建新的临时目录
-        assert_ne!(path_1, path_2, "Temp directories should be different after cleanup");
+        assert_ne!(
+            path_1, path_2,
+            "Temp directories should be different after cleanup"
+        );
     }
 
     #[tokio::test]
@@ -253,6 +265,8 @@ mod context_tests {
             let _db = db.clone();
             assert!(true, "run_in_transaction should work correctly");
             Ok(())
-        }).await.expect("run_in_transaction failed");
+        })
+        .await
+        .expect("run_in_transaction failed");
     }
 }

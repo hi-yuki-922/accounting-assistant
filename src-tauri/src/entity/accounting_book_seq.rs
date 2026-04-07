@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 #[sea_orm(table_name = "accounting_book_seq")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: i32,  // 年份，格式为 yyyy
+    pub id: i32, // 年份，格式为 yyyy
 
-    pub seq: i32,  // 流水号
+    pub seq: i32, // 流水号
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -20,17 +20,14 @@ impl Model {
     /// 获取指定年份的下一个流水号
     pub async fn get_next_sequence(
         db: &DatabaseConnection,
-        year: i32
+        year: i32,
     ) -> Result<i32, Box<dyn std::error::Error>> {
         use sea_orm::TransactionTrait;
 
         // 开始事务确保原子性
         let txn = db.begin().await?;
 
-        let seq_model = Entity::find()
-            .filter(Column::Id.eq(year))
-            .one(&txn)
-            .await?;
+        let seq_model = Entity::find().filter(Column::Id.eq(year)).one(&txn).await?;
 
         let next_seq = match seq_model {
             Some(model) => {
@@ -42,7 +39,7 @@ impl Model {
 
                 active_model.update(&txn).await?;
                 model.seq + 1
-            },
+            }
             None => {
                 // 创建新年份的序列，从 1 开始
                 let new_seq = ActiveModel {

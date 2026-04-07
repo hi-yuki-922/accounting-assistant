@@ -1,16 +1,24 @@
 /**
  * 金额格式化函数
- * @param amount - 金额数值
+ * @param amount - 金额数值，支持 number、string、undefined、null
  * @param currency - 货币符号，默认为 "¥"
  * @param decimals - 小数位数，默认为 2
- * @returns 格式化后的金额字符串，例如 "¥1,234.56"
+ * @returns 格式化后的金额字符串，例如 "¥1,234.56"，空值时返回 "-"
  */
 export const formatCurrency = (
-  amount: number,
+  amount: number | string | undefined | null,
   currency = '¥',
   decimals = 2
 ): string => {
-  const formatted = amount.toLocaleString('zh-CN', {
+  if (amount === null || amount === undefined) {
+    return '-'
+  }
+  const numAmount =
+    typeof amount === 'string' ? Number.parseFloat(amount) : amount
+  if (Number.isNaN(numAmount)) {
+    return '-'
+  }
+  const formatted = numAmount.toLocaleString('zh-CN', {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals,
   })
@@ -55,12 +63,39 @@ export const formatCurrencyCompact = (
  */
 export const formatDate = (
   date: Date | string,
-  format: 'default' | 'short' | 'long' | 'time' = 'default'
+  format:
+    | 'default'
+    | 'short'
+    | 'long'
+    | 'time'
+    | 'datetime'
+    | 'datetime-compact' = 'default'
 ): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date
 
   if (Number.isNaN(dateObj.getTime())) {
     return '无效日期'
+  }
+
+  if (format === 'datetime') {
+    return dateObj.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+  }
+
+  if (format === 'datetime-compact') {
+    return dateObj.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   const options: Intl.DateTimeFormatOptions = {
@@ -217,3 +252,32 @@ export const formatCardNumberHidden = (cardNumber: string): string => {
   const last4 = cleaned.slice(-4)
   return `**** **** **** ${last4}`
 }
+
+/**
+ * 带正负号的金额格式化函数
+ * @param amount - 金额数值
+ * @param isIncome - 是否为收入类型
+ * @param decimals - 小数位数，默认为 2
+ * @returns 带符号的金额字符串，例如 "+123.45"、"-67.89"，零值返回 "0.00"
+ */
+export const formatSignedAmount = (
+  amount: number,
+  isIncome: boolean,
+  decimals = 2
+): string => {
+  if (amount === 0) {
+    return (0).toFixed(decimals)
+  }
+  const absAmount = Math.abs(amount)
+  const sign = isIncome ? '+' : '-'
+  return `${sign}${absAmount.toFixed(decimals)}`
+}
+
+/**
+ * 纯数字金额格式化函数（不带货币符号）
+ * @param amount - 金额数值
+ * @param decimals - 小数位数，默认为 2
+ * @returns 纯数字字符串，例如 "1234.56"
+ */
+export const formatRawAmount = (amount: number, decimals = 2): string =>
+  amount.toFixed(decimals)

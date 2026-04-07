@@ -1,6 +1,6 @@
 use chrono::{Datelike, NaiveDateTime};
-use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +23,7 @@ pub enum Relation {}
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
-        panic!("No relations defined")
+        panic!("未定义关联关系")
     }
 }
 

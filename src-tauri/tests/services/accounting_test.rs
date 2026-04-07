@@ -1,11 +1,13 @@
-use accounting_assistant_lib::entity::accounting_record::{self, Entity};
 use accounting_assistant_lib::entity::accounting_book;
-use accounting_assistant_lib::enums::{AccountingType, AccountingChannel, AccountingRecordState};
-use accounting_assistant_lib::services::accounting::dto::{AddAccountingRecordDto, ModifyAccountingRecordDto, CreateWriteOffRecordDto};
-use accounting_assistant_lib::services::AccountingService;
+use accounting_assistant_lib::entity::accounting_record::{self, Entity};
+use accounting_assistant_lib::enums::{AccountingChannel, AccountingRecordState, AccountingType};
+use accounting_assistant_lib::services::accounting::dto::{
+    AddAccountingRecordDto, CreateWriteOffRecordDto, ModifyAccountingRecordDto,
+};
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
+use accounting_assistant_lib::services::AccountingService;
 use rust_decimal::Decimal;
-use sea_orm::{ActiveModelTrait, Set, EntityTrait, ColumnTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 use serial_test::serial;
 
 use crate::context::run_in_transaction;
@@ -25,9 +27,10 @@ async fn test_add_record_income() {
             remark: Some("1月工资".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(dto).await?;
+        let record = service.create_record(dto).await?;
 
         assert!(record.id > 0);
         assert_eq!(record.title, "工资收入");
@@ -38,7 +41,9 @@ async fn test_add_record_income() {
         assert_eq!(record.remark, Some("1月工资".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -56,15 +61,18 @@ async fn test_add_record_expenditure() {
             remark: Some("公司楼下餐厅".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(dto).await?;
+        let record = service.create_record(dto).await?;
 
         assert_eq!(record.accounting_type, AccountingType::Expenditure);
         assert_eq!(record.channel, AccountingChannel::Wechat);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -82,14 +90,17 @@ async fn test_add_record_investment_income() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(dto).await?;
+        let record = service.create_record(dto).await?;
 
         assert_eq!(record.accounting_type, AccountingType::InvestmentIncome);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -107,14 +118,17 @@ async fn test_add_record_investment_loss() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(dto).await?;
+        let record = service.create_record(dto).await?;
 
         assert_eq!(record.accounting_type, AccountingType::InvestmentLoss);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -132,14 +146,17 @@ async fn test_add_record_with_book_id() {
             remark: None,
             write_off_id: None,
             book_id: Some(DEFAULT_BOOK_ID),
+            order_id: None,
         };
 
-        let record = service.add_record(dto).await?;
+        let record = service.create_record(dto).await?;
 
         assert_eq!(record.book_id, Some(DEFAULT_BOOK_ID));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -158,9 +175,10 @@ async fn test_add_record_with_write_off_id() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let master_record = service.add_record(master_dto).await?;
+        let master_record = service.create_record(master_dto).await?;
 
         // 创建冲账记录
         let write_off_dto = AddAccountingRecordDto {
@@ -172,14 +190,17 @@ async fn test_add_record_with_write_off_id() {
             remark: None,
             write_off_id: Some(master_record.id),
             book_id: None,
+            order_id: None,
         };
 
-        let write_off_record = service.add_record(write_off_dto).await?;
+        let write_off_record = service.create_record(write_off_dto).await?;
 
         assert_eq!(write_off_record.write_off_id, Some(master_record.id));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -198,9 +219,10 @@ async fn test_modify_record_amount() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 修改金额
         let modify_dto = ModifyAccountingRecordDto {
@@ -212,13 +234,15 @@ async fn test_modify_record_amount() {
             remark: None,
         };
 
-        let modified = service.modify_record(modify_dto).await?;
+        let modified = service.update_record(modify_dto).await?;
 
         assert_eq!(modified.amount, Decimal::new(15000, 2)); // 150.00
         assert_eq!(modified.title, "原始记录"); // 其他字段未改变
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -237,9 +261,10 @@ async fn test_modify_record_title() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 修改标题
         let modify_dto = ModifyAccountingRecordDto {
@@ -251,13 +276,15 @@ async fn test_modify_record_title() {
             remark: None,
         };
 
-        let modified = service.modify_record(modify_dto).await?;
+        let modified = service.update_record(modify_dto).await?;
 
         assert_eq!(modified.title, "新标题");
         assert_eq!(modified.amount, Decimal::new(10000, 2)); // 其他字段未改变
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -276,9 +303,10 @@ async fn test_modify_record_remark() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 添加备注
         let modify_dto = ModifyAccountingRecordDto {
@@ -290,12 +318,14 @@ async fn test_modify_record_remark() {
             remark: Some(Some("这是备注".to_string())),
         };
 
-        let modified = service.modify_record(modify_dto).await?;
+        let modified = service.update_record(modify_dto).await?;
 
         assert_eq!(modified.remark, Some("这是备注".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -314,9 +344,10 @@ async fn test_modify_record_remove_remark() {
             remark: Some("原始备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 删除备注（设置为 None）
         let modify_dto = ModifyAccountingRecordDto {
@@ -328,12 +359,14 @@ async fn test_modify_record_remove_remark() {
             remark: Some(None), // 设置为 None
         };
 
-        let modified = service.modify_record(modify_dto).await?;
+        let modified = service.update_record(modify_dto).await?;
 
         assert_eq!(modified.remark, None);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -352,13 +385,15 @@ async fn test_modify_record_not_found() {
             remark: None,
         };
 
-        let result = service.modify_record(modify_dto).await;
+        let result = service.update_record(modify_dto).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Accounting record not found");
+        assert_eq!(result.unwrap_err().to_string(), "记账记录不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -377,9 +412,10 @@ async fn test_modify_record_after_posting() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 过账
         service.post_record(record.id).await?;
@@ -394,13 +430,18 @@ async fn test_modify_record_after_posting() {
             remark: None,
         };
 
-        let result = service.modify_record(modify_dto).await;
+        let result = service.update_record(modify_dto).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Only records with state PendingPosting can be modified");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "只有待入账状态的记录可修改"
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -419,9 +460,10 @@ async fn test_post_record() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         assert_eq!(record.state, AccountingRecordState::PendingPosting);
 
@@ -432,7 +474,9 @@ async fn test_post_record() {
         assert_eq!(posted.state, AccountingRecordState::Posted);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -445,10 +489,12 @@ async fn test_post_record_not_found() {
         let result = service.post_record(999999).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Accounting record not found");
+        assert_eq!(result.unwrap_err().to_string(), "记账记录不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -467,9 +513,10 @@ async fn test_post_record_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 第一次过账
         service.post_record(record.id).await?;
@@ -480,7 +527,9 @@ async fn test_post_record_already_posted() {
         assert_eq!(posted.state, AccountingRecordState::Posted);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -499,14 +548,13 @@ async fn test_query_record_by_id_directly() {
             remark: Some("测试备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 直接查询（AccountingService 没有提供查询方法，我们直接查询数据库）
-        let found = Entity::find_by_id(record.id)
-            .one(&txn)
-            .await?;
+        let found = Entity::find_by_id(record.id).one(&txn).await?;
 
         assert!(found.is_some());
         let found_record = found.unwrap();
@@ -514,7 +562,9 @@ async fn test_query_record_by_id_directly() {
         assert_eq!(found_record.title, "查询测试");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -522,14 +572,14 @@ async fn test_query_record_by_id_directly() {
 async fn test_query_record_not_found_directly() {
     run_in_transaction(|txn| async move {
         // 查询不存在的记录
-        let found = Entity::find_by_id(999999)
-            .one(&txn)
-            .await?;
+        let found = Entity::find_by_id(999999).one(&txn).await?;
 
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== delete_record 测试 ====================
@@ -550,9 +600,10 @@ async fn test_delete_record_success() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
         assert_eq!(record.state, AccountingRecordState::PendingPosting);
 
         // 删除记录
@@ -563,7 +614,9 @@ async fn test_delete_record_success() {
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -578,7 +631,9 @@ async fn test_delete_record_not_found() {
         assert_eq!(result.unwrap_err().to_string(), "记录不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -597,19 +652,25 @@ async fn test_delete_record_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
         service.post_record(record.id).await?;
 
         // 尝试删除已入账记录
         let result = service.delete_record(record.id).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "已入账的记录只能冲账，不能删除");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "已入账的记录只能冲账，不能删除"
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -628,9 +689,10 @@ async fn test_delete_record_with_write_off_association() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
         service.post_record(record.id).await?;
 
         // 手动插入一条冲账关联记录（PendingPosting 状态），使主记录有关联
@@ -687,7 +749,9 @@ async fn test_delete_record_with_write_off_association() {
         assert_eq!(result.unwrap_err().to_string(), "不能删除有冲账关联的记录");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -713,9 +777,10 @@ async fn test_delete_record_updates_book_count() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
 
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 删除记录
         service.delete_record(record.id).await?;
@@ -729,7 +794,9 @@ async fn test_delete_record_updates_book_count() {
         assert_eq!(book_after.record_count, count_before);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== batch_post_records 测试 ====================
@@ -752,8 +819,9 @@ async fn test_batch_post_records_success() {
                 remark: None,
                 write_off_id: None,
                 book_id: None,
+                order_id: None,
             };
-            let record = service.add_record(dto).await?;
+            let record = service.create_record(dto).await?;
             record_ids.push(record.id);
         }
 
@@ -766,7 +834,9 @@ async fn test_batch_post_records_success() {
         }
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -781,7 +851,9 @@ async fn test_batch_post_records_empty_list() {
         assert_eq!(result.unwrap_err().to_string(), "请选择要入账的记录");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -794,10 +866,16 @@ async fn test_batch_post_records_not_found() {
 
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("记录 ID 不存在"), "错误信息应包含'记录 ID 不存在'，实际: {}", err_msg);
+        assert!(
+            err_msg.contains("记录 ID 不存在"),
+            "错误信息应包含'记录 ID 不存在'，实际: {}",
+            err_msg
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -816,8 +894,9 @@ async fn test_batch_post_records_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
         service.post_record(record.id).await?;
 
         // 创建一条待入账记录
@@ -830,22 +909,31 @@ async fn test_batch_post_records_already_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let record2 = service.add_record(add_dto2).await?;
+        let record2 = service.create_record(add_dto2).await?;
 
         // 尝试批量入账包含已入账的记录
-        let result = service.batch_post_records(vec![record.id, record2.id]).await;
+        let result = service
+            .batch_post_records(vec![record.id, record2.id])
+            .await;
 
         assert!(result.is_err());
         let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("已经是入账状态"), "错误信息应包含'已经是入账状态'，实际: {}", err_msg);
+        assert!(
+            err_msg.contains("已经是入账状态"),
+            "错误信息应包含'已经是入账状态'，实际: {}",
+            err_msg
+        );
 
         // 验证待入账记录未被影响（事务回滚）
         let record2_check = Entity::find_by_id(record2.id).one(&txn).await?.unwrap();
         assert_eq!(record2_check.state, AccountingRecordState::PendingPosting);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -863,8 +951,9 @@ async fn test_batch_post_single_record() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let record = service.add_record(add_dto).await?;
+        let record = service.create_record(add_dto).await?;
 
         // 单条批量入账
         let posted = service.batch_post_records(vec![record.id]).await?;
@@ -874,7 +963,9 @@ async fn test_batch_post_single_record() {
         assert_eq!(posted[0].id, record.id);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== create_write_off_record 测试 ====================
@@ -895,8 +986,9 @@ async fn test_create_write_off_record_success() {
             remark: Some("原始备注".to_string()),
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 创建冲账记录
@@ -920,7 +1012,9 @@ async fn test_create_write_off_record_success() {
         assert_eq!(write_off.remark, Some("部分冲账".to_string()));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -943,7 +1037,9 @@ async fn test_create_write_off_record_original_not_found() {
         assert_eq!(result.unwrap_err().to_string(), "原始记录不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -962,8 +1058,9 @@ async fn test_create_write_off_record_original_not_posted() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
 
         let write_off_dto = CreateWriteOffRecordDto {
             original_record_id: original.id,
@@ -976,10 +1073,15 @@ async fn test_create_write_off_record_original_not_posted() {
         let result = service.create_write_off_record(write_off_dto).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "只能对已入账的记录进行冲账");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "只能对已入账的记录进行冲账"
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -998,8 +1100,9 @@ async fn test_create_write_off_record_cannot_write_off_write_off() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 创建冲账记录
@@ -1027,7 +1130,9 @@ async fn test_create_write_off_record_cannot_write_off_write_off() {
         assert_eq!(result.unwrap_err().to_string(), "不能对冲账记录进行冲账");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -1046,8 +1151,9 @@ async fn test_create_write_off_record_amount_exceeds_original() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 冲账金额导致净额小于 0
@@ -1062,10 +1168,15 @@ async fn test_create_write_off_record_amount_exceeds_original() {
         let result = service.create_write_off_record(write_off_dto).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "冲账金额与原始金额的总和不能小于 0");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "冲账金额与原始金额的总和不能小于 0"
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -1084,8 +1195,9 @@ async fn test_create_write_off_record_cumulative_amount_exceeds() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 第一次冲账 -300
@@ -1110,10 +1222,15 @@ async fn test_create_write_off_record_cumulative_amount_exceeds() {
         let result = service.create_write_off_record(write_off_dto2).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "冲账金额与原始金额的总和不能小于 0");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "冲账金额与原始金额的总和不能小于 0"
+        );
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -1132,8 +1249,9 @@ async fn test_create_write_off_record_custom_channel() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 使用自定义渠道
@@ -1152,7 +1270,9 @@ async fn test_create_write_off_record_custom_channel() {
         assert_ne!(write_off.channel, AccountingChannel::BankCard);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -1171,8 +1291,9 @@ async fn test_create_write_off_record_custom_time() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 指定自定义时间
@@ -1186,11 +1307,15 @@ async fn test_create_write_off_record_custom_time() {
 
         let write_off = service.create_write_off_record(write_off_dto).await?;
 
-        let expected_time = chrono::NaiveDateTime::parse_from_str("2024-06-15 08:30:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let expected_time =
+            chrono::NaiveDateTime::parse_from_str("2024-06-15 08:30:00", "%Y-%m-%d %H:%M:%S")
+                .unwrap();
         assert_eq!(write_off.record_time, expected_time);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -1216,8 +1341,9 @@ async fn test_create_write_off_record_updates_book_count() {
             remark: None,
             write_off_id: None,
             book_id: None,
+            order_id: None,
         };
-        let original = service.add_record(add_dto).await?;
+        let original = service.create_record(add_dto).await?;
         service.post_record(original.id).await?;
 
         // 创建冲账记录
@@ -1239,5 +1365,62 @@ async fn test_create_write_off_record_updates_book_count() {
         assert_eq!(book_after.record_count, count_before + 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== get_record_by_order_id 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_by_order_id_with_record() {
+    run_in_transaction(|db| async move {
+        let service = AccountingService::new(db.clone());
+
+        // 创建带 order_id 的记账记录
+        let dto = AddAccountingRecordDto {
+            amount: 200.00,
+            record_time: "2024-01-01 12:00:00".to_string(),
+            accounting_type: "Income".to_string(),
+            title: "销售订单-#1".to_string(),
+            channel: "BankCard".to_string(),
+            remark: None,
+            write_off_id: None,
+            book_id: None,
+            order_id: Some(2024010100001),
+        };
+
+        let record = service.create_record(dto).await?;
+        assert_eq!(record.order_id, Some(2024010100001));
+
+        // 根据 order_id 查询
+        let found = service.get_record_by_order_id(2024010100001).await?;
+
+        assert!(found.is_some());
+        let found_record = found.unwrap();
+        assert_eq!(found_record.id, record.id);
+        assert_eq!(found_record.order_id, Some(2024010100001));
+        assert_eq!(found_record.title, "销售订单-#1");
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_record_by_order_id_no_record() {
+    run_in_transaction(|db| async move {
+        let service = AccountingService::new(db.clone());
+
+        let found = service.get_record_by_order_id(999999).await?;
+
+        assert!(found.is_none());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
 }

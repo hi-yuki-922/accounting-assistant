@@ -1,12 +1,12 @@
 use accounting_assistant_lib::entity::accounting_book::{self, ActiveModel, Entity, Model};
 use accounting_assistant_lib::entity::accounting_record;
-use accounting_assistant_lib::enums::{AccountingType, AccountingChannel};
-use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookTitleDto};
-use accounting_assistant_lib::services::AccountingBookService;
+use accounting_assistant_lib::enums::{AccountingChannel, AccountingType};
+use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookDto};
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
+use accounting_assistant_lib::services::AccountingBookService;
 use chrono::Local;
-use sea_orm::{ActiveModelTrait, Set, EntityTrait, ColumnTrait, QueryFilter, PaginatorTrait};
 use rust_decimal::Decimal;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 
 use crate::context::run_in_transaction;
 use serial_test::serial;
@@ -37,7 +37,9 @@ async fn test_create_book_success() {
         assert_eq!(found.title, "测试账本");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -58,15 +60,15 @@ async fn test_create_book_empty_title() {
         assert_eq!(result.unwrap_err().to_string(), "账本标题不能为空");
 
         // 验证数据库中没有创建新记录（默认账簿已存在）
-        let count = Entity::find()
-            .count(&txn)
-            .await?;
+        let count = Entity::find().count(&txn).await?;
 
         // 由于默认账簿已存在，count 应该是 1 而不是 0
         assert_eq!(count, 1);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -100,7 +102,9 @@ async fn test_create_book_duplicate_title() {
         assert_ne!(book1.id, book2.id);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -126,7 +130,9 @@ async fn test_get_book_by_id_success() {
         assert_eq!(found_book.title, "查询测试账本");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -141,7 +147,9 @@ async fn test_get_book_by_id_not_found() {
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -150,13 +158,15 @@ async fn test_get_books_empty() {
     run_in_transaction(|txn| async move {
         let service = AccountingBookService::new(txn.clone());
 
-        let books = service.get_books().await?;
+        let books = service.get_all_books().await?;
 
         // 存在默认账本，因此 books.len() 最小值应该为1
         assert_eq!(books.len(), 1);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -175,13 +185,15 @@ async fn test_get_books_multiple() {
             service.create_book(dto).await?;
         }
 
-        let books = service.get_books().await?;
+        let books = service.get_all_books().await?;
 
         // 创建账本数 + 默认账本
         assert_eq!(books.len(), 4);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -199,12 +211,14 @@ async fn test_update_book_title_success() {
         let book = service.create_book(dto).await?;
 
         // 更新标题
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: book.id,
-            new_title: "新标题".to_string(),
+            title: Some("新标题".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let updated = service.update_book_title(update_dto).await?;
+        let updated = service.update_book(update_dto).await?;
 
         assert!(updated.is_some());
         let updated_book = updated.unwrap();
@@ -212,7 +226,9 @@ async fn test_update_book_title_success() {
         assert_eq!(updated_book.id, book.id);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -230,12 +246,14 @@ async fn test_update_book_empty_title() {
         let book = service.create_book(dto).await?;
 
         // 尝试更新为空标题
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: book.id,
-            new_title: "".to_string(),
+            title: Some("".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let result = service.update_book_title(update_dto).await;
+        let result = service.update_book(update_dto).await;
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "账本标题不能为空");
@@ -249,7 +267,9 @@ async fn test_update_book_empty_title() {
         assert_eq!(found.title, "原标题");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -259,17 +279,21 @@ async fn test_update_book_not_found() {
         let service = AccountingBookService::new(txn.clone());
 
         // 尝试更新不存在的账本
-        let update_dto = UpdateBookTitleDto {
+        let update_dto = UpdateBookDto {
             id: 999999,
-            new_title: "新标题".to_string(),
+            title: Some("新标题".to_string()),
+            description: None,
+            icon: None,
         };
 
-        let updated = service.update_book_title(update_dto).await?;
+        let updated = service.update_book(update_dto).await?;
 
         assert!(updated.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -292,14 +316,14 @@ async fn test_delete_book_empty() {
         assert!(result);
 
         // 验证账本已删除
-        let found = Entity::find_by_id(book.id)
-            .one(&txn)
-            .await?;
+        let found = Entity::find_by_id(book.id).one(&txn).await?;
 
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -314,7 +338,9 @@ async fn test_delete_book_not_found() {
         assert!(!result);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -330,7 +356,9 @@ async fn test_delete_default_book() {
         assert_eq!(result.unwrap_err().to_string(), "默认账本不能删除");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -351,7 +379,9 @@ async fn test_create_default_book_when_none_exists() {
         assert_eq!(book.title, "未归类账目");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -380,7 +410,9 @@ async fn test_create_default_book_when_already_exists() {
         assert_eq!(book1.id, book2.id);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -399,8 +431,8 @@ async fn test_get_records_by_book_id() {
 
         // 创建一些记录（直接插入数据库，因为 AccountingBookService 不提供创建记录的方法）
         use accounting_assistant_lib::entity::accounting_record;
-        use accounting_assistant_lib::enums::AccountingType;
         use accounting_assistant_lib::enums::AccountingChannel;
+        use accounting_assistant_lib::enums::AccountingType;
 
         let record1 = accounting_record::ActiveModel {
             id: Set(20240101001),
@@ -435,7 +467,9 @@ async fn test_get_records_by_book_id() {
         assert_eq!(records.len(), 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -458,7 +492,9 @@ async fn test_get_records_by_book_id_empty() {
         assert_eq!(records.len(), 0);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -472,8 +508,8 @@ async fn test_get_uncategorized_records() {
 
         // 插入一些未归类记录
         use accounting_assistant_lib::entity::accounting_record;
-        use accounting_assistant_lib::enums::AccountingType;
         use accounting_assistant_lib::enums::AccountingChannel;
+        use accounting_assistant_lib::enums::AccountingType;
 
         let record1 = accounting_record::ActiveModel {
             id: Set(20240101001),
@@ -506,7 +542,9 @@ async fn test_get_uncategorized_records() {
         assert_eq!(records.len(), 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -517,8 +555,8 @@ async fn test_get_write_off_records_by_id() {
 
         // 创建主记录
         use accounting_assistant_lib::entity::accounting_record;
-        use accounting_assistant_lib::enums::AccountingType;
         use accounting_assistant_lib::enums::AccountingChannel;
+        use accounting_assistant_lib::enums::AccountingType;
 
         let master_record = accounting_record::ActiveModel {
             id: Set(20240101001),
@@ -564,7 +602,9 @@ async fn test_get_write_off_records_by_id() {
         assert_eq!(records.len(), 2);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // ==================== get_record_write_off_details 测试 ====================
@@ -633,7 +673,9 @@ async fn test_get_record_write_off_details_success() {
         assert!(amounts.contains(&Decimal::new(-2000, 2)));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -649,7 +691,9 @@ async fn test_get_record_write_off_details_not_found() {
         assert_eq!(err.to_string(), "记录不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -682,5 +726,7 @@ async fn test_get_record_write_off_details_empty() {
         assert!(details.write_off_records.is_empty());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }

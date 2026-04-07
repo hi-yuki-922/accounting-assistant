@@ -10,10 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as ChatbotRouteImport } from './routes/chatbot'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as CustomersIndexRouteImport } from './routes/customers.index'
+import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as BooksIndexRouteImport } from './routes/books.index'
 import { Route as BooksBookIdRouteImport } from './routes/books.$bookId'
 
@@ -22,14 +30,34 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomersRoute = CustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatbotRoute = ChatbotRouteImport.update({
   id: '/chatbot',
   path: '/chatbot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BooksRoute = BooksRouteImport.update({
@@ -41,6 +69,26 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrdersRoute,
+} as any)
+const CustomersIndexRoute = CustomersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CustomersRoute,
+} as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CategoriesRoute,
 } as any)
 const BooksIndexRoute = BooksIndexRouteImport.update({
   id: '/',
@@ -56,11 +104,19 @@ const BooksBookIdRoute = BooksBookIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/books': typeof BooksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/chatbot': typeof ChatbotRoute
+  '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/': typeof BooksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
+  '/customers/': typeof CustomersIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,27 +125,47 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books': typeof BooksIndexRoute
+  '/categories': typeof CategoriesIndexRoute
+  '/customers': typeof CustomersIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/products': typeof ProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/books': typeof BooksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/chatbot': typeof ChatbotRoute
+  '/customers': typeof CustomersRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/products': typeof ProductsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/': typeof BooksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
+  '/customers/': typeof CustomersIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/products/': typeof ProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/books'
+    | '/categories'
     | '/chatbot'
+    | '/customers'
     | '/dashboard'
+    | '/orders'
+    | '/products'
     | '/settings'
     | '/books/$bookId'
     | '/books/'
+    | '/categories/'
+    | '/customers/'
+    | '/orders/'
+    | '/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,22 +174,38 @@ export interface FileRouteTypes {
     | '/settings'
     | '/books/$bookId'
     | '/books'
+    | '/categories'
+    | '/customers'
+    | '/orders'
+    | '/products'
   id:
     | '__root__'
     | '/'
     | '/books'
+    | '/categories'
     | '/chatbot'
+    | '/customers'
     | '/dashboard'
+    | '/orders'
+    | '/products'
     | '/settings'
     | '/books/$bookId'
     | '/books/'
+    | '/categories/'
+    | '/customers/'
+    | '/orders/'
+    | '/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BooksRoute: typeof BooksRouteWithChildren
+  CategoriesRoute: typeof CategoriesRouteWithChildren
   ChatbotRoute: typeof ChatbotRoute
+  CustomersRoute: typeof CustomersRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  OrdersRoute: typeof OrdersRouteWithChildren
+  ProductsRoute: typeof ProductsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -126,6 +218,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -133,11 +239,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customers': {
+      id: '/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chatbot': {
       id: '/chatbot'
       path: '/chatbot'
       fullPath: '/chatbot'
       preLoaderRoute: typeof ChatbotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/books': {
@@ -153,6 +273,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof OrdersRoute
+    }
+    '/customers/': {
+      id: '/customers/'
+      path: '/'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof CustomersIndexRouteImport
+      parentRoute: typeof CustomersRoute
+    }
+    '/categories/': {
+      id: '/categories/'
+      path: '/'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof CategoriesRoute
     }
     '/books/': {
       id: '/books/'
@@ -183,11 +331,62 @@ const BooksRouteChildren: BooksRouteChildren = {
 
 const BooksRouteWithChildren = BooksRoute._addFileChildren(BooksRouteChildren)
 
+interface CategoriesRouteChildren {
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
+}
+
+const CategoriesRouteChildren: CategoriesRouteChildren = {
+  CategoriesIndexRoute: CategoriesIndexRoute,
+}
+
+const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
+  CategoriesRouteChildren,
+)
+
+interface CustomersRouteChildren {
+  CustomersIndexRoute: typeof CustomersIndexRoute
+}
+
+const CustomersRouteChildren: CustomersRouteChildren = {
+  CustomersIndexRoute: CustomersIndexRoute,
+}
+
+const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
+  CustomersRouteChildren,
+)
+
+interface OrdersRouteChildren {
+  OrdersIndexRoute: typeof OrdersIndexRoute
+}
+
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersIndexRoute: OrdersIndexRoute,
+}
+
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
+interface ProductsRouteChildren {
+  ProductsIndexRoute: typeof ProductsIndexRoute
+}
+
+const ProductsRouteChildren: ProductsRouteChildren = {
+  ProductsIndexRoute: ProductsIndexRoute,
+}
+
+const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
+  ProductsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BooksRoute: BooksRouteWithChildren,
+  CategoriesRoute: CategoriesRouteWithChildren,
   ChatbotRoute: ChatbotRoute,
+  CustomersRoute: CustomersRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  OrdersRoute: OrdersRouteWithChildren,
+  ProductsRoute: ProductsRouteWithChildren,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport

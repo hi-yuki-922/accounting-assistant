@@ -45,6 +45,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  formatDate,
+  formatRawAmount,
+  formatSignedAmount,
+} from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 
 /** 表格组件属性 */
@@ -76,19 +81,6 @@ type RecordListTableProps = {
 /** 判断是否为收入类型 */
 const isIncomeType = (type: AccountingType): boolean =>
   type === AccountingType.Income || type === AccountingType.InvestmentIncome
-
-/** 格式化金额，带正负号（零值不显示符号） */
-const formatAmount = (amount: number, type: AccountingType): string => {
-  if (amount === 0) {
-    return '0.00'
-  }
-  const absAmount = Math.abs(amount)
-  const sign = isIncomeType(type) ? '+' : '-'
-  return `${sign}${absAmount.toFixed(2)}`
-}
-
-/** 格式化金额（无符号，用于 HoverCard 内部展示） */
-const formatAmountRaw = (amount: number): string => amount.toFixed(2)
 
 /** 获取记账类型显示文本 */
 const getAccountingTypeLabel = (type: AccountingType): string =>
@@ -293,7 +285,7 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">原始金额</span>
               <span className="font-medium">
-                {formatAmountRaw(details.originalAmount)}
+                {formatRawAmount(details.originalAmount)}
               </span>
             </div>
 
@@ -311,12 +303,7 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
                     >
                       <div className="flex flex-col gap-0.5">
                         <span className="text-xs text-muted-foreground">
-                          {new Date(wo.recordTime).toLocaleString('zh-CN', {
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatDate(wo.recordTime, 'datetime-compact')}
                         </span>
                         {wo.remark && (
                           <span className="text-xs text-muted-foreground">
@@ -333,8 +320,8 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
                         )}
                       >
                         {wo.amount > 0
-                          ? `+${formatAmountRaw(wo.amount)}`
-                          : formatAmountRaw(wo.amount)}
+                          ? `+${formatRawAmount(wo.amount)}`
+                          : formatRawAmount(wo.amount)}
                       </span>
                     </div>
                   ))}
@@ -355,7 +342,7 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
                       : 'text-green-600 dark:text-green-400'
                 )}
               >
-                {formatAmountRaw(record.netAmount)}
+                {formatRawAmount(record.netAmount)}
               </span>
             </div>
           </div>
@@ -383,7 +370,10 @@ const AmountCell = ({ record }: AmountCellProps) => {
         : 'text-green-600 dark:text-green-400')
   )
 
-  const formattedAmount = formatAmount(netAmount, accountingType)
+  const formattedAmount = formatSignedAmount(
+    netAmount,
+    isIncomeType(accountingType)
+  )
 
   // 有关联冲账记录时显示 HoverCard
   if (relatedCount > 0) {
@@ -644,13 +634,7 @@ export const RecordListTable = ({
 
                 {/* 时间 */}
                 <TableCell className="text-sm text-muted-foreground">
-                  {new Date(record.recordTime).toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatDate(record.recordTime, 'datetime-compact')}
                 </TableCell>
 
                 {/* 标题 */}
@@ -688,7 +672,7 @@ export const RecordListTable = ({
                 {/* 关联数 */}
                 <TableCell className="text-sm text-muted-foreground">
                   {record.relatedCount > 0 ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">
                       {record.relatedCount}
                     </span>
                   ) : (

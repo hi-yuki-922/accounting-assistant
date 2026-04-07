@@ -151,7 +151,9 @@ const SettingsPage = () => {
             {validationResult && (
               <div
                 className={`flex items-center gap-2 text-sm ${
-                  validationResult.valid ? 'text-green-600' : 'text-red-600'
+                  validationResult.valid
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
                 }`}
               >
                 {validationResult.valid ? (

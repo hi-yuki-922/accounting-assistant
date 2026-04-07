@@ -19,7 +19,7 @@ import { formatCurrency, formatDate } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 import type { TransactionRecord } from '@/types/dashboard'
 
-interface TransactionsTableProps {
+type TransactionsTableProps = {
   data: TransactionRecord[]
   className?: string
 }
@@ -112,8 +112,8 @@ export const TransactionsTable = ({
                     className={cn(
                       'font-semibold text-xs sm:text-sm',
                       transaction.type === 'income'
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     )}
                   >
                     {transaction.type === 'income' ? '+' : '-'}

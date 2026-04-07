@@ -8,7 +8,12 @@ import {
   MoonIcon,
   SunIcon,
   MessageSquareIcon,
+  UsersIcon,
+  PackageIcon,
+  ClipboardListIcon,
+  TagIcon,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import * as React from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -30,17 +35,12 @@ import {
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
-interface AppLayoutProps {
+type AppLayoutProps = {
   children: React.ReactNode
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
-
-  const handleThemeToggle = React.useCallback(
-    () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
-    []
-  )
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <SidebarProvider>
@@ -96,6 +96,38 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
+                    <a href="/customers" className="flex items-center gap-2">
+                      <UsersIcon className="h-4 w-4" />
+                      <span>客户管理</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <a href="/products" className="flex items-center gap-2">
+                      <PackageIcon className="h-4 w-4" />
+                      <span>商品管理</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <a href="/categories" className="flex items-center gap-2">
+                      <TagIcon className="h-4 w-4" />
+                      <span>品类管理</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <a href="/orders" className="flex items-center gap-2">
+                      <ClipboardListIcon className="h-4 w-4" />
+                      <span>订单管理</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
                     <a href="/chatbot" className="flex items-center gap-2">
                       <MessageSquareIcon className="h-4 w-4" />
                       <span>AI 助手</span>
@@ -137,11 +169,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
           <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon-sm" onClick={handleThemeToggle}>
-              {theme === 'light' ? (
-                <MoonIcon className="h-4 w-4" />
-              ) : (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+              }
+            >
+              {resolvedTheme === 'dark' ? (
                 <SunIcon className="h-4 w-4" />
+              ) : (
+                <MoonIcon className="h-4 w-4" />
               )}
               <span className="sr-only">切换主题</span>
             </Button>

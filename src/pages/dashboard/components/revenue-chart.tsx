@@ -25,7 +25,7 @@ import { formatCurrency } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 import type { ChartDataPoint } from '@/types/dashboard'
 
-interface RevenueChartProps {
+type RevenueChartProps = {
   data: ChartDataPoint[]
   className?: string
 }

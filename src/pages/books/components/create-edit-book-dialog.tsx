@@ -13,12 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import type { BookIcon } from '@/config/book-icons'
+import { Spinner } from '@/components/ui/spinner'
 
-import { BookIconPicker } from './book-icon-picker'
+import {
+  BookForm,
+  getDefaultBookFormData,
+  getBookFormDataFromBook,
+  validateBookForm,
+} from './book-form'
+import type { BookFormData } from './book-form'
 
 export interface CreateEditBookDialogProps {
   /** 是否打开对话框 */
@@ -37,6 +40,13 @@ export interface CreateEditBookDialogProps {
   loading?: boolean
 }
 
+const getConfirmButtonText = (isLoading: boolean, hasBook: boolean): string => {
+  if (isLoading) {
+    return '保存中...'
+  }
+  return hasBook ? '保存' : '创建'
+}
+
 export const CreateEditBookDialog: React.FC<CreateEditBookDialogProps> = ({
   open,
   book,
@@ -44,107 +54,46 @@ export const CreateEditBookDialog: React.FC<CreateEditBookDialogProps> = ({
   onConfirm,
   loading = false,
 }) => {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [selectedIcon, setSelectedIcon] = useState<string>('folder')
-  const [error, setError] = useState('')
+  const [formData, setFormData] = useState<BookFormData>(getDefaultBookFormData)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // 编辑模式时初始化表单数据
+  // 对话框打开时初始化表单数据
   useEffect(() => {
-    if (book) {
-      setTitle(book.title)
-      setDescription(book.description || '')
-      setSelectedIcon(book.icon || 'folder')
-    } else {
-      setTitle('')
-      setDescription('')
-      setSelectedIcon('folder')
-    }
-    setError('')
+    setFormData(book ? getBookFormDataFromBook(book) : getDefaultBookFormData())
+    setErrors({})
   }, [book, open])
 
   const handleConfirm = () => {
-    // 验证标题
-    if (!title.trim()) {
-      setError('请输入账本标题')
+    const validationErrors = validateBookForm(formData)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
       return
     }
 
-    if (title.trim().length > 20) {
-      setError('账本标题不能超过 20 个字符')
-      return
-    }
-
-    setError('')
+    setErrors({})
     onConfirm({
-      title: title.trim(),
-      description: description.trim(),
-      icon: selectedIcon,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      icon: formData.icon,
     })
   }
 
-  const handleSelectIcon = (icon: BookIcon) => {
-    setSelectedIcon(icon.id)
-  }
-
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{book ? '编辑账本' : '新建账本'}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* 标题输入 */}
-          <div className="space-y-2">
-            <Label htmlFor="book-title">
-              标题 <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="book-title"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value)
-                setError('')
-              }}
-              placeholder="请输入账本标题"
-              maxLength={20}
-              className={error ? 'border-red-500' : ''}
-            />
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              最多 {title.length}/20 个字符
-            </p>
-          </div>
-
-          {/* 图标选择 */}
-          <div className="space-y-2">
-            <Label>图标</Label>
-            <BookIconPicker
-              selectedIcon={selectedIcon}
-              onSelectIcon={handleSelectIcon}
-            />
-          </div>
-
-          {/* 描述输入 */}
-          <div className="space-y-2">
-            <Label htmlFor="book-description">描述（可选）</Label>
-            <Textarea
-              id="book-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="请输入账本描述"
-              rows={3}
-            />
-          </div>
-        </div>
+        <BookForm value={formData} onChange={setFormData} errors={errors} />
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>
             取消
           </Button>
           <Button onClick={handleConfirm} disabled={loading}>
-            {loading ? '保存中...' : (book ? '保存' : '创建')}
+            {loading && <Spinner className="size-4" />}
+            {getConfirmButtonText(loading, !!book)}
           </Button>
         </DialogFooter>
       </DialogContent>

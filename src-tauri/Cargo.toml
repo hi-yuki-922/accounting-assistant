@@ -1,9 +1,16 @@
 [package]
 name = "accounting-assistant"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Tauri App"
 authors = ["yuki"]
 edition = "2021"
+
+
+[source.crates-io]
+replace-with = "tuna"
+
+[source.tuna]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

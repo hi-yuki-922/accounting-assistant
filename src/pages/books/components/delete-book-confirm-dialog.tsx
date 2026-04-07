@@ -38,8 +38,8 @@ export const DeleteBookConfirmDialog: React.FC<
       <DialogHeader>
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
           </div>
           <div>
@@ -51,17 +51,13 @@ export const DeleteBookConfirmDialog: React.FC<
       <div className="py-4">
         <DialogDescription className="text-base">
           确定要删除账本"
-          <strong className="text-gray-900 dark:text-gray-100">
-            {book.title}
-          </strong>
+          <strong className="text-foreground">{book.title}</strong>
           "吗？
         </DialogDescription>
         {book.recordCount > 0 && (
-          <DialogDescription className="text-sm mt-2 text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-sm mt-2 text-muted-foreground">
             该账本下的{' '}
-            <strong className="text-gray-900 dark:text-gray-100">
-              {book.recordCount}
-            </strong>{' '}
+            <strong className="text-foreground">{book.recordCount}</strong>{' '}
             条记录将迁移到"未归类账目"。
           </DialogDescription>
         )}

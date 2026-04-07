@@ -43,15 +43,6 @@ export type UpdateBookDto = {
 }
 
 /**
- * 更新账本标题 DTO（已弃用，请使用 UpdateBookDto）
- * 与 Rust 后端 UpdateBookTitleDto 对齐
- */
-export type UpdateBookTitleDto = {
-  id: number
-  title: string
-}
-
-/**
  * 分页查询 DTO
  * 与 Rust 后端 GetBooksPaginatedDto 对齐
  */

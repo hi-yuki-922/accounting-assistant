@@ -76,10 +76,10 @@ export const RECORD_CHANNELS = [
  * 图表颜色配置
  */
 export const CHART_COLORS = {
-  background: 'rgba(255, 255, 255, 0.1)',
-  expense: '#ef4444',
-  grid: 'rgba(0, 0, 0, 0.05)',
-  income: '#22c55e',
+  background: 'hsl(var(--background) / 0.1)',
+  expense: 'hsl(var(--chart-2))',
+  grid: 'hsl(var(--border) / 0.5)',
+  income: 'hsl(var(--chart-1))',
   pieColors: [
     // 收入
     '#22c55e',
@@ -98,7 +98,7 @@ export const CHART_COLORS = {
     // 教育费用
     '#6366f1',
   ],
-  text: '#64748b',
+  text: 'hsl(var(--muted-foreground))',
 } as const
 
 /**
@@ -173,19 +173,19 @@ export const TABLE_CONFIG = {
  */
 export const STATUS_LABELS = {
   cancelled: {
-    color: 'bg-red-500',
+    color: 'bg-destructive',
     label: '已取消',
-    textColor: 'text-red-700',
+    textColor: 'text-destructive',
   },
   completed: {
-    color: 'bg-green-500',
+    color: 'bg-chart-2',
     label: '已完成',
-    textColor: 'text-green-700',
+    textColor: 'text-chart-2',
   },
   pending: {
-    color: 'bg-yellow-500',
+    color: 'bg-chart-4',
     label: '待处理',
-    textColor: 'text-yellow-700',
+    textColor: 'text-chart-4',
   },
 } as const
 

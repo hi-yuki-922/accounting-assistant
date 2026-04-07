@@ -1,7 +1,7 @@
 use accounting_assistant_lib::entity::attachment::{self, Entity};
 use accounting_assistant_lib::services::AttachmentService;
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, Set, EntityTrait, ColumnTrait, QueryFilter, QueryOrder};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, QueryOrder, Set};
 use serial_test::serial;
 
 use crate::context::run_in_transaction;
@@ -38,20 +38,24 @@ async fn test_query_attachments() {
         let service = AttachmentService::new(txn.clone());
 
         // 查询附件列表
-        let attachments = service.query_attachments(
-            1, // page
-            10, // page_size
-            None, // file_name
-            None, // file_suffix
-            None, // start_time
-            None, // end_time
-            None, // master_id
-        ).await?;
+        let attachments = service
+            .query_attachments(
+                1,    // page
+                10,   // page_size
+                None, // file_name
+                None, // file_suffix
+                None, // start_time
+                None, // end_time
+                None, // master_id
+            )
+            .await?;
 
         assert_eq!(attachments.len(), 3);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -66,25 +70,31 @@ async fn test_query_attachments_with_pagination() {
         let service = AttachmentService::new(txn.clone());
 
         // 查询第一页（10 条）
-        let page1 = service.query_attachments(
-            1, // page
-            10, // page_size
-            None, None, None, None, None,
-        ).await?;
+        let page1 = service
+            .query_attachments(
+                1,  // page
+                10, // page_size
+                None, None, None, None, None,
+            )
+            .await?;
 
         assert_eq!(page1.len(), 10);
 
         // 查询第二页（剩余 5 条）
-        let page2 = service.query_attachments(
-            2, // page
-            10, // page_size
-            None, None, None, None, None,
-        ).await?;
+        let page2 = service
+            .query_attachments(
+                2,  // page
+                10, // page_size
+                None, None, None, None, None,
+            )
+            .await?;
 
         assert_eq!(page2.len(), 5);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -101,17 +111,25 @@ async fn test_query_attachments_by_master_id() {
         let service = AttachmentService::new(txn.clone());
 
         // 查询 master_id=1001 的附件
-        let attachments = service.query_attachments(
-            1, // page
-            10, // page_size
-            None, None, None, None, Some(1001), // master_id filter
-        ).await?;
+        let attachments = service
+            .query_attachments(
+                1,  // page
+                10, // page_size
+                None,
+                None,
+                None,
+                None,
+                Some(1001), // master_id filter
+            )
+            .await?;
 
         assert_eq!(attachments.len(), 2);
         assert!(attachments.iter().all(|a| a.master_id == 1001));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -125,18 +143,25 @@ async fn test_query_attachments_by_file_name() {
         let service = AttachmentService::new(txn.clone());
 
         // 按文件名筛选（包含 "test"）
-        let attachments = service.query_attachments(
-            1, // page
-            10, // page_size
-            Some("test".to_string()), // file_name filter
-            None, None, None, None,
-        ).await?;
+        let attachments = service
+            .query_attachments(
+                1,                        // page
+                10,                       // page_size
+                Some("test".to_string()), // file_name filter
+                None,
+                None,
+                None,
+                None,
+            )
+            .await?;
 
         assert_eq!(attachments.len(), 1);
         assert_eq!(attachments[0].file_name, "test_file.txt");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -151,19 +176,25 @@ async fn test_query_attachments_by_file_suffix() {
         let service = AttachmentService::new(txn.clone());
 
         // 按文件后缀筛选
-        let attachments = service.query_attachments(
-            1, // page
-            10, // page_size
-            None,
-            Some("pdf".to_string()), // file_suffix filter
-            None, None, None,
-        ).await?;
+        let attachments = service
+            .query_attachments(
+                1,  // page
+                10, // page_size
+                None,
+                Some("pdf".to_string()), // file_suffix filter
+                None,
+                None,
+                None,
+            )
+            .await?;
 
         assert_eq!(attachments.len(), 2);
         assert!(attachments.iter().all(|a| a.file_suffix == "pdf"));
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -199,14 +230,16 @@ async fn test_query_attachments_by_time_range() {
 
         // 查询最近 5 天的附件
         let start_time = Some(now - chrono::Duration::days(5));
-        let attachments = service.query_attachments(
-            1, 10, None, None, start_time, None, None,
-        ).await?;
+        let attachments = service
+            .query_attachments(1, 10, None, None, start_time, None, None)
+            .await?;
 
         assert_eq!(attachments.len(), 1);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -251,16 +284,18 @@ async fn test_query_attachments_ordering() {
 
         let service = AttachmentService::new(txn.clone());
 
-        let attachments = service.query_attachments(
-            1, 10, None, None, None, None, None,
-        ).await?;
+        let attachments = service
+            .query_attachments(1, 10, None, None, None, None, None)
+            .await?;
 
         // 验证按创建时间倒序排列
         assert!(attachments[0].create_at > attachments[1].create_at);
         assert!(attachments[1].create_at > attachments[2].create_at);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -278,9 +313,7 @@ async fn test_delete_attachment_by_id() {
 
         // 由于物理文件不存在，可能会失败，但数据库记录应该仍会被删除
         // 我们验证数据库中的记录已被删除
-        let found = Entity::find_by_id(id)
-            .one(&txn)
-            .await?;
+        let found = Entity::find_by_id(id).one(&txn).await?;
 
         // 如果删除失败（因为文件不存在），记录仍然存在
         // 如果删除成功，记录不存在
@@ -288,7 +321,9 @@ async fn test_delete_attachment_by_id() {
         assert!(found.is_some() || result.is_ok());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -313,7 +348,9 @@ async fn test_delete_attachment_by_path() {
         assert!(found.is_none());
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -326,10 +363,12 @@ async fn test_download_attachment_not_found() {
         let result = service.download_attachment(999999).await;
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "附件不存在");
+        assert_eq!(result.unwrap_err().to_string(), "附件不存在");
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 #[serial]
@@ -339,14 +378,16 @@ async fn test_query_empty_attachments() {
         let service = AttachmentService::new(txn.clone());
 
         // 查询空列表
-        let attachments = service.query_attachments(
-            1, 10, None, None, None, None, None,
-        ).await?;
+        let attachments = service
+            .query_attachments(1, 10, None, None, None, None, None)
+            .await?;
 
         assert_eq!(attachments.len(), 0);
 
         Ok(())
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }
 
 // 注意：以下测试场景由于服务依赖 Tauri AppHandle，暂时跳过或需要模拟：

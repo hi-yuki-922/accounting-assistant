@@ -1,6 +1,6 @@
-use chrono::{NaiveDateTime};
-use serde::{Deserialize, Serialize};
+use chrono::NaiveDateTime;
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,6 +1,6 @@
-use chrono::{NaiveDateTime};
-use serde::{Deserialize, Serialize};
+use chrono::NaiveDateTime;
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
 
 /// 聊天消息和会话的 ID 序列号管理表
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
@@ -49,7 +49,7 @@ impl Model {
         db: &DatabaseConnection,
         date_key: i32,
     ) -> Result<i32, Box<dyn std::error::Error>> {
-        use sea_orm::{EntityTrait, ActiveModelTrait, Set};
+        use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 
         // 尝试查找现有的序列号记录
         let existing_seq = Entity::find()

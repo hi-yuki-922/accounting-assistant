@@ -11,7 +11,6 @@ import { tryCMD } from '@/lib'
 import type {
   AccountingBook,
   CreateBookDto,
-  UpdateBookTitleDto,
   UpdateBookDto,
   GetBooksPaginatedDto,
   RecordWithCountDto,
@@ -32,9 +31,9 @@ export const createBook = (data: CreateBookDto) =>
 
 /**
  * 查询所有账本
- * 对应 Rust 后端 get_books 命令
+ * 对应 Rust 后端 get_all_books 命令
  */
-export const getBooks = () => tryCMD<AccountingBook[]>('get_books')
+export const getAllBooks = () => tryCMD<AccountingBook[]>('get_all_books')
 
 /**
  * 根据 ID 查询单个账本
@@ -58,13 +57,6 @@ export const getBooksPaginated = (params: GetBooksPaginatedDto) =>
  */
 export const updateBook = (data: UpdateBookDto) =>
   tryCMD<AccountingBook | null>('update_book', { input: data })
-
-/**
- * 修改账本标题（已弃用，请使用 updateBook）
- * 对应 Rust 后端 update_book_title 命令
- */
-export const updateBookTitle = (data: UpdateBookTitleDto) =>
-  tryCMD<AccountingBook | null>('update_book_title', { input: data })
 
 /**
  * 删除账本
@@ -107,7 +99,7 @@ export const getRecordWriteOffDetails = (recordId: number) =>
 export const accountingBook = {
   create: createBook,
   delete: deleteBook,
-  getAll: getBooks,
+  getAll: getAllBooks,
   getAllStats: getAllBooksStats,
   getById: getBookById,
   getPaginated: getBooksPaginated,
@@ -115,5 +107,4 @@ export const accountingBook = {
   getRecordsByBookId: getRecordsByBookIdPaginated,
   getStats: getBookStats,
   update: updateBook,
-  updateTitle: updateBookTitle,
 }
