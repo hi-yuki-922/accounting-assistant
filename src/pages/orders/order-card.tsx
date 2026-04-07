@@ -12,25 +12,11 @@ import {
 } from '@/api/commands/order/type'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatCurrency, formatDate } from '@/lib/formatters'
 
 export type OrderCardProps = {
   order: Order
   onClick: (order: Order) => void
-}
-
-/** 格式化金额显示 */
-const formatAmount = (amount: number | string) =>
-  `¥${Number(amount).toFixed(2)}`
-
-/** 格式化时间显示 */
-const formatTime = (timeStr: string) => {
-  const date = new Date(timeStr)
-  return date.toLocaleString('zh-CN', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 /** 订单状态对应的 Badge 变体 */
@@ -70,7 +56,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onClick }) => (
                 ] ?? order.channel}
               </span>
             )}
-            <span>{formatTime(order.createAt)}</span>
+            <span>{formatDate(order.createAt, 'datetime-compact')}</span>
           </div>
 
           {/* 金额 */}
@@ -78,13 +64,13 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, onClick }) => (
             <div>
               <span className="text-muted-foreground">应收：</span>
               <span className="font-medium text-foreground">
-                {formatAmount(order.totalAmount)}
+                {formatCurrency(order.totalAmount)}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">实收：</span>
               <span className="font-medium text-foreground">
-                {formatAmount(order.actualAmount)}
+                {formatCurrency(order.actualAmount)}
               </span>
             </div>
           </div>

@@ -9,19 +9,12 @@ import type { Product } from '@/api/commands/product/type'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatCurrency } from '@/lib/formatters'
 
 export type ProductCardProps = {
   product: Product
   onEdit: (product: Product) => void
   onDelete: (product: Product) => void
-}
-
-/** 格式化价格显示（后端 Decimal 序列化为字符串，需兼容处理） */
-const formatPrice = (price?: number | string) => {
-  if (price == null) {
-    return '-'
-  }
-  return `¥${Number(price).toFixed(2)}`
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -51,13 +44,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <div>
               <span className="text-muted-foreground">售价：</span>
               <span className="font-medium text-foreground">
-                {formatPrice(product.defaultSellPrice)}
+                {formatCurrency(product.defaultSellPrice)}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">进价：</span>
               <span className="font-medium text-foreground">
-                {formatPrice(product.defaultPurchasePrice)}
+                {formatCurrency(product.defaultPurchasePrice)}
               </span>
             </div>
           </div>

@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatRawAmount } from '@/lib/formatters'
 
 type DeleteRecordConfirmDialogProps = {
   /** 是否打开对话框 */
@@ -78,7 +79,9 @@ export const DeleteRecordConfirmDialog: React.FC<
           <div className="mt-3 space-y-1 rounded-lg border bg-muted/50 p-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">金额</span>
-              <span className="font-medium">{record.amount.toFixed(2)}</span>
+              <span className="font-medium">
+                {formatRawAmount(record.amount)}
+              </span>
             </div>
           </div>
 

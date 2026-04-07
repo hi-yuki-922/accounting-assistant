@@ -6,7 +6,7 @@ import { formatCurrency, formatPercentage } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 import type { StatsCardData } from '@/types/dashboard'
 
-interface StatsCardProps {
+type StatsCardProps = {
   data: StatsCardData
   className?: string
 }

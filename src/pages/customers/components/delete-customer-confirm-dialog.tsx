@@ -31,7 +31,7 @@ export type DeleteCustomerConfirmDialogProps = {
 export const DeleteCustomerConfirmDialog: React.FC<
   DeleteCustomerConfirmDialogProps
 > = ({ open, customer, onClose, onConfirm, loading = false }) => (
-  <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+  <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <div className="flex items-center space-x-3">
@@ -48,9 +48,10 @@ export const DeleteCustomerConfirmDialog: React.FC<
 
       <div className="py-4">
         <DialogDescription className="text-base">
-          确定要删除客户 "
+          确定要删除客户 &quot;
           <strong className="text-foreground">{customer.name}</strong>
-          "（{CUSTOMER_CATEGORY_LABELS[customer.category]}，{customer.phone}
+          &quot;（{CUSTOMER_CATEGORY_LABELS[customer.category]}，
+          {customer.phone}
           ）吗？
         </DialogDescription>
         <DialogDescription className="text-sm mt-3 text-orange-600 dark:text-orange-400">

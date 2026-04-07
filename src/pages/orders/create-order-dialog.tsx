@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { formatCurrency } from '@/lib/formatters'
 
 /** 明细行类型 */
 type ItemRow = {
@@ -380,7 +381,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                             </span>
                           )}
                           <span className="text-muted-foreground ml-2">
-                            ¥{Number(product.defaultSellPrice ?? 0).toFixed(2)}
+                            {formatCurrency(product.defaultSellPrice)}
                           </span>
                         </button>
                       ))}
@@ -431,7 +432,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
                 {/* 小计 */}
                 <div className="col-span-2 flex items-center h-8">
                   <span className="text-sm font-medium">
-                    ¥{item.subtotal.toFixed(2)}
+                    {formatCurrency(item.subtotal)}
                   </span>
                 </div>
 
@@ -456,7 +457,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
           <div className="flex items-center justify-end gap-4 text-sm">
             <span className="text-muted-foreground">应收总额：</span>
             <span className="text-lg font-bold text-foreground">
-              ¥{totalAmount.toFixed(2)}
+              {formatCurrency(totalAmount)}
             </span>
           </div>
 

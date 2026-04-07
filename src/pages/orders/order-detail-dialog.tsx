@@ -10,10 +10,7 @@ import { toast } from 'sonner'
 
 import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
 import { orderApi } from '@/api/commands/order'
-import type {
-  OrderDetail as OrderDetailType,
-  Order,
-} from '@/api/commands/order/type'
+import type { OrderDetail as OrderDetailType } from '@/api/commands/order/type'
 import {
   ORDER_STATUS_DISPLAY_TEXT,
   ORDER_TYPE_DISPLAY_TEXT,
@@ -35,18 +32,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { formatCurrency, formatDate } from '@/lib/formatters'
 
 import { CancelOrderConfirmDialog } from './cancel-order-confirm-dialog'
 import { EditOrderDialog } from './edit-order-dialog'
 import { SettleOrderDialog } from './settle-order-dialog'
-
-/** 格式化金额 */
-const formatAmount = (amount: number | string) =>
-  `¥${Number(amount).toFixed(2)}`
-
-/** 格式化时间 */
-const formatDateTime = (timeStr: string) =>
-  new Date(timeStr).toLocaleString('zh-CN')
 
 /** 订单状态对应的 Badge 变体 */
 const STATUS_BADGE_MAP = {
@@ -191,7 +181,7 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
             <div>
               <span className="text-muted-foreground">创建时间</span>
               <p className="font-medium mt-1">
-                {formatDateTime(order.createAt)}
+                {formatDate(order.createAt, 'datetime')}
               </p>
             </div>
             {order.channel !== 'Unknown' && (
@@ -207,20 +197,20 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
             <div>
               <span className="text-muted-foreground">应收金额</span>
               <p className="font-medium mt-1">
-                {formatAmount(order.totalAmount)}
+                {formatCurrency(order.totalAmount)}
               </p>
             </div>
             <div>
               <span className="text-muted-foreground">实收金额</span>
               <p className="font-medium mt-1">
-                {formatAmount(order.actualAmount)}
+                {formatCurrency(order.actualAmount)}
               </p>
             </div>
             {order.settledAt && (
               <div>
                 <span className="text-muted-foreground">结账时间</span>
                 <p className="font-medium mt-1">
-                  {formatDateTime(order.settledAt)}
+                  {formatDate(order.settledAt, 'datetime')}
                 </p>
               </div>
             )}
@@ -255,10 +245,10 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
                   </TableCell>
                   <TableCell>{item.unit}</TableCell>
                   <TableCell className="text-right">
-                    {formatAmount(item.unitPrice)}
+                    {formatCurrency(item.unitPrice)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatAmount(item.subtotal)}
+                    {formatCurrency(item.subtotal)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {item.remark || '-'}
@@ -274,13 +264,13 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
               <div>
                 <span className="text-muted-foreground">应收：</span>
                 <span className="font-bold text-lg">
-                  {formatAmount(order.totalAmount)}
+                  {formatCurrency(order.totalAmount)}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground">实收：</span>
                 <span className="font-bold text-lg">
-                  {formatAmount(order.actualAmount)}
+                  {formatCurrency(order.actualAmount)}
                 </span>
               </div>
             </div>

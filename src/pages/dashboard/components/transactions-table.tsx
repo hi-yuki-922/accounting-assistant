@@ -19,7 +19,7 @@ import { formatCurrency, formatDate } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 import type { TransactionRecord } from '@/types/dashboard'
 
-interface TransactionsTableProps {
+type TransactionsTableProps = {
   data: TransactionRecord[]
   className?: string
 }

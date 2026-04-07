@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { formatRawAmount } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 
 type WriteOffDialogProps = {
@@ -131,12 +132,14 @@ export const WriteOffDialog: React.FC<WriteOffDialogProps> = ({
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">原始金额</span>
               <span className="font-medium">
-                {record.originalAmount.toFixed(2)}
+                {formatRawAmount(record.originalAmount)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">可冲账金额</span>
-              <span className="font-medium">{record.netAmount.toFixed(2)}</span>
+              <span className="font-medium">
+                {formatRawAmount(record.netAmount)}
+              </span>
             </div>
           </div>
 
@@ -167,7 +170,7 @@ export const WriteOffDialog: React.FC<WriteOffDialogProps> = ({
                     : 'text-green-600 dark:text-green-400'
                 )}
               >
-                {netAmount.toFixed(2)}
+                {formatRawAmount(netAmount)}
               </span>
             </div>
             {isNetAmountInvalid && (

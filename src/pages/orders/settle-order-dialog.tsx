@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatCurrency } from '@/lib/formatters'
 
 export type SettleOrderDialogProps = {
   open: boolean
@@ -95,7 +96,7 @@ export const SettleOrderDialog: React.FC<SettleOrderDialogProps> = ({
             <div>
               <span className="text-muted-foreground">应收金额：</span>
               <span className="font-medium">
-                ¥{Number(order.totalAmount).toFixed(2)}
+                {formatCurrency(order.totalAmount)}
               </span>
             </div>
           </div>

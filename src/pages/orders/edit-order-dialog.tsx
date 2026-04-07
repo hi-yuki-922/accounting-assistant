@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { formatCurrency } from '@/lib/formatters'
 
 /** 明细行类型 */
 type ItemRow = {
@@ -271,7 +272,7 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
                         >
                           {product.name}
                           <span className="text-muted-foreground ml-2">
-                            ¥{Number(product.defaultSellPrice ?? 0).toFixed(2)}
+                            {formatCurrency(product.defaultSellPrice)}
                           </span>
                         </button>
                       ))}
@@ -322,7 +323,7 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
                 {/* 小计 */}
                 <div className="col-span-2 flex items-center h-8">
                   <span className="text-sm font-medium">
-                    ¥{item.subtotal.toFixed(2)}
+                    {formatCurrency(item.subtotal)}
                   </span>
                 </div>
 
@@ -347,7 +348,7 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
           <div className="flex items-center justify-end gap-4 text-sm">
             <span className="text-muted-foreground">应收总额：</span>
             <span className="text-lg font-bold text-foreground">
-              ¥{totalAmount.toFixed(2)}
+              {formatCurrency(totalAmount)}
             </span>
           </div>
 

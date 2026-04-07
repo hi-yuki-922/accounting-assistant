@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
-interface AppLayoutProps {
+type AppLayoutProps = {
   children: React.ReactNode
 }
 

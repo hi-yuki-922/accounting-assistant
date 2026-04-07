@@ -35,6 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { formatCurrency, formatDate } from '@/lib/formatters'
 
 import { CancelOrderConfirmDialog } from './cancel-order-confirm-dialog'
 import { CreateOrderDialog } from './create-order-dialog'
@@ -62,14 +63,6 @@ const STATUS_TABS: { value: StatusTab; label: string }[] = [
   { value: 'Settled', label: '已结账' },
   { value: 'Cancelled', label: '已取消' },
 ]
-
-/** 格式化金额 */
-const formatAmount = (amount: number | string) =>
-  `¥${Number(amount).toFixed(2)}`
-
-/** 格式化时间 */
-const formatTime = (timeStr: string) =>
-  new Date(timeStr).toLocaleString('zh-CN')
 
 /** 判断是否是今天 */
 const isToday = (timeStr: string) => {
@@ -542,10 +535,10 @@ export const OrdersPage = () => {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatAmount(order.totalAmount)}
+                          {formatCurrency(order.totalAmount)}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          {formatAmount(order.actualAmount)}
+                          {formatCurrency(order.actualAmount)}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {order.channel !== 'Unknown'
@@ -555,7 +548,7 @@ export const OrdersPage = () => {
                             : '-'}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {formatTime(order.createAt)}
+                          {formatDate(order.createAt, 'datetime')}
                         </TableCell>
                       </TableRow>
                     ))}

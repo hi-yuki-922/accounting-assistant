@@ -12,9 +12,8 @@ import type {
   Customer,
   CreateCustomerDto,
   UpdateCustomerDto,
+  CustomerCategory,
 } from '@/api/commands/customer/type'
-import type { CustomerCategory } from '@/api/commands/customer/type'
-import { CUSTOMER_CATEGORY_LABELS } from '@/api/commands/customer/type'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -93,7 +92,7 @@ export const CustomersPage = () => {
     result.match(
       () => {
         toast.success('客户创建成功')
-        void loadCustomers()
+        loadCustomers()
         setCreateDialogOpen(false)
       },
       (error) => toast.error(`创建失败: ${error.message}`)
@@ -108,7 +107,7 @@ export const CustomersPage = () => {
     result.match(
       () => {
         toast.success('客户信息已更新')
-        void loadCustomers()
+        loadCustomers()
         setEditDialogOpen(false)
         setEditingCustomer(null)
       },
@@ -127,7 +126,7 @@ export const CustomersPage = () => {
     result.match(
       () => {
         toast.success('客户已删除')
-        void loadCustomers()
+        loadCustomers()
         setDeleteDialogOpen(false)
         setDeletingCustomer(null)
       },
