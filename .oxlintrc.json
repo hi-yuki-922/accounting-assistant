@@ -20,6 +20,7 @@
     "sort-keys": "off",
     "eslint/array-callback-return": "off",
     "jsx-no-new-function-as-prop": "off",
-    "no-loop-func": "off"
+    "no-loop-func": "off",
+    "promise/prefer-await-to-callbacks": "off"
   }
 }
