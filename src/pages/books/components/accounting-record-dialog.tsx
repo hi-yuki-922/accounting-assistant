@@ -45,7 +45,7 @@ const getSubmitButtonText = (isLoading: boolean, edit: boolean): string => {
   return edit ? '保存' : '确认添加'
 }
 
-export const CreateEditRecordDialog = ({
+export const AccountingRecordDialog = ({
   open,
   onClose,
   onSuccess,

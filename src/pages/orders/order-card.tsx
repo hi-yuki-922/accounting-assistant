@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/formatters'
+import React from "react";
 
 export type OrderCardProps = {
   order: Order

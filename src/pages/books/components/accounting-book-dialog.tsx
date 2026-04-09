@@ -2,7 +2,7 @@
  * 创建/编辑账本对话框组件
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import type { AccountingBook } from '@/api/commands/accounting-book/type'
 import { Button } from '@/components/ui/button'
@@ -47,7 +47,7 @@ const getConfirmButtonText = (isLoading: boolean, hasBook: boolean): string => {
   return hasBook ? '保存' : '创建'
 }
 
-export const CreateEditBookDialog: React.FC<CreateEditBookDialogProps> = ({
+export const AccountingBookDialog: React.FC<CreateEditBookDialogProps> = ({
   open,
   book,
   onClose,

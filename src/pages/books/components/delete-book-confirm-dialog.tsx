@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import React from "react";
 
 export interface DeleteBookConfirmDialogProps {
   /** 是否打开对话框 */
@@ -33,7 +34,7 @@ export interface DeleteBookConfirmDialogProps {
 export const DeleteBookConfirmDialog: React.FC<
   DeleteBookConfirmDialogProps
 > = ({ open, book, onClose, onConfirm, loading = false }) => (
-  <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+  <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <div className="flex items-center space-x-3">
@@ -50,15 +51,15 @@ export const DeleteBookConfirmDialog: React.FC<
 
       <div className="py-4">
         <DialogDescription className="text-base">
-          确定要删除账本"
+          确定要删除账本&quot;
           <strong className="text-foreground">{book.title}</strong>
-          "吗？
+          &quot;吗？
         </DialogDescription>
         {book.recordCount > 0 && (
           <DialogDescription className="text-sm mt-2 text-muted-foreground">
             该账本下的{' '}
             <strong className="text-foreground">{book.recordCount}</strong>{' '}
-            条记录将迁移到"未归类账目"。
+            条记录将迁移到&quot;未归类账目&quot;。
           </DialogDescription>
         )}
         <DialogDescription className="text-sm mt-3 text-orange-600 dark:text-orange-400">

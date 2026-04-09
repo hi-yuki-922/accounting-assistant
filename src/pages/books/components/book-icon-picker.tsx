@@ -6,6 +6,7 @@
 import { BOOK_ICONS } from '@/config/book-icons'
 import type { BookIcon } from '@/config/book-icons'
 import { cn } from '@/lib/utils'
+import React from "react";
 
 export interface BookIconPickerProps {
   /** 当前选中的图标 */
