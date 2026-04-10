@@ -2,7 +2,7 @@ use accounting_assistant_lib::entity::accounting_book;
 use accounting_assistant_lib::entity::accounting_record;
 use accounting_assistant_lib::entity::order_item;
 use accounting_assistant_lib::enums::{
-    AccountingChannel, AccountingRecordState, AccountingType, OrderStatus, OrderType,
+    AccountingChannel, AccountingRecordState, AccountingType, OrderStatus, OrderSubType, OrderType,
 };
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
 use accounting_assistant_lib::services::order::dto::{
@@ -1208,6 +1208,422 @@ async fn test_query_orders_no_results() {
 
         assert_eq!(total, 0);
         assert!(orders.is_empty());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== get_settle_preview 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_settle_preview_no_discount() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        let order = service.create_order(dto).await?;
+
+        let preview = service.get_settle_preview(order.id, None).await?;
+
+        assert_eq!(preview.category_groups.len(), 1);
+        assert!(preview.write_off_preview.is_none());
+        assert!(preview.discount_amount.is_none());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_settle_preview_with_discount() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![
+                make_item(1, "苹果", Decimal::new(10, 0), "斤", Decimal::new(800, 2)),
+                make_item(2, "香蕉", Decimal::new(5, 0), "斤", Decimal::new(500, 2)),
+            ],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        let order = service.create_order(dto).await?;
+
+        // 实收 90.00，总额 105.00，折扣 15.00
+        let preview = service
+            .get_settle_preview(order.id, Some(Decimal::new(9000, 2)))
+            .await?;
+
+        assert_eq!(preview.category_groups.len(), 1);
+        assert_eq!(preview.discount_amount, Some(Decimal::new(1500, 2)));
+        assert!(preview.write_off_preview.is_some());
+        let wo_items = preview.write_off_preview.unwrap();
+        assert_eq!(wo_items.len(), 1);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_settle_preview_order_not_found() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let result = service.get_settle_preview(999999, None).await;
+        assert!(result.is_err());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== create_order sub_type 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_create_order_sales_wholesale_sub_type() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: Some(100),
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(10, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: Some("Wholesale".to_string()),
+        };
+
+        let order = service.create_order(dto).await?;
+        assert_eq!(order.sub_type, OrderSubType::Wholesale);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_create_order_auto_retail_sub_type() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        // 无 customer_id → 自动 Retail
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+
+        let order = service.create_order(dto).await?;
+        assert_eq!(order.sub_type, OrderSubType::Retail);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_create_order_auto_wholesale_sub_type() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        // 有 customer_id → 自动 Wholesale
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: Some(100),
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+
+        let order = service.create_order(dto).await?;
+        assert_eq!(order.sub_type, OrderSubType::Wholesale);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_create_order_purchase_default_sub_type() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let dto = CreateOrderDto {
+            order_type: "Purchase".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(600, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+
+        let order = service.create_order(dto).await?;
+        assert_eq!(order.sub_type, OrderSubType::WholesalePurchase);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_create_order_sub_type_mismatch_error() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        // Sales + WholesalePurchase 不匹配
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: Some("WholesalePurchase".to_string()),
+        };
+
+        let result = service.create_order(dto).await;
+        assert!(result.is_err());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== cancel_order 重复取消 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_cancel_order_already_cancelled_error() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        let order = service.create_order(dto).await?;
+        service.cancel_order(order.id).await?;
+
+        // 再次取消
+        let result = service.cancel_order(order.id).await;
+        assert!(result.is_err());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== query_orders 按 channel 筛选 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_query_orders_filter_by_channel() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        // 创建并结账两个订单，使用不同渠道
+        let dto1 = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        let order1 = service.create_order(dto1).await?;
+        service
+            .settle_order(SettleOrderDto {
+                order_id: order1.id,
+                channel: "BankCard".to_string(),
+                actual_amount: None,
+            })
+            .await?;
+
+        let dto2 = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                2,
+                "香蕉",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(500, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        let order2 = service.create_order(dto2).await?;
+        service
+            .settle_order(SettleOrderDto {
+                order_id: order2.id,
+                channel: "Wechat".to_string(),
+                actual_amount: None,
+            })
+            .await?;
+
+        let query = QueryOrdersDto {
+            page: None,
+            page_size: None,
+            start_time: None,
+            end_time: None,
+            status: None,
+            min_amount: None,
+            max_amount: None,
+            channel: Some("BankCard".to_string()),
+            order_type: None,
+        };
+        let (orders, total) = service.query_orders(query).await?;
+
+        assert_eq!(total, 1);
+        assert_eq!(orders[0].channel, AccountingChannel::BankCard);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== query_orders 按时间筛选 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_query_orders_filter_by_time_range() {
+    run_in_transaction(|db| async move {
+        let service = OrderService::new(db.clone());
+
+        // 创建订单
+        let dto = CreateOrderDto {
+            order_type: "Sales".to_string(),
+            customer_id: None,
+            items: vec![make_item(
+                1,
+                "苹果",
+                Decimal::new(1, 0),
+                "斤",
+                Decimal::new(800, 2),
+            )],
+            remark: None,
+            actual_amount: None,
+            sub_type: None,
+        };
+        service.create_order(dto).await?;
+
+        // 使用宽泛时间范围
+        let query = QueryOrdersDto {
+            page: None,
+            page_size: None,
+            start_time: Some("2020-01-01".to_string()),
+            end_time: Some("2030-12-31".to_string()),
+            status: None,
+            min_amount: None,
+            max_amount: None,
+            channel: None,
+            order_type: None,
+        };
+        let (orders, total) = service.query_orders(query).await?;
+        assert_eq!(total, 1);
+
+        // 使用过去的时间范围
+        let query_past = QueryOrdersDto {
+            page: None,
+            page_size: None,
+            start_time: Some("2020-01-01".to_string()),
+            end_time: Some("2020-12-31".to_string()),
+            status: None,
+            min_amount: None,
+            max_amount: None,
+            channel: None,
+            order_type: None,
+        };
+        let (orders_past, total_past) = service.query_orders(query_past).await?;
+        assert_eq!(total_past, 0);
+        assert!(orders_past.is_empty());
 
         Ok(())
     })

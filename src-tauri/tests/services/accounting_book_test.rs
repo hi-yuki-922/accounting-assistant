@@ -1,7 +1,9 @@
 use accounting_assistant_lib::entity::accounting_book::{self, ActiveModel, Entity, Model};
 use accounting_assistant_lib::entity::accounting_record;
-use accounting_assistant_lib::enums::{AccountingChannel, AccountingType};
-use accounting_assistant_lib::services::accounting_book::dto::{CreateBookDto, UpdateBookDto};
+use accounting_assistant_lib::enums::{AccountingChannel, AccountingRecordState, AccountingType};
+use accounting_assistant_lib::services::accounting_book::dto::{
+    CreateBookDto, GetBooksPaginatedDto, GetRecordsByBookIdPaginatedDto, UpdateBookDto,
+};
 use accounting_assistant_lib::services::accounting_book::DEFAULT_BOOK_ID;
 use accounting_assistant_lib::services::AccountingBookService;
 use chrono::Local;
@@ -724,6 +726,168 @@ async fn test_get_record_write_off_details_empty() {
 
         // 验证冲账记录为空
         assert!(details.write_off_records.is_empty());
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== get_books_paginated 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_books_paginated_first_page() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        // 创建额外 3 个账本（加上默认账本共 4 个）
+        for i in 1..=3 {
+            let dto = CreateBookDto {
+                title: format!("账本{}", i),
+                description: None,
+                icon: None,
+            };
+            service.create_book(dto).await?;
+        }
+
+        let query = GetBooksPaginatedDto {
+            page: 1,
+            page_size: 2,
+        };
+        let result = service.get_books_paginated(query).await?;
+
+        assert_eq!(result.total, 4);
+        assert_eq!(result.data.len(), 2);
+        assert_eq!(result.page, 1);
+        assert_eq!(result.total_pages, 2);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_books_paginated_last_page() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        for i in 1..=3 {
+            let dto = CreateBookDto {
+                title: format!("账本{}", i),
+                description: None,
+                icon: None,
+            };
+            service.create_book(dto).await?;
+        }
+
+        let query = GetBooksPaginatedDto {
+            page: 2,
+            page_size: 2,
+        };
+        let result = service.get_books_paginated(query).await?;
+
+        assert_eq!(result.total, 4);
+        assert_eq!(result.data.len(), 2);
+        assert_eq!(result.page, 2);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_books_paginated_empty() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        // 只有默认账本
+        let query = GetBooksPaginatedDto {
+            page: 1,
+            page_size: 10,
+        };
+        let result = service.get_books_paginated(query).await?;
+
+        assert_eq!(result.total, 1);
+        assert_eq!(result.data.len(), 1);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+// ==================== get_records_by_book_id_paginated 测试 ====================
+
+#[serial]
+#[tokio::test]
+async fn test_get_records_by_book_id_paginated_basic() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        // 在默认账本中插入 5 条记录
+        for i in 1..=5 {
+            let record = accounting_record::ActiveModel {
+                id: Set(20240103000 + i),
+                amount: Set(Decimal::new(10000 * i as i64, 2)),
+                record_time: Set(Local::now().naive_local()),
+                accounting_type: Set(AccountingType::Income),
+                title: Set(format!("记录{}", i)),
+                channel: Set(AccountingChannel::BankCard),
+                remark: Set(None),
+                book_id: Set(Some(DEFAULT_BOOK_ID)),
+                state: Set(AccountingRecordState::Posted),
+                ..Default::default()
+            };
+            record.insert(&txn).await?;
+        }
+
+        let query = GetRecordsByBookIdPaginatedDto {
+            book_id: DEFAULT_BOOK_ID,
+            page: 1,
+            page_size: 3,
+            start_time: None,
+            end_time: None,
+            accounting_type: None,
+            channel: None,
+            state: None,
+        };
+        let result = service.get_records_by_book_id_paginated(query).await?;
+
+        assert_eq!(result.total, 5);
+        assert_eq!(result.data.len(), 3);
+        assert_eq!(result.page, 1);
+
+        Ok(())
+    })
+    .await
+    .unwrap();
+}
+
+#[serial]
+#[tokio::test]
+async fn test_get_records_by_book_id_paginated_empty() {
+    run_in_transaction(|txn| async move {
+        let service = AccountingBookService::new(txn.clone());
+
+        let query = GetRecordsByBookIdPaginatedDto {
+            book_id: DEFAULT_BOOK_ID,
+            page: 1,
+            page_size: 10,
+            start_time: None,
+            end_time: None,
+            accounting_type: None,
+            channel: None,
+            state: None,
+        };
+        let result = service.get_records_by_book_id_paginated(query).await?;
+
+        assert_eq!(result.total, 0);
+        assert!(result.data.is_empty());
 
         Ok(())
     })
