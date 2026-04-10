@@ -34,8 +34,8 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 
 import { BatchPostConfirmDialog } from './components/batch-post-confirm-dialog'
-import { CreateEditBookDialog } from './components/create-edit-book-dialog'
-import { CreateEditRecordDialog } from './components/create-edit-record-dialog'
+import { AccountingBookDialog } from './components/accounting-book-dialog.tsx'
+import { AccountingRecordDialog } from './components/accounting-record-dialog.tsx'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
 import { DeleteRecordConfirmDialog } from './components/delete-record-confirm-dialog'
 import { RecordFilter } from './components/record-filter'
@@ -590,7 +590,7 @@ export const BookDetailPage = () => {
       )}
 
       {/* 记录对话框（新增/编辑） */}
-      <CreateEditRecordDialog
+      <AccountingRecordDialog
         open={recordDialogOpen}
         onClose={() => {
           setRecordDialogOpen(false)
@@ -637,7 +637,7 @@ export const BookDetailPage = () => {
 
       {/* 编辑账本对话框 */}
       {book && (
-        <CreateEditBookDialog
+        <AccountingBookDialog
           open={editDialogOpen}
           book={book}
           onClose={() => setEditDialogOpen(false)}

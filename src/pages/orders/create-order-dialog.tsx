@@ -5,7 +5,7 @@
  */
 
 import { X } from 'lucide-react'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 
 import { customerApi } from '@/api/commands/customer'
 import type { Customer } from '@/api/commands/customer/type'

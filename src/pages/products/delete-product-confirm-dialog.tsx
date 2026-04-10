@@ -46,8 +46,8 @@ export const DeleteProductConfirmDialog: React.FC<
 
       <div className="py-4">
         <DialogDescription className="text-base">
-          确定要删除商品 "
-          <strong className="text-foreground">{product.name}</strong>"
+          确定要删除商品 &quot;
+          <strong className="text-foreground">{product.name}</strong>&quot;
           {product.category && `（${product.category}）`}
           ，单位 {product.unit} 吗？
         </DialogDescription>

@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import React from "react";
 
 export type RecordFilterProps = {
   /** 开始时间 */
@@ -116,7 +117,7 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
                 mode="single"
                 selected={startTime || undefined}
                 onSelect={handleStartTimeChange}
-                initialFocus
+                autoFocus
               />
             </PopoverContent>
           </Popover>
@@ -149,7 +150,7 @@ export const RecordFilter: React.FC<RecordFilterProps> = ({
                 mode="single"
                 selected={endTime || undefined}
                 onSelect={handleEndTimeChange}
-                initialFocus
+                autoFocus
               />
             </PopoverContent>
           </Popover>

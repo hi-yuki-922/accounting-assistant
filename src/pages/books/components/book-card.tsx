@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { BOOK_ICONS } from '@/config/book-icons'
 import { cn } from '@/lib/utils'
+import React from "react";
 
 export interface BookCardProps {
   /** 账本数据 */

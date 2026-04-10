@@ -3,7 +3,7 @@
  */
 
 import { AlertTriangle } from 'lucide-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { toast } from 'sonner'
 
 import { accounting } from '@/api/commands/accounting'

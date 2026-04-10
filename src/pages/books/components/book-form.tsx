@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { BookIcon } from '@/config/book-icons'
 
 import { BookIconPicker } from './book-icon-picker'
+import React from "react";
 
 /** 表单数据类型 */
 export type BookFormData = {

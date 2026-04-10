@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 
 import { BookCard } from './components/book-card'
-import { CreateEditBookDialog } from './components/create-edit-book-dialog'
+import { AccountingBookDialog } from './components/accounting-book-dialog.tsx'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
 
 type SortableBookCardProps = {
@@ -328,7 +328,7 @@ export const BooksPage = () => {
       </DndContext>
 
       {/* 创建账本对话框 */}
-      <CreateEditBookDialog
+      <AccountingBookDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
         onConfirm={handleCreateBook}
@@ -337,7 +337,7 @@ export const BooksPage = () => {
 
       {/* 编辑账本对话框 */}
       {editingBook && (
-        <CreateEditBookDialog
+        <AccountingBookDialog
           open={editDialogOpen}
           book={editingBook}
           onClose={() => {
