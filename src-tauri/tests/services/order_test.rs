@@ -50,6 +50,7 @@ async fn test_create_order_success() {
             ],
             remark: Some("测试订单".to_string()),
             actual_amount: None,
+            sub_type: None,
         };
 
         let order = service.create_order(dto).await?;
@@ -60,7 +61,6 @@ async fn test_create_order_success() {
         assert_eq!(order.customer_id, None);
         assert_eq!(order.status, OrderStatus::Pending);
         assert_eq!(order.channel, AccountingChannel::Unknown);
-        assert_eq!(order.accounting_record_id, None);
         assert_eq!(order.remark, Some("测试订单".to_string()));
         // total = 10*8.00 + 5*5.00 = 80 + 25 = 105
         assert_eq!(order.total_amount, Decimal::new(10500, 2));
@@ -91,6 +91,7 @@ async fn test_create_order_empty_items_error() {
             items: vec![],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
 
         let result = service.create_order(dto).await;
@@ -121,6 +122,7 @@ async fn test_create_order_with_custom_actual_amount() {
             )],
             remark: None,
             actual_amount: Some(Decimal::new(7500, 2)), // 抹零
+            sub_type: None,
         };
 
         let order = service.create_order(dto).await?;
@@ -157,6 +159,7 @@ async fn test_update_order_pending_success() {
             )],
             remark: Some("原始备注".to_string()),
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
         let original_total = order.total_amount;
@@ -210,6 +213,7 @@ async fn test_update_order_settled_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -260,6 +264,7 @@ async fn test_update_order_cancelled_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -298,6 +303,7 @@ async fn test_update_order_empty_items_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -336,6 +342,7 @@ async fn test_settle_order_sales_creates_income_record() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -357,15 +364,15 @@ async fn test_settle_order_sales_creates_income_record() {
         // 验证订单状态
         assert_eq!(settled.status, OrderStatus::Settled);
         assert_eq!(settled.channel, AccountingChannel::BankCard);
-        assert!(settled.accounting_record_id.is_some());
         assert!(settled.settled_at.is_some());
 
         // 验证生成了 Income 类型的记账记录
-        let record_id = settled.accounting_record_id.unwrap();
-        let record = accounting_record::Entity::find_by_id(record_id)
-            .one(&db)
-            .await?
-            .expect("记账记录应存在");
+        let records = accounting_record::Entity::find()
+            .filter(accounting_record::Column::OrderId.eq(order.id))
+            .all(&db)
+            .await?;
+        assert!(!records.is_empty());
+        let record = records.into_iter().next().unwrap();
 
         assert_eq!(record.accounting_type, AccountingType::Income);
         assert_eq!(record.title, format!("销售订单-{}", settled.order_no));
@@ -405,6 +412,7 @@ async fn test_settle_order_purchase_creates_expenditure_record() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -416,10 +424,11 @@ async fn test_settle_order_purchase_creates_expenditure_record() {
 
         let settled = service.settle_order(settle_dto).await?;
 
-        let record = accounting_record::Entity::find_by_id(settled.accounting_record_id.unwrap())
-            .one(&db)
-            .await?
-            .expect("记账记录应存在");
+        let records = accounting_record::Entity::find()
+            .filter(accounting_record::Column::OrderId.eq(order.id))
+            .all(&db)
+            .await?;
+        let record = records.into_iter().next().expect("记账记录应存在");
 
         assert_eq!(record.accounting_type, AccountingType::Expenditure);
         assert_eq!(record.title, format!("采购订单-{}", settled.order_no));
@@ -449,6 +458,7 @@ async fn test_settle_order_with_custom_actual_amount() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -462,11 +472,23 @@ async fn test_settle_order_with_custom_actual_amount() {
 
         assert_eq!(settled.actual_amount, Decimal::new(7500, 2));
 
-        let record = accounting_record::Entity::find_by_id(settled.accounting_record_id.unwrap())
-            .one(&db)
-            .await?
-            .expect("记账记录应存在");
-        assert_eq!(record.amount, Decimal::new(7500, 2));
+        let records = accounting_record::Entity::find()
+            .filter(accounting_record::Column::OrderId.eq(order.id))
+            .all(&db)
+            .await?;
+
+        // 主记录金额 = subtotal（80.00），折扣产生冲账记录（-5.00）
+        let main_record = records
+            .iter()
+            .find(|r| r.accounting_type == AccountingType::Income)
+            .expect("应有 Income 主记录");
+        assert_eq!(main_record.amount, Decimal::new(8000, 2));
+
+        let write_off = records
+            .iter()
+            .find(|r| r.accounting_type == AccountingType::WriteOff)
+            .expect("应有 WriteOff 冲账记录");
+        assert_eq!(write_off.amount, Decimal::new(-500, 2));
 
         Ok(())
     })
@@ -492,6 +514,7 @@ async fn test_settle_order_already_settled_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -535,6 +558,7 @@ async fn test_settle_order_cancelled_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
         service.cancel_order(order.id).await?;
@@ -574,6 +598,7 @@ async fn test_cancel_order_success() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -606,6 +631,7 @@ async fn test_cancel_order_settled_error() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order = service.create_order(create_dto).await?;
 
@@ -678,6 +704,7 @@ async fn test_get_all_orders_ordered_by_create_at_desc() {
                 )],
                 remark: None,
                 actual_amount: None,
+                sub_type: None,
             };
             service.create_order(dto).await?;
         }
@@ -712,6 +739,7 @@ async fn test_get_order_by_id_with_items() {
             ],
             remark: Some("含明细".to_string()),
             actual_amount: None,
+            sub_type: None,
         };
         let created = service.create_order(create_dto).await?;
 
@@ -776,6 +804,7 @@ async fn test_get_orders_by_customer_id() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto1).await?;
 
@@ -792,6 +821,7 @@ async fn test_get_orders_by_customer_id() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto2).await?;
 
@@ -808,6 +838,7 @@ async fn test_get_orders_by_customer_id() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto3).await?;
 
@@ -848,6 +879,7 @@ async fn test_get_orders_by_status() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order1 = service.create_order(dto1).await?;
 
@@ -863,6 +895,7 @@ async fn test_get_orders_by_status() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order2 = service.create_order(dto2).await?;
 
@@ -918,6 +951,7 @@ async fn test_query_orders_pagination() {
                 )],
                 remark: None,
                 actual_amount: None,
+                sub_type: None,
             };
             service.create_order(dto).await?;
         }
@@ -980,6 +1014,7 @@ async fn test_query_orders_filter_by_status() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         let order1 = service.create_order(dto1).await?;
 
@@ -1003,6 +1038,7 @@ async fn test_query_orders_filter_by_status() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto2).await?;
 
@@ -1047,6 +1083,7 @@ async fn test_query_orders_filter_by_order_type() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto1).await?;
 
@@ -1062,6 +1099,7 @@ async fn test_query_orders_filter_by_order_type() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto2).await?;
 
@@ -1106,6 +1144,7 @@ async fn test_query_orders_filter_by_amount_range() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto1).await?;
 
@@ -1122,6 +1161,7 @@ async fn test_query_orders_filter_by_amount_range() {
             )],
             remark: None,
             actual_amount: None,
+            sub_type: None,
         };
         service.create_order(dto2).await?;
 

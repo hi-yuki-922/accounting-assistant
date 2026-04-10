@@ -129,11 +129,13 @@ where
     let db = init_db_connection_internal().await?;
 
     // 根据测试选项决定是否创建默认账簿
-    let options = TEST_OPTIONS.lock().unwrap();
-    if options.create_default_book {
-        let book_service = AccountingBookService::new(db.clone());
-        book_service.create_default_book().await?;
-    }
+    {
+        let options = TEST_OPTIONS.lock().unwrap();
+        if options.create_default_book {
+            let book_service = AccountingBookService::new(db.clone());
+            book_service.create_default_book().await?;
+        }
+    } // 释放 MutexGuard，防止测试 panic 时污染 mutex
 
     test_fn(db).await
 }

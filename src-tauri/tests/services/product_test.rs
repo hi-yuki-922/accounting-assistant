@@ -17,6 +17,7 @@ async fn test_create_product_success() {
 
         let dto = CreateProductDto {
             name: "苹果".to_string(),
+            category_id: None,
             category: Some("水果".to_string()),
             unit: "斤".to_string(),
             default_sell_price: Some(Decimal::new(800, 2)),
@@ -52,6 +53,7 @@ async fn test_create_product_minimal_fields() {
 
         let dto = CreateProductDto {
             name: "测试商品".to_string(),
+            category_id: None,
             category: None,
             unit: "个".to_string(),
             default_sell_price: None,
@@ -84,6 +86,7 @@ async fn test_update_product_success() {
 
         let create_dto = CreateProductDto {
             name: "原始商品".to_string(),
+            category_id: None,
             category: Some("分类A".to_string()),
             unit: "个".to_string(),
             default_sell_price: Some(Decimal::new(1000, 2)),
@@ -97,6 +100,7 @@ async fn test_update_product_success() {
         let update_dto = UpdateProductDto {
             id: product.id,
             name: Some("更新商品".to_string()),
+            category_id: None,
             category: Some(Some("分类B".to_string())),
             unit: None,
             default_sell_price: Some(Some(Decimal::new(1200, 2))),
@@ -129,6 +133,7 @@ async fn test_update_product_not_found() {
         let update_dto = UpdateProductDto {
             id: 999999,
             name: Some("不存在".to_string()),
+            category_id: None,
             category: None,
             unit: None,
             default_sell_price: None,
@@ -158,6 +163,7 @@ async fn test_delete_product_success() {
 
         let create_dto = CreateProductDto {
             name: "待删除".to_string(),
+            category_id: None,
             category: None,
             unit: "个".to_string(),
             default_sell_price: None,
@@ -222,6 +228,7 @@ async fn test_get_all_products_ordered_by_create_at_desc() {
         for i in 1..=3 {
             let dto = CreateProductDto {
                 name: format!("商品{}", i),
+                category_id: None,
                 category: None,
                 unit: "个".to_string(),
                 default_sell_price: None,
@@ -256,6 +263,7 @@ async fn test_get_product_by_id_found() {
 
         let create_dto = CreateProductDto {
             name: "查询测试".to_string(),
+            category_id: None,
             category: Some("测试分类".to_string()),
             unit: "箱".to_string(),
             default_sell_price: Some(Decimal::new(2500, 2)),
@@ -304,6 +312,7 @@ async fn test_search_products_by_name() {
 
         let dto1 = CreateProductDto {
             name: "红富士苹果".to_string(),
+            category_id: None,
             category: Some("水果".to_string()),
             unit: "斤".to_string(),
             default_sell_price: None,
@@ -316,6 +325,7 @@ async fn test_search_products_by_name() {
 
         let dto2 = CreateProductDto {
             name: "香蕉".to_string(),
+            category_id: None,
             category: Some("水果".to_string()),
             unit: "斤".to_string(),
             default_sell_price: None,
@@ -345,6 +355,7 @@ async fn test_search_products_by_category() {
 
         let dto1 = CreateProductDto {
             name: "苹果".to_string(),
+            category_id: None,
             category: Some("水果".to_string()),
             unit: "斤".to_string(),
             default_sell_price: None,
@@ -357,6 +368,7 @@ async fn test_search_products_by_category() {
 
         let dto2 = CreateProductDto {
             name: "白菜".to_string(),
+            category_id: None,
             category: Some("蔬菜".to_string()),
             unit: "斤".to_string(),
             default_sell_price: None,
@@ -386,6 +398,7 @@ async fn test_search_products_by_keywords() {
 
         let dto = CreateProductDto {
             name: "鲍鱼".to_string(),
+            category_id: None,
             category: Some("海鲜".to_string()),
             unit: "个".to_string(),
             default_sell_price: None,
@@ -415,6 +428,7 @@ async fn test_search_products_no_match() {
 
         let dto = CreateProductDto {
             name: "苹果".to_string(),
+            category_id: None,
             category: Some("水果".to_string()),
             unit: "斤".to_string(),
             default_sell_price: None,
