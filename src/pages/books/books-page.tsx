@@ -29,8 +29,8 @@ import { DEFAULT_BOOK_ID } from '@/api/commands/accounting-book/type'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 
-import { BookCard } from './components/book-card'
 import { AccountingBookDialog } from './components/accounting-book-dialog.tsx'
+import { BookCard } from './components/book-card'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
 
 type SortableBookCardProps = {

@@ -6,6 +6,7 @@
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { Calendar as CalendarIcon, Filter } from 'lucide-react'
+import React from 'react'
 
 import {
   AccountingType,
@@ -31,7 +32,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import React from "react";
 
 export type RecordFilterProps = {
   /** 开始时间 */

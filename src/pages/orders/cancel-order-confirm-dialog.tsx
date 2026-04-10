@@ -3,6 +3,7 @@
  */
 
 import { AlertTriangle } from 'lucide-react'
+import React from 'react'
 
 import type { Order } from '@/api/commands/order/type'
 import { ORDER_TYPE_DISPLAY_TEXT } from '@/api/commands/order/type'
@@ -15,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import React from "react";
 
 export type CancelOrderConfirmDialogProps = {
   open: boolean

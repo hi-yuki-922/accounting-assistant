@@ -73,7 +73,8 @@ export const DeleteRecordConfirmDialog: React.FC<
         <div className="py-4">
           <DialogDescription className="text-base">
             确定要删除记录 &quot;
-            <strong className="text-foreground">{record.title}</strong>&quot; 吗？
+            <strong className="text-foreground">{record.title}</strong>&quot;
+            吗？
           </DialogDescription>
 
           <div className="mt-3 space-y-1 rounded-lg border bg-muted/50 p-3">

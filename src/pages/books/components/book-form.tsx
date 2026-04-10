@@ -3,6 +3,8 @@
  * 受控表单，用于创建和编辑账本时的数据录入
  */
 
+import React from 'react'
+
 import type { AccountingBook } from '@/api/commands/accounting-book/type'
 import { Field, FieldTitle, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -10,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea'
 import type { BookIcon } from '@/config/book-icons'
 
 import { BookIconPicker } from './book-icon-picker'
-import React from "react";
 
 /** 表单数据类型 */
 export type BookFormData = {

@@ -6,6 +6,7 @@
 import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import { Folder, MoreHorizontal } from 'lucide-react'
+import React from 'react'
 
 import type { AccountingBook } from '@/api/commands/accounting-book/type'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { BOOK_ICONS } from '@/config/book-icons'
 import { cn } from '@/lib/utils'
-import React from "react";
 
 export interface BookCardProps {
   /** 账本数据 */

@@ -4,6 +4,8 @@
  * 点击卡片弹出详情 Dialog
  */
 
+import React from 'react'
+
 import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
 import type { Order } from '@/api/commands/order/type'
 import {
@@ -13,7 +15,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/formatters'
-import React from "react";
 
 export type OrderCardProps = {
   order: Order

@@ -3,6 +3,7 @@
  */
 
 import { AlertTriangle } from 'lucide-react'
+import React from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import React from "react";
 
 export interface DeleteBookConfirmDialogProps {
   /** 是否打开对话框 */
