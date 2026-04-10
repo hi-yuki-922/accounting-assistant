@@ -37,6 +37,7 @@ rust_decimal = "1.35"
 strum = { version = "0.26", features = ["derive"] }
 async-trait = "0.1.83"
 tauri-plugin-shell = "2.3.5"
+tauri-plugin-fs = "2"
 uuid = { version = "1.0", features = ["v4"] }
 thiserror = "1.0"
 once_cell = "1.20"

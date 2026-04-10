@@ -1,5 +1,4 @@
-use crate::enums::MessageState;
-use crate::services::chat::dto::{CreateMessageDto, CreateSessionDto};
+use crate::services::chat::dto::CreateSessionDto;
 use crate::services::chat::ChatService;
 use tauri::State;
 
@@ -58,53 +57,28 @@ pub async fn delete_chat_session(service: State<'_, ChatService>, id: i64) -> Re
         .map(|result| result.rows_affected)
 }
 
-/// 创建聊天消息
+/// 创建节摘要
 #[tauri::command]
-pub async fn create_chat_message(
-    service: State<'_, ChatService>,
-    input: CreateMessageDto,
-) -> Result<crate::entity::chat_message::Model, String> {
-    service
-        .create_message(input)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-/// 获取会话的所有消息
-#[tauri::command]
-pub async fn get_chat_messages(
+pub async fn create_section_summary(
     service: State<'_, ChatService>,
     session_id: i64,
-) -> Result<Vec<crate::entity::chat_message::Model>, String> {
+    section_file: String,
+    summary: String,
+) -> Result<crate::entity::section_summary::Model, String> {
     service
-        .get_messages_by_session(session_id)
+        .create_section_summary(session_id, section_file, summary)
         .await
         .map_err(|e| e.to_string())
 }
 
-/// 更新消息状态
+/// 获取指定会话的节摘要
 #[tauri::command]
-pub async fn update_chat_message_state(
+pub async fn get_section_summaries(
     service: State<'_, ChatService>,
-    id: i64,
-    state: MessageState,
-) -> Result<crate::entity::chat_message::Model, String> {
+    session_id: i64,
+) -> Result<Vec<crate::entity::section_summary::Model>, String> {
     service
-        .update_message_state(id, state)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-/// 更新消息内容和 Token 数量
-#[tauri::command]
-pub async fn update_chat_message_content(
-    service: State<'_, ChatService>,
-    id: i64,
-    content: String,
-    tokens: Option<i32>,
-) -> Result<crate::entity::chat_message::Model, String> {
-    service
-        .update_message_content(id, content, tokens)
+        .get_summaries_by_session(session_id)
         .await
         .map_err(|e| e.to_string())
 }

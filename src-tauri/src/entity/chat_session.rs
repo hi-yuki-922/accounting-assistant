@@ -10,8 +10,6 @@ pub struct Model {
     pub id: i64,
 
     pub title: String,
-    pub model: String,
-    pub system_prompt: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -33,8 +31,6 @@ impl ActiveModelBehavior for ActiveModel {
         Self {
             id: sea_orm::ActiveValue::NotSet,
             title: sea_orm::ActiveValue::NotSet,
-            model: sea_orm::ActiveValue::Set("glm-4-plus".to_string()),
-            system_prompt: sea_orm::ActiveValue::NotSet,
             created_at: sea_orm::ActiveValue::Set(now),
             updated_at: sea_orm::ActiveValue::Set(now),
         }
@@ -42,7 +38,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Model {
-    /// 生成唯一的会话 ID，格式为 YYYYMMDDNNNN
+    /// 生成唯一的会话 ID，格式为 YYYYMMDDNNNNN
     pub async fn generate_id(db: &DatabaseConnection) -> Result<i64, Box<dyn std::error::Error>> {
         use chrono::Local;
         let now = Local::now();

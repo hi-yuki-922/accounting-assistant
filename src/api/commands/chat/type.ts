@@ -3,8 +3,6 @@
  * 与 Rust 后端类型定义对齐
  */
 
-import type { MessageRole, MessageState } from './enums'
-
 /**
  * 聊天会话模型
  * 与 Rust 后端 chat_session::Model 对齐
@@ -12,24 +10,20 @@ import type { MessageRole, MessageState } from './enums'
 export type ChatSession = {
   id: number
   title: string
-  model: string
-  systemPrompt?: string
   createdAt: string
   updatedAt: string
 }
 
 /**
- * 聊天消息模型
- * 与 Rust 后端 chat_message::Model 对齐
+ * 节摘要模型
+ * 与 Rust 后端 section_summary::Model 对齐
  */
-export type ChatMessage = {
+export type SectionSummary = {
   id: number
   sessionId: number
-  role: MessageRole
-  content: string
-  tokens?: number
+  sectionFile: string
+  summary: string
   createdAt: string
-  state: MessageState
 }
 
 /**
@@ -38,43 +32,4 @@ export type ChatMessage = {
  */
 export type CreateSessionDto = {
   title: string
-  model?: string
-  systemPrompt?: string
-}
-
-/**
- * 创建消息 DTO
- * 与 Rust 后端 CreateMessageDto 对齐
- */
-export type CreateMessageDto = {
-  sessionId: number
-  role: MessageRole
-  content: string
-  tokens?: number
-  state?: MessageState
-}
-
-/**
- * 更新会话标题 DTO
- */
-export type UpdateSessionTitleDto = {
-  id: number
-  title: string
-}
-
-/**
- * 更新消息状态 DTO
- */
-export type UpdateMessageStateDto = {
-  id: number
-  state: MessageState
-}
-
-/**
- * 更新消息内容 DTO
- */
-export type UpdateMessageContentDto = {
-  id: number
-  content: string
-  tokens?: number
 }
