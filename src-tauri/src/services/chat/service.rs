@@ -94,25 +94,41 @@ impl ChatService {
         Ok(result)
     }
 
-    /// 创建节摘要
+    /// 创建或更新节摘要（同一 session_id + section_file 只保留一条）
     pub async fn create_section_summary(
         &self,
         session_id: i64,
         section_file: String,
         summary: String,
     ) -> Result<SummaryModel, Box<dyn std::error::Error>> {
-        let id = SummaryModel::generate_id(&self.db).await?;
+        // 查找是否已存在同一 (session_id, section_file) 的摘要
+        let existing = section_summary::Entity::find()
+            .filter(section_summary::Column::SessionId.eq(session_id))
+            .filter(section_summary::Column::SectionFile.eq(&section_file))
+            .one(&self.db)
+            .await?;
 
-        let new_summary = SummaryActiveModel {
-            id: Set(id),
-            session_id: Set(session_id),
-            section_file: Set(section_file),
-            summary: Set(summary),
-            created_at: Set(chrono::Local::now().naive_local()),
-        };
+        if let Some(model) = existing {
+            // 已存在，更新摘要内容
+            let mut active_model: SummaryActiveModel = model.into();
+            active_model.summary = Set(summary);
+            let updated = active_model.update(&self.db).await?;
+            Ok(updated)
+        } else {
+            // 不存在，新建
+            let id = SummaryModel::generate_id(&self.db).await?;
 
-        let inserted = new_summary.insert(&self.db).await?;
-        Ok(inserted)
+            let new_summary = SummaryActiveModel {
+                id: Set(id),
+                session_id: Set(session_id),
+                section_file: Set(section_file),
+                summary: Set(summary),
+                created_at: Set(chrono::Local::now().naive_local()),
+            };
+
+            let inserted = new_summary.insert(&self.db).await?;
+            Ok(inserted)
+        }
     }
 
     /// 获取指定会话的所有节摘要，按创建时间正序

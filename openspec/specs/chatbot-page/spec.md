@@ -1,8 +1,14 @@
-## ADDED Requirements
+# Capability: Chatbot Page
+
+## Purpose
+
+Chatbot 页面组件，负责路由注册、面板布局、首次加载会话、消息路由协调和会话切换。
+
+## Requirements
 
 ### Requirement: Chatbot 页面路由与渲染
 
-系统 SHALL 在 `/chatbot` 路由下渲染 Chatbot 页面组件，页面布局从上到下分为菜单栏（MenuBar）、Section 列表（SectionList）、底部输入框（PromptInput）。
+系统 SHALL 在 `/chatbot` 路由下渲染 Chatbot 页面组件，页面使用 Resizable 组件划分为左右两个面板：左侧为任务看板占位容器（本次不实现内容），右侧为 Section 对话区域。两个面板默认宽度比例为 6:4，右侧面板最小宽度为 320px。
 
 #### Scenario: 用户点击侧边栏"AI 助手"导航
 - **WHEN** 用户点击侧边栏或底栏的"AI 助手"入口
@@ -10,7 +16,11 @@
 
 #### Scenario: 页面布局渲染
 - **WHEN** Chatbot 页面渲染完成
-- **THEN** 页面从上到下依次显示 MenuBar、SectionList、PromptInput，SectionList 占据可滚动区域
+- **THEN** 页面使用 Resizable Panel Group 划分为左右两个面板
+- **AND** 左侧面板为空容器占位（任务看板，后续提案实现）
+- **AND** 右侧面板从上到下依次显示 MenuBar、SectionList、PromptInput，SectionList 占据可滚动区域
+- **AND** 左右面板默认宽度比例为 6:4
+- **AND** 右侧面板最小宽度为 320px
 
 ### Requirement: 首次进入自动加载会话
 
