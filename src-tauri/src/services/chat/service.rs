@@ -99,6 +99,7 @@ impl ChatService {
         &self,
         session_id: i64,
         section_file: String,
+        title: Option<String>,
         summary: String,
     ) -> Result<SummaryModel, Box<dyn std::error::Error>> {
         // 查找是否已存在同一 (session_id, section_file) 的摘要
@@ -109,8 +110,9 @@ impl ChatService {
             .await?;
 
         if let Some(model) = existing {
-            // 已存在，更新摘要内容
+            // 已存在，更新摘要内容和标题
             let mut active_model: SummaryActiveModel = model.into();
+            active_model.title = Set(title);
             active_model.summary = Set(summary);
             let updated = active_model.update(&self.db).await?;
             Ok(updated)
@@ -122,6 +124,7 @@ impl ChatService {
                 id: Set(id),
                 session_id: Set(session_id),
                 section_file: Set(section_file),
+                title: Set(title),
                 summary: Set(summary),
                 created_at: Set(chrono::Local::now().naive_local()),
             };

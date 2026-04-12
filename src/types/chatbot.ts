@@ -3,30 +3,40 @@
  * 将 JSONLMessage 映射为 UI 友好的展示类型
  */
 
-import type { JSONLMessage } from '@/ai/storage/types'
+/**
+ * 工具调用状态
+ */
+export type ToolCallState = 'calling' | 'completed' | 'error'
 
 /**
- * 助手消息中的工具调用信息
+ * 展示用消息 Part 类型
+ * 对齐 AI SDK 的 UIMessage parts 理念
  */
-export type ToolCallDisplay = {
-  id: string
-  name: string
-  arguments: string
-}
+export type DisplayMessagePart =
+  | { type: 'text'; content: string }
+  | {
+      type: 'tool-call'
+      toolCallId: string
+      toolName: string
+      args: string
+      state: ToolCallState
+    }
+  | {
+      type: 'tool-result'
+      toolCallId: string
+      toolName: string
+      result: unknown
+    }
 
 /**
  * 展示用消息类型 — 由 JSONLMessage 映射而来
+ * 使用 parts 模型支持 text / tool-call / tool-result 混合展示
  */
-export type DisplayMessage =
-  | {
-      role: 'user'
-      content: string
-    }
-  | {
-      role: 'assistant'
-      content: string
-      toolCalls: ToolCallDisplay[]
-    }
+export type DisplayMessage = {
+  id: string
+  role: 'user' | 'assistant'
+  parts: DisplayMessagePart[]
+}
 
 /**
  * 对话状态

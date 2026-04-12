@@ -18,6 +18,7 @@ import {
   searchCustomers,
   searchProducts,
 } from './basic-data'
+import { collectMissingFields, confirmOperation } from './interaction'
 import { createOrder, getOrderDetail, searchOrders, settleOrder } from './order'
 import { getCurrentDatetime } from './system'
 
@@ -27,7 +28,12 @@ type AnyTool = Tool<any, any>
 /**
  * 工具类别
  */
-export type ToolCategory = 'basic-data' | 'order' | 'accounting' | 'system'
+export type ToolCategory =
+  | 'basic-data'
+  | 'order'
+  | 'accounting'
+  | 'system'
+  | 'interaction'
 
 /**
  * 全部工具合集
@@ -51,6 +57,9 @@ const allTools = {
   create_write_off: createWriteOff,
   // 系统
   get_current_datetime: getCurrentDatetime,
+  // 交互
+  confirm_operation: confirmOperation,
+  collect_missing_fields: collectMissingFields,
 }
 
 /**
@@ -79,10 +88,14 @@ const toolsByCategory: Record<ToolCategory, Record<string, AnyTool>> = {
   system: {
     get_current_datetime: getCurrentDatetime,
   },
+  interaction: {
+    confirm_operation: confirmOperation,
+    collect_missing_fields: collectMissingFields,
+  },
 }
 
 /**
- * 获取全部 14 个工具的合集
+ * 获取全部工具的合集
  */
 export const getAllTools = () => allTools
 

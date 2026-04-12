@@ -20,6 +20,7 @@ export type SectionSummary = {
   id: number
   sessionId: number
   sectionFile: string
+  title: string | null
   summary: string
   createdAt: string
 }
@@ -31,6 +32,8 @@ export type JSONLMessage =
   | {
       role: 'user'
       content: string
+      /** 隐藏消息：对用户不可见，但仍发送给 Agent */
+      hidden?: boolean
     }
   | {
       role: 'assistant'

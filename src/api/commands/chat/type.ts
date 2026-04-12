@@ -22,6 +22,7 @@ export type SectionSummary = {
   id: number
   sessionId: number
   sectionFile: string
+  title: string | null
   summary: string
   createdAt: string
 }

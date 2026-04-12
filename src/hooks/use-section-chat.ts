@@ -7,16 +7,22 @@ import type { ModelMessage } from 'ai'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { createAgent } from '@/ai/agent'
-import { readMessages } from '@/ai/storage/section-store'
 import {
-  createSectionSummary,
-  getSectionSummaries,
-} from '@/ai/storage/session-store'
-import { generateSectionSummary } from '@/ai/storage/summary'
+  getConfirmationInstruction,
+  getMissingFieldsInstruction,
+} from '@/ai/prompts/fragments'
+import { readMessages } from '@/ai/storage/section-store'
+import { createSectionSummary } from '@/ai/storage/session-store'
+import {
+  extractFirstUserMessage,
+  generateLLMSummary,
+  generateSectionSummary,
+} from '@/ai/storage/summary'
 import type { JSONLMessage } from '@/ai/storage/types'
 import { createSectionWriter } from '@/ai/writer'
+import type { ConfirmationMode } from '@/lib/confirmation-mode'
 import { toDisplayMessages } from '@/lib/message-utils'
-import type { DisplayMessage } from '@/types/chatbot'
+import type { DisplayMessage, DisplayMessagePart } from '@/types/chatbot'
 
 /**
  * tool_calls 数组元素类型
@@ -37,6 +43,8 @@ export type UseSectionChatState = {
   error: string | null
   /** 发送消息 */
   send: (content: string) => Promise<void>
+  /** 发送隐藏消息（用户不可见，但仍发送给 Agent） */
+  sendHidden: (content: string) => Promise<void>
   /** 中断流式响应 */
   stop: () => void
 }
@@ -50,7 +58,8 @@ export type UseSectionChatState = {
 export const useSectionChat = (
   sessionId: number | null,
   sectionFile: string | null,
-  onStreamComplete?: () => void
+  onStreamComplete?: () => void,
+  confirmationMode: ConfirmationMode = 'on'
 ): UseSectionChatState => {
   const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -85,7 +94,7 @@ export const useSectionChat = (
       if (pendingRef.current) {
         const content = pendingRef.current
         pendingRef.current = null
-        performSend(content, msgs)
+        performSend(content, undefined, msgs)
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,7 +109,11 @@ export const useSectionChat = (
   )
 
   const performSend = useCallback(
-    async (content: string, baseJsonl?: JSONLMessage[]) => {
+    async (
+      content: string,
+      options?: { hidden?: boolean },
+      baseJsonl?: JSONLMessage[]
+    ) => {
       if (!sessionId || !sectionFile) {
         return
       }
@@ -109,47 +122,57 @@ export const useSectionChat = (
       setIsStreaming(true)
 
       const currentJsonl = baseJsonl ?? jsonlRef.current
-      const userMsg: JSONLMessage = { role: 'user', content }
+      const userMsg: JSONLMessage = {
+        role: 'user',
+        content,
+        ...(options?.hidden ? { hidden: true } : {}),
+      }
       const jsonlWithUser = [...currentJsonl, userMsg]
       jsonlRef.current = jsonlWithUser
-      setMessages(toDisplayMessages(jsonlWithUser))
 
+      // 历史消息的 Parts 模型（不含当前流式）
+      const historyMessages = toDisplayMessages(jsonlWithUser)
+      setMessages(historyMessages)
+
+      // 流式累加器：Parts 模型（用于展示）
+      let partsAcc: DisplayMessagePart[] = []
+      // 流式累加器：原始数据（用于 JSONL 写入）
       let assistantContent = ''
       const toolCallsAcc: ToolCallItem[] = []
       const toolResults: Extract<JSONLMessage, { role: 'tool' }>[] = []
 
+      /**
+       * 用 partsAcc 构建当前流式 assistant 消息，更新展示
+       */
+      const updateStreamingDisplay = () => {
+        setMessages([
+          ...historyMessages,
+          {
+            id: 'msg-streaming',
+            role: 'assistant',
+            parts: partsAcc,
+          },
+        ])
+      }
+
       try {
-        // 创建 Agent（懒初始化）
-        if (!agentRef.current) {
-          agentRef.current = await createAgent()
-        }
+        // 创建 Agent（每次创建以注入当前确认模式指令）
+        agentRef.current = await createAgent({
+          extraInstructions: [
+            getConfirmationInstruction(confirmationMode),
+            getMissingFieldsInstruction(),
+          ],
+        })
 
         const abortController = new AbortController()
         abortRef.current = abortController
 
-        // 获取历史摘要注入
-        const summaries = await getSectionSummaries(sessionId)
-        let summaryInjection = ''
-        if (summaries.length > 0) {
-          const summaryText = summaries
-            .map((s) => `[${s.sectionFile}] ${s.summary}`)
-            .join('\n')
-          summaryInjection = `以下是本会话之前节摘要：\n${summaryText}`
-        }
-
-        // 构建上下文消息
-        const contextMessages: JSONLMessage[] = []
-        if (summaryInjection) {
-          contextMessages.push({ role: 'system', content: summaryInjection })
-        }
-        contextMessages.push(...jsonlWithUser)
-
         const result = await agentRef.current!.stream({
-          messages: toModelMessages(contextMessages),
+          messages: toModelMessages(jsonlWithUser),
           abortSignal: abortController.signal,
         })
 
-        // 消费 fullStream
+        // 消费 fullStream，维护 partsAcc
         for await (const event of result.fullStream) {
           if (abortController.signal.aborted) {
             break
@@ -158,30 +181,37 @@ export const useSectionChat = (
           switch (event.type) {
             case 'text-delta': {
               assistantContent += event.text
-              // 构建当前快照用于展示
-              const snapshot = buildSnapshot(
-                jsonlWithUser,
-                assistantContent,
-                toolCallsAcc,
-                toolResults
-              )
-              jsonlRef.current = snapshot
-              setMessages(toDisplayMessages(snapshot))
+              // 追加到最后一个 text part 或创建新 text part
+              partsAcc = appendTextDelta(partsAcc, event.text)
+              updateStreamingDisplay()
               break
             }
 
             case 'tool-call': {
+              const args =
+                typeof event.input === 'string'
+                  ? event.input
+                  : JSON.stringify(event.input)
               toolCallsAcc.push({
                 id: event.toolCallId,
                 type: 'function' as const,
                 function: {
                   name: event.toolName,
-                  arguments:
-                    typeof event.input === 'string'
-                      ? event.input
-                      : JSON.stringify(event.input),
+                  arguments: args,
                 },
               })
+              // 新增 tool-call part（state: 'calling'）
+              partsAcc = [
+                ...partsAcc,
+                {
+                  type: 'tool-call',
+                  toolCallId: event.toolCallId,
+                  toolName: event.toolName,
+                  args,
+                  state: 'calling' as const,
+                },
+              ]
+              updateStreamingDisplay()
               break
             }
 
@@ -195,15 +225,14 @@ export const useSectionChat = (
                 tool_call_id: event.toolCallId,
                 content: output,
               })
-              // 更新展示
-              const snapshot = buildSnapshot(
-                jsonlWithUser,
-                assistantContent,
-                toolCallsAcc,
-                toolResults
+              // 更新对应 tool-call part 的 state 为 'completed'，新增 tool-result part
+              partsAcc = appendToolResult(
+                partsAcc,
+                event.toolCallId,
+                event.toolName,
+                event.output
               )
-              jsonlRef.current = snapshot
-              setMessages(toDisplayMessages(snapshot))
+              updateStreamingDisplay()
               break
             }
 
@@ -216,7 +245,7 @@ export const useSectionChat = (
 
         // 流式完成 — 写入 JSONL
         const writer = createSectionWriter(sessionId, sectionFile)
-        await writer.writeUserMessage(content)
+        await writer.writeUserMessage(content, options?.hidden)
 
         if (assistantContent || toolCallsAcc.length > 0) {
           await writer.writeAssistantMessage({
@@ -236,18 +265,46 @@ export const useSectionChat = (
           toolResults
         )
         jsonlRef.current = finalJsonl
-        const summary = generateSectionSummary(finalJsonl)
-        await createSectionSummary(sessionId, sectionFile, summary)
+
+        // 从 finalJsonl 重建展示消息，确保确认状态等推导字段正确更新
+        setMessages(toDisplayMessages(finalJsonl))
 
         onStreamComplete?.()
+
+        // 异步生成 LLM 摘要，不阻塞 UI 更新
+        const firstUserMsg = extractFirstUserMessage(finalJsonl)
+        if (firstUserMsg) {
+          generateLLMSummary(firstUserMsg)
+            .then(async ({ title, summary }) => {
+              await createSectionSummary(sessionId, sectionFile, summary, title)
+              onStreamComplete?.()
+            })
+            .catch(async () => {
+              // LLM 失败时 fallback：截取首条消息前 20 字符作为 title
+              const fallbackTitle = firstUserMsg.slice(0, 20)
+              const fallbackSummary = generateSectionSummary(finalJsonl)
+              await createSectionSummary(
+                sessionId,
+                sectionFile,
+                fallbackSummary,
+                fallbackTitle
+              )
+              onStreamComplete?.()
+            })
+        }
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
           // 用户中断，将已接收内容写入 JSONL
           const writer = createSectionWriter(sessionId, sectionFile)
-          await writer.writeUserMessage(content)
+          await writer.writeUserMessage(content, options?.hidden)
           if (assistantContent) {
             await writer.writeAssistantMessage({ content: assistantContent })
           }
+
+          // 从 JSONL 文件重新加载，确保展示与持久化一致
+          const reloaded = await readMessages(sessionId, sectionFile)
+          jsonlRef.current = reloaded
+          setMessages(toDisplayMessages(reloaded))
         } else {
           setError(error instanceof Error ? error.message : '发生未知错误')
         }
@@ -275,12 +332,67 @@ export const useSectionChat = (
     [sessionId, sectionFile, performSend]
   )
 
+  const sendHidden = useCallback(
+    async (content: string) => {
+      if (!sessionId || !sectionFile || !loadedRef.current) {
+        return
+      }
+
+      await performSend(content, { hidden: true })
+    },
+    [sessionId, sectionFile, performSend]
+  )
+
   const stop = useCallback(() => {
     abortRef.current?.abort()
   }, [])
 
-  return { messages, isStreaming, error, send, stop }
+  return { messages, isStreaming, error, send, sendHidden, stop }
 }
+
+// ─── Parts 操作辅助函数 ─────────────────────────────────────
+
+/**
+ * 向 parts 追加文本增量
+ * 如果最后一个 part 是 text，追加内容；否则创建新 text part
+ */
+function appendTextDelta(
+  parts: DisplayMessagePart[],
+  text: string
+): DisplayMessagePart[] {
+  const last = parts.at(-1)
+  if (last && last.type === 'text') {
+    return [
+      ...parts.slice(0, -1),
+      { type: 'text', content: last.content + text },
+    ]
+  }
+  return [...parts, { type: 'text', content: text }]
+}
+
+/**
+ * 向 parts 追加 tool result，并将对应 tool-call part 的 state 更新为 'completed'
+ */
+function appendToolResult(
+  parts: DisplayMessagePart[],
+  toolCallId: string,
+  toolName: string,
+  output: unknown
+): DisplayMessagePart[] {
+  // 更新对应 tool-call part 的 state
+  const updated = parts.map((p) =>
+    p.type === 'tool-call' && p.toolCallId === toolCallId
+      ? { ...p, state: 'completed' as const }
+      : p
+  )
+  // 追加 tool-result part
+  return [
+    ...updated,
+    { type: 'tool-result', toolCallId, toolName, result: output },
+  ]
+}
+
+// ─── JSONL 快照与模型消息转换 ─────────────────────────────────
 
 /**
  * 根据流式累积数据构建当前 JSONL 快照

@@ -4,10 +4,6 @@
  */
 
 import { createSection, readMessages } from './storage/section-store'
-import {
-  createSectionSummary,
-  getSectionSummaries,
-} from './storage/session-store'
 import type { JSONLMessage } from './storage/types'
 
 /**
@@ -18,8 +14,6 @@ export type RouteResult = {
   sectionFile: string
   /** 节内已有消息（续接时有内容，新建时为空） */
   messages: JSONLMessage[]
-  /** 注入到 system prompt 的历史节摘要 */
-  summaryInjection: string
 }
 
 /**
@@ -37,27 +31,13 @@ export const route = async (
     return {
       sectionFile: referenceSectionFile,
       messages,
-      summaryInjection: '',
     }
   }
 
   // 无引用 → 创建新节
   const sectionFile = await createSection(sessionId)
-
-  // 查询同会话的历史节摘要
-  const summaries = await getSectionSummaries(sessionId)
-  let summaryInjection = ''
-
-  if (summaries.length > 0) {
-    const summaryText = summaries
-      .map((s) => `[${s.sectionFile}] ${s.summary}`)
-      .join('\n')
-    summaryInjection = `以下是本会话之前节摘要：\n${summaryText}`
-  }
-
   return {
     sectionFile,
     messages: [],
-    summaryInjection,
   }
 }

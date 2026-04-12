@@ -3,7 +3,7 @@
  * 协调 hooks 之间的数据流，管理布局和消息路由
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { route } from '@/ai/router'
 import { AppLayout } from '@/components/layouts/app-layout'
@@ -16,6 +16,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSectionList } from '@/hooks/use-section-list'
 import { useSessionList } from '@/hooks/use-session-list'
+import {
+  getConfirmationMode,
+  setConfirmationMode,
+} from '@/lib/confirmation-mode'
+import type { ConfirmationMode } from '@/lib/confirmation-mode'
 import { MenuBar } from '@/pages/chatbot/components/menu-bar'
 import { PromptInput } from '@/pages/chatbot/components/prompt-input'
 import { SectionCard } from '@/pages/chatbot/components/section-card'
@@ -55,6 +60,16 @@ export const ChatbotPage = () => {
 
   // 是否有节正在流式
   const [streamingSection, setStreamingSection] = useState<string | null>(null)
+
+  // 确认模式
+  const [confirmationMode, setConfirmMode] = useState<ConfirmationMode>(
+    getConfirmationMode()
+  )
+  const handleToggleConfirmation = useCallback(() => {
+    const next = confirmationMode === 'on' ? 'off' : 'on'
+    setConfirmationMode(next)
+    setConfirmMode(next)
+  }, [confirmationMode])
 
   // 首次进入自动加载
   const initializedRef = useRef(false)
@@ -177,7 +192,7 @@ export const ChatbotPage = () => {
               <MenuBar title={activeSession?.title} />
 
               {/* Section 列表 */}
-              <ScrollArea className="min-h-0 flex-1">
+              <ScrollArea className="min-h-0 min-w-0 flex-1">
                 <div className="space-y-2 p-4">
                   {sections.length === 0 && !isSessionLoading && (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -213,6 +228,7 @@ export const ChatbotPage = () => {
                         onStreamComplete={handleStreamComplete(
                           section.sectionFile
                         )}
+                        confirmationMode={confirmationMode}
                       />
                     </div>
                   ))}
@@ -238,6 +254,8 @@ export const ChatbotPage = () => {
                     onQuote={handleQuote}
                   />
                 }
+                confirmationMode={confirmationMode}
+                onToggleConfirmation={handleToggleConfirmation}
               />
             </div>
           </ResizablePanel>

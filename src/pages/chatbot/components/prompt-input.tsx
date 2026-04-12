@@ -20,6 +20,7 @@ import {
 } from '@/components/ai-elements/prompt-input'
 import type { PromptInputMessage } from '@/components/ai-elements/prompt-input'
 import { Button } from '@/components/ui/button'
+import type { ConfirmationMode } from '@/lib/confirmation-mode'
 import { cn } from '@/lib/utils'
 import type { PromptSubmitPayload } from '@/types/chatbot'
 
@@ -38,6 +39,10 @@ export type PromptInputProps = {
   onCancelReference: () => void
   /** Section 索引入口按钮 */
   sectionIndexSlot?: React.ReactNode
+  /** 确认模式 */
+  confirmationMode: ConfirmationMode
+  /** 切换确认模式回调 */
+  onToggleConfirmation: () => void
   className?: string
 }
 
@@ -52,6 +57,8 @@ const PromptInputInner = ({
   onStop,
   onCancelReference,
   sectionIndexSlot,
+  confirmationMode,
+  onToggleConfirmation,
   wrapperRef,
 }: Omit<PromptInputProps, 'className'> & {
   wrapperRef: React.RefObject<HTMLDivElement | null>
@@ -107,7 +114,26 @@ const PromptInputInner = ({
           <PromptInputTextarea placeholder="输入消息..." />
         </PromptInputBody>
         <PromptInputFooter>
-          <PromptInputTools>{sectionIndexSlot}</PromptInputTools>
+          <PromptInputTools>
+            {sectionIndexSlot}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'h-6 gap-1 rounded-full px-2 text-xs',
+                confirmationMode === 'on'
+                  ? 'text-green-600 hover:text-green-700'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={onToggleConfirmation}
+              title={
+                confirmationMode === 'on' ? '确认模式已开启' : '确认模式已关闭'
+              }
+            >
+              <span className="text-sm">🛡️</span>
+              <span>{confirmationMode === 'on' ? '已开启' : '已关闭'}</span>
+            </Button>
+          </PromptInputTools>
           <PromptInputSubmit
             disabled={!textInput.value.trim()}
             status={status}

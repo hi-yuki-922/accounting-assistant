@@ -52,11 +52,13 @@ export const deleteSession = (id: number) =>
 export const createSectionSummary = (
   sessionId: number,
   sectionFile: string,
+  title: string | null,
   summary: string
 ) =>
   tryCMD<SectionSummary>('create_section_summary', {
     sessionId,
     sectionFile,
+    title,
     summary,
   })
 

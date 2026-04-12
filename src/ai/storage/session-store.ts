@@ -94,11 +94,13 @@ export const deleteSession = async (id: number): Promise<void> => {
 export const createSectionSummary = async (
   sessionId: number,
   sectionFile: string,
-  summary: string
+  summary: string,
+  title?: string
 ): Promise<SectionSummary> => {
   const result = await chat.createSectionSummary(
     sessionId,
     sectionFile,
+    title ?? null,
     summary
   )
   if (result.isErr()) {

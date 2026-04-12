@@ -63,10 +63,11 @@ pub async fn create_section_summary(
     service: State<'_, ChatService>,
     session_id: i64,
     section_file: String,
+    title: Option<String>,
     summary: String,
 ) -> Result<crate::entity::section_summary::Model, String> {
     service
-        .create_section_summary(session_id, section_file, summary)
+        .create_section_summary(session_id, section_file, title, summary)
         .await
         .map_err(|e| e.to_string())
 }

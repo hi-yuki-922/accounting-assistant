@@ -16,10 +16,11 @@ export const createSectionWriter = (
   /**
    * 写入用户消息
    */
-  async writeUserMessage(content: string) {
+  async writeUserMessage(content: string, hidden?: boolean) {
     await appendMessage(sessionId, sectionFile, {
       role: 'user',
       content,
+      ...(hidden ? { hidden } : {}),
     })
   },
 

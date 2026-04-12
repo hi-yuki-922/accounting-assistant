@@ -16,6 +16,9 @@ pub struct Model {
     /// 对应的 JSONL 文件名
     pub section_file: String,
 
+    /// 摘要标题
+    pub title: Option<String>,
+
     /// 摘要内容
     pub summary: String,
 
@@ -41,6 +44,7 @@ impl ActiveModelBehavior for ActiveModel {
             id: sea_orm::ActiveValue::NotSet,
             session_id: sea_orm::ActiveValue::NotSet,
             section_file: sea_orm::ActiveValue::NotSet,
+            title: sea_orm::ActiveValue::NotSet,
             summary: sea_orm::ActiveValue::NotSet,
             created_at: sea_orm::ActiveValue::Set(now),
         }
