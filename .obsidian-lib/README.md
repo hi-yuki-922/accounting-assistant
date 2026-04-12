@@ -35,26 +35,26 @@ React 19 + TypeScript 前端的开发规范。
 
 | 文档                           | 说明                                                         |
 | ------------------------------ | ------------------------------------------------------------ |
-| [[frontend/架构概览]]          | 前端到后端完整调用链：页面 → Hooks → API 层 → Tauri IPC      |
+| [[frontend/架构概览]]          | 前端到后端完整调用链：页面 → Hooks → API 层 → Tauri IPC，含 AI 模块 |
 | [[frontend/TypeScript规范]]    | 类型定义使用 `type` 而非 `interface`                         |
-| [[frontend/错误处理]]          | 基于 `neverthrow` 的 `SafeAsync<T>` / `Safe<T>` 错误处理模式 |
+| [[frontend/错误处理]]          | `neverthrow` Result 模式 + AI Hooks try-catch 模式              |
 | [[frontend/文件组织]]          | 目录结构与 TanStack Router 文件路由约定                      |
 | [[frontend/API层开发]]         | `src/api/commands/` 模块结构与 Rust 后端对齐方式             |
-| [[frontend/Hooks开发]]         | 自定义 Hook 模板与封装 API 调用的约定                        |
+| [[frontend/Hooks开发]]         | 自定义 Hook 模板：AI Hooks（Section 对话/列表管理）与 API 调用模式 |
 | [[frontend/组件开发]]          | 函数式组件开发规范、按钮 Loading 状态、表单组件封装模式      |
 | [[frontend/样式规范]]          | Tailwind CSS v4 配置与 shadcn/ui 集成                        |
 | [[frontend/路由导航]]          | TanStack Router 文件路由与导航约定                           |
-| [[frontend/AI集成]]            | 智谱 AI 集成：聊天页面 → hooks → Vercel AI SDK               |
+| [[frontend/AI集成]]            | AI Agent 基建：Provider → Agent → Tools → Storage → Prompts 完整架构 |
 | [[frontend/Ultracite代码规范]] | Ultracite 代码质量工具与前端编码标准，含编码限制规则         |
 
 ## 设计（design/）
 
 | 文档                  | 说明                                   |
 | --------------------- | -------------------------------------- |
-| [[design/设计上下文]] | 用户画像、品牌个性、美学方向、设计原则 |
+| [[design/设计上下文]] | 用户画像、品牌个性、美学方向、设计原则、AI 助手界面设计 |
 
 ## 技术栈（tech-stack/）
 
 | 文档                  | 说明                               |
 | --------------------- | ---------------------------------- |
-| [[tech-stack/技术栈]] | 前端、后端、开发工具完整技术栈清单 |
+| [[tech-stack/技术栈]] | 前端、后端、开发工具完整技术栈清单（含 AI 集成相关库） |
