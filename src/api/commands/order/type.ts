@@ -83,7 +83,7 @@ export type Order = {
   customerId?: number
   totalAmount: number
   actualAmount: number
-  subType: string
+  subType: OrderSubType
   status: OrderStatus
   channel: string
   remark?: string
