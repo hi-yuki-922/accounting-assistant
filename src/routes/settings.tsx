@@ -85,10 +85,7 @@ const SettingsPage = () => {
                   }
                 />
                 {apiKey && (
-                  <Button
-                    variant="outline"
-                    onClick={handleClearApiKey}
-                  >
+                  <Button variant="outline" onClick={handleClearApiKey}>
                     <X className="h-4 w-4" />
                   </Button>
                 )}
