@@ -290,7 +290,7 @@ const SectionChatContent = ({
                     <PartRenderer
                       key={
                         part.type === 'tool-call' || part.type === 'tool-result'
-                          ? `${msg.id}-${part.toolCallId}`
+                          ? `${msg.id}-${part.type}-${part.toolCallId}`
                           : `${msg.id}-text-${part.content}`
                       }
                       part={part}
