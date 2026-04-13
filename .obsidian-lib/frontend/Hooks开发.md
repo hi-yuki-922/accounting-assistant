@@ -2,12 +2,12 @@
 
 ## 当前 Hooks
 
-| Hook | 文件 | 用途 |
-|---|---|---|
-| `useSessionList` | `use-session-list.ts` | 会话列表管理：创建/删除/切换会话 |
-| `useSectionList` | `use-section-list.ts` | Section 列表管理：展开/折叠/摘要刷新 |
+| Hook             | 文件                  | 用途                                             |
+| ---------------- | --------------------- | ------------------------------------------------ |
+| `useSessionList` | `use-session-list.ts` | 会话列表管理：创建/删除/切换会话                 |
+| `useSectionList` | `use-section-list.ts` | Section 列表管理：展开/折叠/摘要刷新             |
 | `useSectionChat` | `use-section-chat.ts` | Section 对话管理：Agent 实例/流式响应/JSONL 写入 |
-| `useIsMobile` | `use-mobile.ts` | 移动端检测 |
+| `useIsMobile`    | `use-mobile.ts`       | 移动端检测                                       |
 
 ## Hook 结构模板
 
@@ -71,7 +71,7 @@ export type UseSectionChatState = {
   isStreaming: boolean
   error: string | null
   send: (content: string) => Promise<void>
-  sendHidden: (content: string) => Promise<void>  // 隐藏消息：用户不可见但发送给 Agent
+  sendHidden: (content: string) => Promise<void> // 隐藏消息：用户不可见但发送给 Agent
   stop: () => void
 }
 
@@ -126,7 +126,7 @@ export const useSectionChat = (
 ```typescript
 useEffect(() => {
   loadSections()
-}, [loadSections])  // useCallback 的依赖变化时触发
+}, [loadSections]) // useCallback 的依赖变化时触发
 ```
 
 ## 与 API 层的交互

@@ -37,19 +37,19 @@ export type Customer = {
   id: number
   name: string
   category: CustomerCategory
-  phone: string              // 必填字段
-  wechat?: string            // 微信号
+  phone: string // 必填字段
+  wechat?: string // 微信号
   address?: string
-  bankAccount?: string       // 银行账号
+  bankAccount?: string // 银行账号
   remark?: string
-  createAt: string           // camelCase（后端 serde rename_all）
+  createAt: string // camelCase（后端 serde rename_all）
 }
 
 /** 创建客户 DTO */
 export type CreateCustomerDto = {
   name: string
   category: CustomerCategory // 枚举类型，非 string
-  phone: string              // 必填字段
+  phone: string // 必填字段
   wechat?: string
   address?: string
   bankAccount?: string
