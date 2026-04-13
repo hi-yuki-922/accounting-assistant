@@ -10,9 +10,9 @@ import {
   ACCOUNTING_CHANNEL_DISPLAY_TEXT,
   ACCOUNTING_RECORD_STATE_DISPLAY_TEXT,
   ACCOUNTING_TYPE_DISPLAY_TEXT,
+  accounting,
 } from '@/api/commands/accounting'
 import type { AccountingRecord } from '@/api/commands/accounting'
-import { accounting } from '@/api/commands/accounting'
 import {
   Dialog,
   DialogContent,
@@ -41,14 +41,20 @@ export const RecordDetailDialog = ({
     }
 
     setLoading(true)
-    accounting
-      .get(recordId)
-      .then((res) => {
+    const loadRecord = async () => {
+      try {
+        const res = await accounting.get(recordId)
         if (res.isOk()) {
           setRecord(res.value)
         }
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+    // eslint-disable-next-line eslint-plugin-promise/prefer-await-to-then
+    loadRecord().catch(() => {
+      /* ignore */
+    })
   }, [open, recordId])
 
   const handleClose = () => {

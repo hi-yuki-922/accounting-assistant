@@ -55,13 +55,18 @@ export const CategoriesPage = () => {
       }
     )
 
-    booksResult.match((data) => {
-      const map: Record<number, string> = {}
-      for (const b of data) {
-        map[b.id] = b.title
+    booksResult.match(
+      (data) => {
+        const map: Record<number, string> = {}
+        for (const b of data) {
+          map[b.id] = b.title
+        }
+        setBookMap(map)
+      },
+      () => {
+        /* ignore error */
       }
-      setBookMap(map)
-    }, noop)
+    )
   }, [])
 
   useEffect(() => {
@@ -129,19 +134,9 @@ export const CategoriesPage = () => {
   const hasOnlyDefault =
     categories.length === 1 && categories[0].name === DEFAULT_CATEGORY_NAME
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* 页头 */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-foreground">品类管理</h1>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          新增品类
-        </Button>
-      </div>
-
-      {/* 品类列表 */}
-      {categories.length === 0 ? (
+  const renderCategoryList = () => {
+    if (categories.length === 0) {
+      return (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <Tag className="h-16 w-16 mb-4 opacity-30" />
           <p className="text-lg font-medium">暂无品类数据</p>
@@ -155,7 +150,11 @@ export const CategoriesPage = () => {
             新增品类
           </Button>
         </div>
-      ) : (hasOnlyDefault ? (
+      )
+    }
+
+    if (hasOnlyDefault) {
+      return (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <Tag className="h-16 w-16 mb-4 opacity-30" />
           <p className="text-lg font-medium">暂无自定义品类</p>
@@ -171,25 +170,43 @@ export const CategoriesPage = () => {
             新增品类
           </Button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {categories.map((cat) => (
-            <CategoryCard
-              key={cat.id}
-              category={cat}
-              bookMap={bookMap}
-              onEdit={(c) => {
-                setEditingCategory(c)
-                setEditDialogOpen(true)
-              }}
-              onDelete={(c) => {
-                setDeletingCategory(c)
-                setDeleteDialogOpen(true)
-              }}
-            />
-          ))}
-        </div>
-      ))}
+      )
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {categories.map((cat) => (
+          <CategoryCard
+            key={cat.id}
+            category={cat}
+            bookMap={bookMap}
+            onEdit={(c) => {
+              setEditingCategory(c)
+              setEditDialogOpen(true)
+            }}
+            onDelete={(c) => {
+              setDeletingCategory(c)
+              setDeleteDialogOpen(true)
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* 页头 */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-foreground">品类管理</h1>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          新增品类
+        </Button>
+      </div>
+
+      {/* 品类列表 */}
+      {renderCategoryList()}
 
       {/* 创建品类弹窗 */}
       <CreateEditCategoryDialog
@@ -229,5 +246,3 @@ export const CategoriesPage = () => {
     </div>
   )
 }
-
-function noop() {}

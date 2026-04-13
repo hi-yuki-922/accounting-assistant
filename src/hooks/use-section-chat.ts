@@ -31,335 +31,16 @@ type ToolCallItem = NonNullable<
   Extract<JSONLMessage, { role: 'assistant' }>['tool_calls']
 >[number]
 
-/**
- * useSectionChat 状态和操作接口
- */
-export type UseSectionChatState = {
-  /** 展示用消息列表 */
-  messages: DisplayMessage[]
-  /** 是否正在流式响应 */
-  isStreaming: boolean
-  /** 错误信息 */
-  error: string | null
-  /** 发送消息 */
-  send: (content: string) => Promise<void>
-  /** 发送隐藏消息（用户不可见，但仍发送给 Agent） */
-  sendHidden: (content: string) => Promise<void>
-  /** 中断流式响应 */
-  stop: () => void
-}
-
-/**
- * Section 对话管理 Hook
- * @param sessionId - 会话 ID
- * @param sectionFile - 节文件名
- * @param onStreamComplete - 流式完成回调（用于刷新摘要等）
- */
-export const useSectionChat = (
-  sessionId: number | null,
-  sectionFile: string | null,
-  onStreamComplete?: () => void,
-  confirmationMode: ConfirmationMode = 'on'
-): UseSectionChatState => {
-  const [messages, setMessages] = useState<DisplayMessage[]>([])
-  const [isStreaming, setIsStreaming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agentRef = useRef<Awaited<ReturnType<typeof createAgent>> | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-  // 用 ref 持有当前 jsonl 原始消息，避免闭包过期
-  const jsonlRef = useRef<JSONLMessage[]>([])
-  // 标记历史是否已加载
-  const loadedRef = useRef(false)
-  // 暂存消息：hook 初始化完成前收到的 send 调用
-  const pendingRef = useRef<string | null>(null)
-
-  // 初始化时从 JSONL 加载历史消息
-  useEffect(() => {
-    if (!sessionId || !sectionFile) {
-      setMessages([])
-      jsonlRef.current = []
-      loadedRef.current = false
-      return
-    }
-
-    loadedRef.current = false
-    readMessages(sessionId, sectionFile).then((msgs) => {
-      jsonlRef.current = msgs
-      setMessages(toDisplayMessages(msgs))
-      loadedRef.current = true
-
-      // 处理暂存消息
-      if (pendingRef.current) {
-        const content = pendingRef.current
-        pendingRef.current = null
-        performSend(content, undefined, msgs)
-      }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, sectionFile])
-
-  // 卸载时中断
-  useEffect(
-    () => () => {
-      abortRef.current?.abort()
-    },
-    []
-  )
-
-  const performSend = useCallback(
-    async (
-      content: string,
-      options?: { hidden?: boolean },
-      baseJsonl?: JSONLMessage[]
-    ) => {
-      if (!sessionId || !sectionFile) {
-        return
-      }
-
-      setError(null)
-      setIsStreaming(true)
-
-      const currentJsonl = baseJsonl ?? jsonlRef.current
-      const userMsg: JSONLMessage = {
-        role: 'user',
-        content,
-        ...(options?.hidden ? { hidden: true } : {}),
-      }
-      const jsonlWithUser = [...currentJsonl, userMsg]
-      jsonlRef.current = jsonlWithUser
-
-      // 历史消息的 Parts 模型（不含当前流式）
-      const historyMessages = toDisplayMessages(jsonlWithUser)
-      setMessages(historyMessages)
-
-      // 流式累加器：Parts 模型（用于展示）
-      let partsAcc: DisplayMessagePart[] = []
-      // 流式累加器：原始数据（用于 JSONL 写入）
-      let assistantContent = ''
-      const toolCallsAcc: ToolCallItem[] = []
-      const toolResults: Extract<JSONLMessage, { role: 'tool' }>[] = []
-
-      /**
-       * 用 partsAcc 构建当前流式 assistant 消息，更新展示
-       */
-      const updateStreamingDisplay = () => {
-        setMessages([
-          ...historyMessages,
-          {
-            id: 'msg-streaming',
-            role: 'assistant',
-            parts: partsAcc,
-          },
-        ])
-      }
-
-      try {
-        // 创建 Agent（每次创建以注入当前确认模式指令）
-        agentRef.current = await createAgent({
-          extraInstructions: [
-            getConfirmationInstruction(confirmationMode),
-            getMissingFieldsInstruction(),
-          ],
-        })
-
-        const abortController = new AbortController()
-        abortRef.current = abortController
-
-        const result = await agentRef.current!.stream({
-          messages: toModelMessages(jsonlWithUser),
-          abortSignal: abortController.signal,
-        })
-
-        // 消费 fullStream，维护 partsAcc
-        for await (const event of result.fullStream) {
-          if (abortController.signal.aborted) {
-            break
-          }
-
-          switch (event.type) {
-            case 'text-delta': {
-              assistantContent += event.text
-              // 追加到最后一个 text part 或创建新 text part
-              partsAcc = appendTextDelta(partsAcc, event.text)
-              updateStreamingDisplay()
-              break
-            }
-
-            case 'tool-call': {
-              const args =
-                typeof event.input === 'string'
-                  ? event.input
-                  : JSON.stringify(event.input)
-              toolCallsAcc.push({
-                id: event.toolCallId,
-                type: 'function' as const,
-                function: {
-                  name: event.toolName,
-                  arguments: args,
-                },
-              })
-              // 新增 tool-call part（state: 'calling'）
-              partsAcc = [
-                ...partsAcc,
-                {
-                  type: 'tool-call',
-                  toolCallId: event.toolCallId,
-                  toolName: event.toolName,
-                  args,
-                  state: 'calling' as const,
-                },
-              ]
-              updateStreamingDisplay()
-              break
-            }
-
-            case 'tool-result': {
-              const output =
-                typeof event.output === 'string'
-                  ? event.output
-                  : JSON.stringify(event.output)
-              toolResults.push({
-                role: 'tool',
-                tool_call_id: event.toolCallId,
-                content: output,
-              })
-              // 更新对应 tool-call part 的 state 为 'completed'，新增 tool-result part
-              partsAcc = appendToolResult(
-                partsAcc,
-                event.toolCallId,
-                event.toolName,
-                event.output
-              )
-              updateStreamingDisplay()
-              break
-            }
-
-            case 'error': {
-              setError(String(event.error))
-              break
-            }
-          }
-        }
-
-        // 流式完成 — 写入 JSONL
-        const writer = createSectionWriter(sessionId, sectionFile)
-        await writer.writeUserMessage(content, options?.hidden)
-
-        if (assistantContent || toolCallsAcc.length > 0) {
-          await writer.writeAssistantMessage({
-            content: assistantContent || null,
-            tool_calls: toolCallsAcc.length > 0 ? toolCallsAcc : undefined,
-          })
-          for (const tr of toolResults) {
-            await writer.writeToolResult(tr.tool_call_id!, tr.content)
-          }
-        }
-
-        // 生成摘要并保存
-        const finalJsonl = buildSnapshot(
-          jsonlWithUser,
-          assistantContent,
-          toolCallsAcc,
-          toolResults
-        )
-        jsonlRef.current = finalJsonl
-
-        // 从 finalJsonl 重建展示消息，确保确认状态等推导字段正确更新
-        setMessages(toDisplayMessages(finalJsonl))
-
-        onStreamComplete?.()
-
-        // 异步生成 LLM 摘要，不阻塞 UI 更新
-        const firstUserMsg = extractFirstUserMessage(finalJsonl)
-        if (firstUserMsg) {
-          generateLLMSummary(firstUserMsg)
-            .then(async ({ title, summary }) => {
-              await createSectionSummary(sessionId, sectionFile, summary, title)
-              onStreamComplete?.()
-            })
-            .catch(async () => {
-              // LLM 失败时 fallback：截取首条消息前 20 字符作为 title
-              const fallbackTitle = firstUserMsg.slice(0, 20)
-              const fallbackSummary = generateSectionSummary(finalJsonl)
-              await createSectionSummary(
-                sessionId,
-                sectionFile,
-                fallbackSummary,
-                fallbackTitle
-              )
-              onStreamComplete?.()
-            })
-        }
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') {
-          // 用户中断，将已接收内容写入 JSONL
-          const writer = createSectionWriter(sessionId, sectionFile)
-          await writer.writeUserMessage(content, options?.hidden)
-          if (assistantContent) {
-            await writer.writeAssistantMessage({ content: assistantContent })
-          }
-
-          // 从 JSONL 文件重新加载，确保展示与持久化一致
-          const reloaded = await readMessages(sessionId, sectionFile)
-          jsonlRef.current = reloaded
-          setMessages(toDisplayMessages(reloaded))
-        } else {
-          setError(error instanceof Error ? error.message : '发生未知错误')
-        }
-      } finally {
-        setIsStreaming(false)
-      }
-    },
-    [sessionId, sectionFile, onStreamComplete]
-  )
-
-  const send = useCallback(
-    async (content: string) => {
-      if (!sessionId || !sectionFile) {
-        pendingRef.current = content
-        return
-      }
-
-      if (!loadedRef.current) {
-        pendingRef.current = content
-        return
-      }
-
-      await performSend(content)
-    },
-    [sessionId, sectionFile, performSend]
-  )
-
-  const sendHidden = useCallback(
-    async (content: string) => {
-      if (!sessionId || !sectionFile || !loadedRef.current) {
-        return
-      }
-
-      await performSend(content, { hidden: true })
-    },
-    [sessionId, sectionFile, performSend]
-  )
-
-  const stop = useCallback(() => {
-    abortRef.current?.abort()
-  }, [])
-
-  return { messages, isStreaming, error, send, sendHidden, stop }
-}
-
 // ─── Parts 操作辅助函数 ─────────────────────────────────────
 
 /**
  * 向 parts 追加文本增量
  * 如果最后一个 part 是 text，追加内容；否则创建新 text part
  */
-function appendTextDelta(
+const appendTextDelta = (
   parts: DisplayMessagePart[],
   text: string
-): DisplayMessagePart[] {
+): DisplayMessagePart[] => {
   const last = parts.at(-1)
   if (last && last.type === 'text') {
     return [
@@ -373,12 +54,12 @@ function appendTextDelta(
 /**
  * 向 parts 追加 tool result，并将对应 tool-call part 的 state 更新为 'completed'
  */
-function appendToolResult(
+const appendToolResult = (
   parts: DisplayMessagePart[],
   toolCallId: string,
   toolName: string,
   output: unknown
-): DisplayMessagePart[] {
+): DisplayMessagePart[] => {
   // 更新对应 tool-call part 的 state
   const updated = parts.map((p) =>
     p.type === 'tool-call' && p.toolCallId === toolCallId
@@ -397,12 +78,12 @@ function appendToolResult(
 /**
  * 根据流式累积数据构建当前 JSONL 快照
  */
-function buildSnapshot(
+const buildSnapshot = (
   baseJsonl: JSONLMessage[],
   assistantContent: string,
   toolCalls: ToolCallItem[],
   toolResults: Extract<JSONLMessage, { role: 'tool' }>[]
-): JSONLMessage[] {
+): JSONLMessage[] => {
   const snapshot: JSONLMessage[] = [...baseJsonl]
 
   // 只有有内容时才添加 assistant 消息
@@ -425,7 +106,7 @@ function buildSnapshot(
  * - assistant 消息的 tool_calls 需转为 content 数组中的 ToolCallPart
  * - tool 消息的 content 必须是 ToolResultPart[] 数组，不能是字符串
  */
-function toModelMessages(messages: JSONLMessage[]): ModelMessage[] {
+const toModelMessages = (messages: JSONLMessage[]): ModelMessage[] => {
   // 先构建 tool_call_id -> tool_name 的映射（从 assistant 消息的 tool_calls 中提取）
   const toolNameMap = new Map<string, string>()
   for (const m of messages) {
@@ -504,4 +185,377 @@ function toModelMessages(messages: JSONLMessage[]): ModelMessage[] {
     // 兜底（不应该到这里）
     return m as never
   })
+}
+
+/**
+ * useSectionChat 状态和操作接口
+ */
+export type UseSectionChatState = {
+  /** 展示用消息列表 */
+  messages: DisplayMessage[]
+  /** 是否正在流式响应 */
+  isStreaming: boolean
+  /** 错误信息 */
+  error: string | null
+  /** 发送消息 */
+  send: (content: string) => Promise<void>
+  /** 发送隐藏消息（用户不可见，但仍发送给 Agent） */
+  sendHidden: (content: string) => Promise<void>
+  /** 中断流式响应 */
+  stop: () => void
+}
+
+/**
+ * 异步生成 LLM 摘要（带 fallback）
+ */
+const generateAndSaveSummary = async (
+  sessionId: number,
+  sectionFile: string,
+  finalJsonl: JSONLMessage[],
+  onStreamComplete?: () => void
+) => {
+  const firstUserMsg = extractFirstUserMessage(finalJsonl)
+  if (!firstUserMsg) {
+    return
+  }
+
+  try {
+    const { title, summary } = await generateLLMSummary(firstUserMsg)
+    await createSectionSummary(sessionId, sectionFile, summary, title)
+    onStreamComplete?.()
+  } catch {
+    // LLM 失败时 fallback：截取首条消息前 20 字符作为 title
+    const fallbackTitle = firstUserMsg.slice(0, 20)
+    const fallbackSummary = generateSectionSummary(finalJsonl)
+    await createSectionSummary(
+      sessionId,
+      sectionFile,
+      fallbackSummary,
+      fallbackTitle
+    )
+    onStreamComplete?.()
+  }
+}
+
+/**
+ * 将流式结果写入 JSONL
+ */
+const writeStreamResult = async (
+  sessionId: number,
+  sectionFile: string,
+  content: string,
+  options: { hidden?: boolean } | undefined,
+  streamCtx: StreamContext
+) => {
+  const writer = createSectionWriter(sessionId, sectionFile)
+  await writer.writeUserMessage(content, options?.hidden)
+
+  if (streamCtx.assistantContent || streamCtx.toolCallsAcc.length > 0) {
+    await writer.writeAssistantMessage({
+      content: streamCtx.assistantContent || null,
+      tool_calls:
+        streamCtx.toolCallsAcc.length > 0 ? streamCtx.toolCallsAcc : undefined,
+    })
+    for (const tr of streamCtx.toolResults) {
+      const toolCallId = tr.tool_call_id as string
+      await writer.writeToolResult(toolCallId, tr.content)
+    }
+  }
+}
+
+// 流式事件处理的上下文
+type StreamContext = {
+  partsAcc: DisplayMessagePart[]
+  assistantContent: string
+  toolCallsAcc: ToolCallItem[]
+  toolResults: Extract<JSONLMessage, { role: 'tool' }>[]
+  updateDisplay: () => void
+  onError: (msg: string) => void
+}
+
+/**
+ * 处理单个流式事件
+ */
+const handleStreamEvent = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  event: any,
+  ctx: StreamContext
+) => {
+  if (event.type === 'text-delta') {
+    ctx.assistantContent += event.text
+    ctx.partsAcc = appendTextDelta(ctx.partsAcc, event.text)
+    ctx.updateDisplay()
+  } else if (event.type === 'tool-call') {
+    const args =
+      typeof event.input === 'string'
+        ? event.input
+        : JSON.stringify(event.input)
+    ctx.toolCallsAcc.push({
+      id: event.toolCallId,
+      type: 'function' as const,
+      function: {
+        name: event.toolName,
+        arguments: args,
+      },
+    })
+    ctx.partsAcc = [
+      ...ctx.partsAcc,
+      {
+        type: 'tool-call',
+        toolCallId: event.toolCallId,
+        toolName: event.toolName,
+        args,
+        state: 'calling' as const,
+      },
+    ]
+    ctx.updateDisplay()
+  } else if (event.type === 'tool-result') {
+    const output =
+      typeof event.output === 'string'
+        ? event.output
+        : JSON.stringify(event.output)
+    ctx.toolResults.push({
+      role: 'tool',
+      tool_call_id: event.toolCallId,
+      content: output,
+    })
+    ctx.partsAcc = appendToolResult(
+      ctx.partsAcc,
+      event.toolCallId,
+      event.toolName,
+      event.output
+    )
+    ctx.updateDisplay()
+  } else if (event.type === 'error') {
+    ctx.onError(String(event.error))
+  }
+}
+
+/**
+ * Section 对话管理 Hook
+ * @param sessionId - 会话 ID
+ * @param sectionFile - 节文件名
+ * @param onStreamComplete - 流式完成回调（用于刷新摘要等）
+ */
+export const useSectionChat = (
+  sessionId: number | null,
+  sectionFile: string | null,
+  onStreamComplete?: () => void,
+  confirmationMode: ConfirmationMode = 'on'
+): UseSectionChatState => {
+  const [messages, setMessages] = useState<DisplayMessage[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agentRef = useRef<Awaited<ReturnType<typeof createAgent>> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  // 用 ref 持有当前 jsonl 原始消息，避免闭包过期
+  const jsonlRef = useRef<JSONLMessage[]>([])
+  // 标记历史是否已加载
+  const loadedRef = useRef(false)
+  // 暂存消息：hook 初始化完成前收到的 send 调用
+  const pendingRef = useRef<string | null>(null)
+
+  const performSend = useCallback(
+    async (
+      content: string,
+      options?: { hidden?: boolean },
+      baseJsonl?: JSONLMessage[]
+    ) => {
+      if (!sessionId || !sectionFile) {
+        return
+      }
+
+      setError(null)
+      setIsStreaming(true)
+
+      const currentJsonl = baseJsonl ?? jsonlRef.current
+      const userMsg: JSONLMessage = {
+        role: 'user',
+        content,
+        ...(options?.hidden ? { hidden: true } : {}),
+      }
+      const jsonlWithUser = [...currentJsonl, userMsg]
+      jsonlRef.current = jsonlWithUser
+
+      // 历史消息的 Parts 模型（不含当前流式）
+      const historyMessages = toDisplayMessages(jsonlWithUser)
+      setMessages(historyMessages)
+
+      const streamCtx: StreamContext = {
+        partsAcc: [],
+        assistantContent: '',
+        toolCallsAcc: [],
+        toolResults: [],
+        updateDisplay: () => {
+          setMessages([
+            ...historyMessages,
+            {
+              id: 'msg-streaming',
+              role: 'assistant',
+              parts: streamCtx.partsAcc,
+            },
+          ])
+        },
+        onError: (msg) => setError(msg),
+      }
+
+      try {
+        // 创建 Agent（每次创建以注入当前确认模式指令）
+        agentRef.current = await createAgent({
+          extraInstructions: [
+            getConfirmationInstruction(confirmationMode),
+            getMissingFieldsInstruction(),
+          ],
+        })
+
+        const abortController = new AbortController()
+        abortRef.current = abortController
+
+        const agent = agentRef.current
+        if (!agent) {
+          return
+        }
+
+        const result = await agent.stream({
+          messages: toModelMessages(jsonlWithUser),
+          abortSignal: abortController.signal,
+        })
+
+        // 消费 fullStream，维护 partsAcc
+        for await (const event of result.fullStream) {
+          if (abortController.signal.aborted) {
+            break
+          }
+          handleStreamEvent(event, streamCtx)
+        }
+
+        // 流式完成 — 写入 JSONL
+        await writeStreamResult(
+          sessionId,
+          sectionFile,
+          content,
+          options,
+          streamCtx
+        )
+
+        // 生成摘要并保存
+        const finalJsonl = buildSnapshot(
+          jsonlWithUser,
+          streamCtx.assistantContent,
+          streamCtx.toolCallsAcc,
+          streamCtx.toolResults
+        )
+        jsonlRef.current = finalJsonl
+
+        // 从 finalJsonl 重建展示消息，确保确认状态等推导字段正确更新
+        setMessages(toDisplayMessages(finalJsonl))
+
+        onStreamComplete?.()
+
+        // 异步生成 LLM 摘要，不阻塞 UI 更新
+        generateAndSaveSummary(
+          sessionId,
+          sectionFile,
+          finalJsonl,
+          onStreamComplete
+        )
+        // eslint-disable-next-line eslint/no-shadow
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          // 用户中断，将已接收内容写入 JSONL
+          await writeStreamResult(
+            sessionId,
+            sectionFile,
+            content,
+            options,
+            streamCtx
+          )
+
+          // 从 JSONL 文件重新加载，确保展示与持久化一致
+          const reloaded = await readMessages(sessionId, sectionFile)
+          jsonlRef.current = reloaded
+          setMessages(toDisplayMessages(reloaded))
+        } else {
+          setError(error instanceof Error ? error.message : '发生未知错误')
+        }
+      } finally {
+        setIsStreaming(false)
+      }
+    },
+    [sessionId, sectionFile, onStreamComplete, confirmationMode]
+  )
+
+  // 初始化时从 JSONL 加载历史消息
+  useEffect(() => {
+    if (!sessionId || !sectionFile) {
+      setMessages([])
+      jsonlRef.current = []
+      loadedRef.current = false
+      return
+    }
+
+    loadedRef.current = false
+    const loadMessages = async () => {
+      const msgs = await readMessages(sessionId, sectionFile)
+      jsonlRef.current = msgs
+      setMessages(toDisplayMessages(msgs))
+      loadedRef.current = true
+
+      // 处理暂存消息
+      if (pendingRef.current) {
+        const loadContent = pendingRef.current
+        pendingRef.current = null
+        performSend(loadContent, undefined, msgs)
+      }
+    }
+    // eslint-disable-next-line eslint-plugin-promise/prefer-await-to-then
+    loadMessages().catch(() => {
+      /* 忽略加载失败 */
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, sectionFile])
+
+  // 卸载时中断
+  useEffect(
+    () => () => {
+      abortRef.current?.abort()
+    },
+    []
+  )
+
+  const send = useCallback(
+    async (content: string) => {
+      if (!sessionId || !sectionFile) {
+        pendingRef.current = content
+        return
+      }
+
+      if (!loadedRef.current) {
+        pendingRef.current = content
+        return
+      }
+
+      await performSend(content)
+    },
+    [sessionId, sectionFile, performSend]
+  )
+
+  const sendHidden = useCallback(
+    async (content: string) => {
+      if (!sessionId || !sectionFile || !loadedRef.current) {
+        return
+      }
+
+      await performSend(content, { hidden: true })
+    },
+    [sessionId, sectionFile, performSend]
+  )
+
+  const stop = useCallback(() => {
+    abortRef.current?.abort()
+  }, [])
+
+  return { messages, isStreaming, error, send, sendHidden, stop }
 }

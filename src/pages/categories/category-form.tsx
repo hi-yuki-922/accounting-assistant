@@ -41,7 +41,8 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   const [books, setBooks] = useState<{ id: number; title: string }[]>([])
 
   useEffect(() => {
-    accountingBook.getAll().then((result) => {
+    const loadBooks = async () => {
+      const result = await accountingBook.getAll()
       result.match(
         (data) =>
           setBooks(
@@ -50,8 +51,14 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
               title: b.title,
             }))
           ),
-        () => {}
+        () => {
+          /* ignore */
+        }
       )
+    }
+    // eslint-disable-next-line eslint-plugin-promise/prefer-await-to-then
+    loadBooks().catch(() => {
+      /* ignore */
     })
   }, [])
 

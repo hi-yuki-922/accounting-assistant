@@ -264,6 +264,88 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
     [record.id, loaded]
   )
 
+  const renderHoverContent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-4">
+          <Spinner className="size-5" />
+          <span className="ml-2 text-sm text-muted-foreground">加载中...</span>
+        </div>
+      )
+    }
+
+    if (!details) {
+      return null
+    }
+
+    let netAmountColor = 'text-muted-foreground'
+    if (record.netAmount !== 0) {
+      netAmountColor = isIncomeType(record.accountingType)
+        ? 'text-red-600 dark:text-red-400'
+        : 'text-green-600 dark:text-green-400'
+    }
+
+    return (
+      <div className="space-y-3">
+        {/* 原始金额 */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">原始金额</span>
+          <span className="font-medium">
+            {formatRawAmount(details.originalAmount)}
+          </span>
+        </div>
+
+        {/* 冲账记录列表 */}
+        {details.writeOffRecords.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">
+              冲账记录
+            </div>
+            <div className="space-y-1.5">
+              {details.writeOffRecords.map((wo) => (
+                <div
+                  key={wo.id}
+                  className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-sm"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(wo.recordTime, 'datetime-compact')}
+                    </span>
+                    {wo.remark && (
+                      <span className="text-xs text-muted-foreground">
+                        {wo.remark}
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      'font-medium',
+                      wo.amount > 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-green-600 dark:text-green-400'
+                    )}
+                  >
+                    {wo.amount > 0
+                      ? `+${formatRawAmount(wo.amount)}`
+                      : formatRawAmount(wo.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 净合计 */}
+        <div className="flex items-center justify-between border-t pt-2">
+          <span className="text-sm font-medium">净合计</span>
+          <span className={cn('font-semibold', netAmountColor)}>
+            {formatRawAmount(record.netAmount)}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <HoverCard onOpenChange={handleOpenChange} openDelay={200}>
       <HoverCardTrigger asChild>
@@ -272,81 +354,7 @@ const WriteOffHoverCard = ({ record, children }: WriteOffHoverCardProps) => {
         </span>
       </HoverCardTrigger>
       <HoverCardContent className="w-72 p-3" side="left">
-        {loading ? (
-          <div className="flex items-center justify-center py-4">
-            <Spinner className="size-5" />
-            <span className="ml-2 text-sm text-muted-foreground">
-              加载中...
-            </span>
-          </div>
-        ) : (details ? (
-          <div className="space-y-3">
-            {/* 原始金额 */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">原始金额</span>
-              <span className="font-medium">
-                {formatRawAmount(details.originalAmount)}
-              </span>
-            </div>
-
-            {/* 冲账记录列表 */}
-            {details.writeOffRecords.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-muted-foreground">
-                  冲账记录
-                </div>
-                <div className="space-y-1.5">
-                  {details.writeOffRecords.map((wo) => (
-                    <div
-                      key={wo.id}
-                      className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-sm"
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(wo.recordTime, 'datetime-compact')}
-                        </span>
-                        {wo.remark && (
-                          <span className="text-xs text-muted-foreground">
-                            {wo.remark}
-                          </span>
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          'font-medium',
-                          wo.amount > 0
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-green-600 dark:text-green-400'
-                        )}
-                      >
-                        {wo.amount > 0
-                          ? `+${formatRawAmount(wo.amount)}`
-                          : formatRawAmount(wo.amount)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 净合计 */}
-            <div className="flex items-center justify-between border-t pt-2">
-              <span className="text-sm font-medium">净合计</span>
-              <span
-                className={cn(
-                  'font-semibold',
-                  record.netAmount === 0
-                    ? 'text-muted-foreground'
-                    : isIncomeType(record.accountingType)
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-green-600 dark:text-green-400'
-                )}
-              >
-                {formatRawAmount(record.netAmount)}
-              </span>
-            </div>
-          </div>
-        ) : null)}
+        {renderHoverContent()}
       </HoverCardContent>
     </HoverCard>
   )
@@ -361,14 +369,13 @@ const AmountCell = ({ record }: AmountCellProps) => {
   const { netAmount, accountingType, relatedCount } = record
 
   // 净金额为 0 时灰色文字，收入红色，支出绿色
-  const amountClassName = cn(
-    'font-medium',
-    netAmount === 0
-      ? 'text-muted-foreground'
-      : (isIncomeType(accountingType)
-        ? 'text-red-600 dark:text-red-400'
-        : 'text-green-600 dark:text-green-400')
-  )
+  let amountColor = 'text-muted-foreground'
+  if (netAmount !== 0) {
+    amountColor = isIncomeType(accountingType)
+      ? 'text-red-600 dark:text-red-400'
+      : 'text-green-600 dark:text-green-400'
+  }
+  const amountClassName = cn('font-medium', amountColor)
 
   const formattedAmount = formatSignedAmount(
     netAmount,

@@ -62,14 +62,6 @@ export type CreateOrderDialogProps = {
   loading?: boolean
 }
 
-/** 根据 order_type 和 customer_id 获取默认 sub_type */
-const getDefaultSubType = (orderType: string, customerId?: number): string => {
-  if (orderType === 'Sales') {
-    return customerId ? 'Wholesale' : 'Retail'
-  }
-  return 'WholesalePurchase'
-}
-
 export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
   open,
   onClose,

@@ -4,8 +4,8 @@
 
 import { useState, useEffect } from 'react'
 
-import type { Category } from '@/api/commands/category/type'
 import type {
+  Category,
   CreateCategoryDto,
   UpdateCategoryDto,
 } from '@/api/commands/category/type'

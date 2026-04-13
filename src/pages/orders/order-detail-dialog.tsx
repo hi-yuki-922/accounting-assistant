@@ -3,6 +3,7 @@
  * 展示订单完整信息、明细列表、关联记账记录、操作按钮
  * 用于在列表页中以 Dialog 形式展示，替代独立详情页
  */
+/* eslint-disable eslint/no-void */
 
 import { Pencil } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -76,6 +77,15 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  // 加载关联记账记录
+  const loadAccountingRecords = async (oid: number) => {
+    const result = await getRecordsByOrderId(oid)
+    result.match(
+      (records) => setAccountingRecords(records),
+      () => setAccountingRecords([])
+    )
+  }
+
   // 加载订单详情
   const loadDetail = useCallback(async () => {
     if (!orderId) {
@@ -100,15 +110,6 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
       }
     )
   }, [orderId])
-
-  // 加载关联记账记录
-  const loadAccountingRecords = async (oid: number) => {
-    const result = await getRecordsByOrderId(oid)
-    result.match(
-      (records) => setAccountingRecords(records),
-      () => setAccountingRecords([])
-    )
-  }
 
   useEffect(() => {
     if (open && orderId) {

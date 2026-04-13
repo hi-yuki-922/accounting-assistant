@@ -98,12 +98,11 @@ export const EditOrderDialog: React.FC<EditOrderDialogProps> = ({
             <Badge variant="secondary">
               {ORDER_TYPE_DISPLAY_TEXT[order.orderType]}
             </Badge>
-            {order.subType &&
-              ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType] && (
-                <Badge variant="outline">
-                  {ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType]}
-                </Badge>
-              )}
+            {order.subType && ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType] && (
+              <Badge variant="outline">
+                {ORDER_SUB_TYPE_DISPLAY_TEXT[order.subType]}
+              </Badge>
+            )}
             <span className="text-muted-foreground text-sm">
               {order.orderNo}
             </span>

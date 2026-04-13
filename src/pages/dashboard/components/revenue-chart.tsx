@@ -32,8 +32,6 @@ type RevenueChartProps = {
 
 export const RevenueChart = ({ data, className }: RevenueChartProps) => {
   const formatCurrencyValue = (value: number) => formatCurrency(value, '', 0)
-  const formatTooltipValue = (value: number, name: string) =>
-    [formatCurrency(value), name] as const
 
   const chartConfig = {
     expense: {

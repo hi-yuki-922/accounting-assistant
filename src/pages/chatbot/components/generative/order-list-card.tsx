@@ -9,6 +9,25 @@ import type { Order } from '@/api/commands/order'
 import { formatCurrency } from '@/lib/formatters'
 import { OrderDetailDialog } from '@/pages/orders/order-detail-dialog'
 
+/**
+ * 从工具结果中提取订单列表
+ */
+const extractOrders = (data: Record<string, unknown>): Order[] | null => {
+  if (Array.isArray(data)) {
+    return data
+  }
+  if (Array.isArray(data?.data)) {
+    return data.data as Order[]
+  }
+  if (data?.data && typeof data.data === 'object') {
+    const d = data.data as Record<string, unknown>
+    if (Array.isArray(d?.orders)) {
+      return d.orders as Order[]
+    }
+  }
+  return null
+}
+
 export type OrderListCardProps = {
   result: unknown
 }
@@ -87,23 +106,4 @@ export const OrderListCard = ({ result }: OrderListCardProps) => {
       />
     </>
   )
-}
-
-/**
- * 从工具结果中提取订单列表
- */
-function extractOrders(data: Record<string, unknown>): Order[] | null {
-  if (Array.isArray(data)) {
-    return data
-  }
-  if (Array.isArray(data?.data)) {
-    return data.data as Order[]
-  }
-  if (data?.data && typeof data.data === 'object') {
-    const d = data.data as Record<string, unknown>
-    if (Array.isArray(d?.orders)) {
-      return d.orders as Order[]
-    }
-  }
-  return null
 }

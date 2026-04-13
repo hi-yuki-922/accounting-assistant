@@ -4,9 +4,9 @@
  * 卡片视图：仅展示今日订单，类型+状态双 Tab 筛选
  * 列表视图：全部历史订单，多维度筛选+分页
  */
+/* eslint-disable eslint/no-void */
 
-import { FileText, LayoutGrid, List, Plus, Search } from 'lucide-react'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { FileText, LayoutGrid, List, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
@@ -541,11 +541,11 @@ export const OrdersPage = () => {
                           {formatCurrency(order.actualAmount)}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {order.channel !== 'Unknown'
-                            ? (ACCOUNTING_CHANNEL_DISPLAY_TEXT[
+                          {order.channel === 'Unknown'
+                            ? '-'
+                            : (ACCOUNTING_CHANNEL_DISPLAY_TEXT[
                                 order.channel as keyof typeof ACCOUNTING_CHANNEL_DISPLAY_TEXT
-                              ] ?? order.channel)
-                            : '-'}
+                              ] ?? order.channel)}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {formatDate(order.createAt, 'datetime')}

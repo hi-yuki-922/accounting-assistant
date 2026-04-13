@@ -123,11 +123,18 @@ export const ProductForm = ({
   const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    categoryApi.getAll().then((result) => {
+    const loadCategories = async () => {
+      const result = await categoryApi.getAll()
       result.match(
         (data) => setCategories(data),
-        () => {}
+        () => {
+          /* ignore */
+        }
       )
+    }
+    // eslint-disable-next-line eslint-plugin-promise/prefer-await-to-then
+    loadCategories().catch(() => {
+      /* ignore */
     })
   }, [])
 

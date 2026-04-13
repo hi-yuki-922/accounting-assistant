@@ -82,6 +82,66 @@ export const MissingFieldsForm = ({
 
   const hasEmpty = Object.values(formData).some((v) => !v.trim())
 
+  /** 根据字段定义类型渲染对应的输入组件 */
+  const renderFieldInput = (
+    field: string,
+    def: (typeof fieldDefs)[string] | undefined,
+    label: string
+  ) => {
+    if (def?.type === 'select' && def.options) {
+      return (
+        <Select
+          value={formData[field]}
+          onValueChange={(v) => updateField(field, v)}
+        >
+          <SelectTrigger className="h-8 min-w-0 flex-1 text-xs">
+            <SelectValue placeholder={`请选择${label}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {def.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )
+    }
+
+    if (def?.type === 'number') {
+      return (
+        <Input
+          type="number"
+          value={formData[field]}
+          onChange={(e) => updateField(field, e.target.value)}
+          placeholder={`请输入${label}`}
+          className="h-8 text-xs"
+        />
+      )
+    }
+
+    if (def?.type === 'datetime') {
+      return (
+        <Input
+          type="datetime-local"
+          value={formData[field]}
+          onChange={(e) => updateField(field, e.target.value)}
+          className="h-8 text-xs"
+        />
+      )
+    }
+
+    return (
+      <Input
+        type="text"
+        value={formData[field]}
+        onChange={(e) => updateField(field, e.target.value)}
+        placeholder={`请输入${label}`}
+        className="h-8 text-xs"
+      />
+    )
+  }
+
   if (status === 'submitted') {
     return (
       <div className="rounded-lg border border-green-200 bg-green-50 p-3">
@@ -119,46 +179,7 @@ export const MissingFieldsForm = ({
               <label className="w-20 shrink-0 text-xs text-muted-foreground">
                 {label}
               </label>
-              {def?.type === 'select' && def.options ? (
-                <Select
-                  value={formData[field]}
-                  onValueChange={(v) => updateField(field, v)}
-                >
-                  <SelectTrigger className="h-8 min-w-0 flex-1 text-xs">
-                    <SelectValue placeholder={`请选择${label}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {def.options.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : def?.type === 'number' ? (
-                <Input
-                  type="number"
-                  value={formData[field]}
-                  onChange={(e) => updateField(field, e.target.value)}
-                  placeholder={`请输入${label}`}
-                  className="h-8 text-xs"
-                />
-              ) : def?.type === 'datetime' ? (
-                <Input
-                  type="datetime-local"
-                  value={formData[field]}
-                  onChange={(e) => updateField(field, e.target.value)}
-                  className="h-8 text-xs"
-                />
-              ) : (
-                <Input
-                  type="text"
-                  value={formData[field]}
-                  onChange={(e) => updateField(field, e.target.value)}
-                  placeholder={`请输入${label}`}
-                  className="h-8 text-xs"
-                />
-              )}
+              {renderFieldInput(field, def, label)}
             </div>
           )
         })}

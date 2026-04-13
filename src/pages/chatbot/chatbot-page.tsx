@@ -3,7 +3,7 @@
  * 协调 hooks 之间的数据流，管理布局和消息路由
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { route } from '@/ai/router'
 import { AppLayout } from '@/components/layouts/app-layout'
@@ -153,7 +153,7 @@ export const ChatbotPage = () => {
       setActive(sectionFile)
       // 滚动到目标节
       requestAnimationFrame(() => {
-        const el = document.getElementById(`section-${sectionFile}`)
+        const el = document.querySelector(`#section-${sectionFile}`)
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       })
     },
@@ -215,7 +215,7 @@ export const ChatbotPage = () => {
                             sectionRefs.current.delete(section.sectionFile)
                           }
                         }}
-                        sessionId={activeSessionId!}
+                        sessionId={activeSessionId as number}
                         sectionFile={section.sectionFile}
                         index={idx + 1}
                         summary={summaries.find(

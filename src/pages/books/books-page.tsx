@@ -2,6 +2,7 @@
  * 账本列表页面
  * 展示所有账本，支持创建、编辑、删除、拖拽排序
  */
+/* eslint-disable eslint/no-void */
 
 import type { DragEndEvent } from '@dnd-kit/core'
 import {

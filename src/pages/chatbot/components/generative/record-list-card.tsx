@@ -5,12 +5,27 @@
 
 import { useState } from 'react'
 
-import {
-  ACCOUNTING_CHANNEL_DISPLAY_TEXT,
-  ACCOUNTING_TYPE_DISPLAY_TEXT,
-} from '@/api/commands/accounting'
+import { ACCOUNTING_TYPE_DISPLAY_TEXT } from '@/api/commands/accounting'
 import type { AccountingRecord } from '@/api/commands/accounting'
 import { RecordDetailDialog } from '@/pages/books/components/record-detail-dialog'
+
+const extractRecords = (
+  data: Record<string, unknown>
+): AccountingRecord[] | null => {
+  if (Array.isArray(data)) {
+    return data
+  }
+  if (Array.isArray(data?.data)) {
+    return data.data as AccountingRecord[]
+  }
+  if (data?.data && typeof data.data === 'object') {
+    const d = data.data as Record<string, unknown>
+    if (Array.isArray(d?.items)) {
+      return d.items as AccountingRecord[]
+    }
+  }
+  return null
+}
 
 export type RecordListCardProps = {
   result: unknown
@@ -84,22 +99,4 @@ export const RecordListCard = ({ result }: RecordListCardProps) => {
       />
     </>
   )
-}
-
-function extractRecords(
-  data: Record<string, unknown>
-): AccountingRecord[] | null {
-  if (Array.isArray(data)) {
-    return data
-  }
-  if (Array.isArray(data?.data)) {
-    return data.data as AccountingRecord[]
-  }
-  if (data?.data && typeof data.data === 'object') {
-    const d = data.data as Record<string, unknown>
-    if (Array.isArray(d?.items)) {
-      return d.items as AccountingRecord[]
-    }
-  }
-  return null
 }

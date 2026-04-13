@@ -88,7 +88,7 @@ export const useSectionList = (
 
     // 活跃节设为最后一节（如有的话）
     if (sorted.length > 0) {
-      setActiveSectionFile(sorted.at(-1)!.sectionFile)
+      setActiveSectionFile(sorted.at(-1)?.sectionFile ?? null)
     } else {
       setActiveSectionFile(null)
     }

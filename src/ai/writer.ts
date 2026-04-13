@@ -4,7 +4,6 @@
  */
 
 import { appendMessage } from './storage/section-store'
-import type { JSONLMessage } from './storage/types'
 
 /**
  * 创建一个绑定到特定节的流式写入器
