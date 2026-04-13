@@ -4,9 +4,8 @@
  * 卡片视图：仅展示今日订单，类型+状态双 Tab 筛选
  * 列表视图：全部历史订单，多维度筛选+分页
  */
-/* eslint-disable eslint/no-void */
-
 import { FileText, LayoutGrid, List, Plus } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
@@ -162,9 +161,9 @@ export const OrdersPage = () => {
   // 初始加载
   useEffect(() => {
     if (viewMode === 'card') {
-      void loadAllOrders()
+      loadAllOrders()
     } else {
-      void loadListOrders(1)
+      loadListOrders(1)
     }
   }, [viewMode, loadAllOrders, loadListOrders])
 
