@@ -17,6 +17,8 @@ const DEFAULT_EXPAND_COUNT = 3
 export type SectionEntry = {
   sectionFile: string
   collapsed: boolean
+  /** 预渲染的用户消息（乐观更新） */
+  initialMessage?: string
 }
 
 /**
@@ -30,8 +32,8 @@ export type UseSectionListState = {
   /** 当前活跃节文件名 */
   activeSectionFile: string | null
 
-  /** 新增节 */
-  addSection: (sectionFile: string) => void
+  /** 新增节（可附带初始消息用于乐观渲染） */
+  addSection: (sectionFile: string, initialMessage?: string) => void
   /** 切换活跃节 */
   setActive: (sectionFile: string) => void
   /** 切换折叠状态 */
@@ -98,10 +100,16 @@ export const useSectionList = (
     loadSections()
   }, [loadSections])
 
-  const addSection = useCallback((sectionFile: string) => {
-    setSections((prev) => [...prev, { sectionFile, collapsed: false }])
-    setActiveSectionFile(sectionFile)
-  }, [])
+  const addSection = useCallback(
+    (sectionFile: string, initialMessage?: string) => {
+      setSections((prev) => [
+        ...prev,
+        { sectionFile, collapsed: false, initialMessage },
+      ])
+      setActiveSectionFile(sectionFile)
+    },
+    []
+  )
 
   const setActive = useCallback((sectionFile: string) => {
     setActiveSectionFile(sectionFile)

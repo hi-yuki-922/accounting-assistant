@@ -43,6 +43,7 @@ pub fn with_install_tauri_commands(
         chat::get_all_chat_sessions,
         chat::get_chat_session,
         chat::update_chat_session_title,
+        chat::update_chat_session_fields,
         chat::delete_chat_session,
         chat::create_section_summary,
         chat::get_section_summaries,

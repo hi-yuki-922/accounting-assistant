@@ -19,6 +19,7 @@ import {
   usePromptInputController,
 } from '@/components/ai-elements/prompt-input'
 import type { PromptInputMessage } from '@/components/ai-elements/prompt-input'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { ConfirmationMode } from '@/lib/confirmation-mode'
 import { cn } from '@/lib/utils'
@@ -116,23 +117,17 @@ const PromptInputInner = ({
         <PromptInputFooter>
           <PromptInputTools>
             {sectionIndexSlot}
-            <Button
-              variant="ghost"
-              size="sm"
+            <Badge
+              variant={confirmationMode === 'on' ? undefined : 'outline'}
               className={cn(
-                'h-6 gap-1 rounded-full px-2 text-xs',
-                confirmationMode === 'on'
-                  ? 'text-green-600 hover:text-green-700'
-                  : 'text-muted-foreground hover:text-foreground'
+                'cursor-pointer',
+                confirmationMode === 'on' &&
+                  'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
               )}
               onClick={onToggleConfirmation}
-              title={
-                confirmationMode === 'on' ? '确认模式已开启' : '确认模式已关闭'
-              }
             >
-              <span className="text-sm">🛡️</span>
-              <span>{confirmationMode === 'on' ? '已开启' : '已关闭'}</span>
-            </Button>
+              操作确认
+            </Badge>
           </PromptInputTools>
           <PromptInputSubmit
             disabled={!textInput.value.trim()}

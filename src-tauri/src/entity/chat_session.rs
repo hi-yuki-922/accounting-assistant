@@ -12,6 +12,16 @@ pub struct Model {
     pub title: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+
+    /// LLM 生成的会话摘要
+    #[sea_orm(nullable)]
+    pub summary: Option<String>,
+    /// 标题是否为自动生成（true 时 LLM 摘要生成可覆盖标题）
+    #[sea_orm(default_value = true)]
+    pub title_auto_generated: bool,
+    /// 是否已生成过摘要（true 时不再自动生成）
+    #[sea_orm(default_value = false)]
+    pub summary_generated: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
@@ -33,6 +43,9 @@ impl ActiveModelBehavior for ActiveModel {
             title: sea_orm::ActiveValue::NotSet,
             created_at: sea_orm::ActiveValue::Set(now),
             updated_at: sea_orm::ActiveValue::Set(now),
+            summary: sea_orm::ActiveValue::NotSet,
+            title_auto_generated: sea_orm::ActiveValue::Set(true),
+            summary_generated: sea_orm::ActiveValue::Set(false),
         }
     }
 }

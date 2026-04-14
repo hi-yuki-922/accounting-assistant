@@ -58,6 +58,8 @@ export type SectionCardProps = {
   onStreamComplete: () => void
   /** 确认模式 */
   confirmationMode: ConfirmationMode
+  /** 预渲染的用户消息（乐观更新） */
+  initialMessage?: string
 }
 
 // ─── 工具名称中文映射 ─────────────────────────────────────
@@ -235,6 +237,8 @@ type SectionChatContentProps = {
   isActive: boolean
   onStreamComplete: () => void
   confirmationMode: ConfirmationMode
+  /** 预渲染的用户消息（乐观更新） */
+  initialMessage?: string
   chatSendRef: React.MutableRefObject<
     ((content: string) => Promise<void>) | null
   >
@@ -247,6 +251,7 @@ const SectionChatContent = ({
   isActive,
   onStreamComplete,
   confirmationMode,
+  initialMessage,
   chatSendRef,
   chatStopRef,
 }: SectionChatContentProps) => {
@@ -261,6 +266,15 @@ const SectionChatContent = ({
     <CollapsibleContent>
       <div className="border-t px-4 py-3">
         <div className="space-y-3">
+          {/* 预渲染用户消息（乐观更新）：仅在 messages 为空且 initialMessage 存在时显示 */}
+          {messages.length === 0 && initialMessage && (
+            <Message from="user">
+              <MessageContent>
+                <MessageResponse>{initialMessage}</MessageResponse>
+              </MessageContent>
+            </Message>
+          )}
+
           {messages.map((msg, idx) => {
             const isStreamingMsg =
               isStreaming &&
@@ -286,13 +300,9 @@ const SectionChatContent = ({
                       思考中...
                     </span>
                   )}
-                  {msg.parts.map((part) => (
+                  {msg.parts.map((part, partIdx) => (
                     <PartRenderer
-                      key={
-                        part.type === 'tool-call' || part.type === 'tool-result'
-                          ? `${msg.id}-${part.type}-${part.toolCallId}`
-                          : `${msg.id}-text-${part.content}`
-                      }
+                      key={`${msg.id}-${partIdx}`}
                       part={part}
                       send={send}
                       sendHidden={sendHidden}
@@ -336,6 +346,7 @@ export const SectionCard = forwardRef<SectionCardHandle, SectionCardProps>(
       onQuote,
       onStreamComplete,
       confirmationMode,
+      initialMessage,
     },
     ref
   ) => {
@@ -384,13 +395,13 @@ export const SectionCard = forwardRef<SectionCardHandle, SectionCardProps>(
           </span>
 
           {collapsed && summary && (
-            <span className="text-sm text-muted-foreground inline-block max-w-3/4">
+            <span className="text-sm text-muted-foreground inline-block flex-1">
               {summary.title ?? summary.summary}
             </span>
           )}
 
           {!collapsed && (
-            <span className="min-w-0 truncate text-sm font-medium">
+            <span className="flex-1 truncate text-sm font-medium">
               {summary?.title ?? `对话节 #${index}`}
             </span>
           )}
@@ -419,6 +430,7 @@ export const SectionCard = forwardRef<SectionCardHandle, SectionCardProps>(
             isActive={isActive}
             onStreamComplete={onStreamComplete}
             confirmationMode={confirmationMode}
+            initialMessage={initialMessage}
             chatSendRef={chatSendRef}
             chatStopRef={chatStopRef}
           />

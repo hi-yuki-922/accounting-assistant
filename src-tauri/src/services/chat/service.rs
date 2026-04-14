@@ -33,6 +33,9 @@ impl ChatService {
             title: Set(input.title),
             created_at: Set(chrono::Local::now().naive_local()),
             updated_at: Set(chrono::Local::now().naive_local()),
+            summary: Set(None),
+            title_auto_generated: Set(true),
+            summary_generated: Set(false),
         };
 
         let inserted_session = new_session.insert(&self.db).await?;
@@ -70,6 +73,40 @@ impl ChatService {
 
         let mut active_model: SessionActiveModel = session.into();
         active_model.title = Set(title);
+        active_model.updated_at = Set(chrono::Local::now().naive_local());
+
+        let updated_session = active_model.update(&self.db).await?;
+        Ok(updated_session)
+    }
+
+    /// 批量更新会话字段（summary、title_auto_generated、summary_generated、title）
+    pub async fn update_session_fields(
+        &self,
+        id: i64,
+        summary: Option<String>,
+        title_auto_generated: Option<bool>,
+        summary_generated: Option<bool>,
+        title: Option<String>,
+    ) -> Result<SessionModel, Box<dyn std::error::Error>> {
+        let session = chat_session::Entity::find_by_id(id)
+            .one(&self.db)
+            .await?
+            .ok_or("会话不存在")?;
+
+        let mut active_model: SessionActiveModel = session.into();
+
+        if let Some(s) = summary {
+            active_model.summary = Set(Some(s));
+        }
+        if let Some(flag) = title_auto_generated {
+            active_model.title_auto_generated = Set(flag);
+        }
+        if let Some(flag) = summary_generated {
+            active_model.summary_generated = Set(flag);
+        }
+        if let Some(t) = title {
+            active_model.title = Set(t);
+        }
         active_model.updated_at = Set(chrono::Local::now().naive_local());
 
         let updated_session = active_model.update(&self.db).await?;

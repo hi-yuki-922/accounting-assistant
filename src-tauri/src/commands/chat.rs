@@ -57,6 +57,22 @@ pub async fn delete_chat_session(service: State<'_, ChatService>, id: i64) -> Re
         .map(|result| result.rows_affected)
 }
 
+/// 更新会话字段（summary、title_auto_generated、summary_generated、title）
+#[tauri::command]
+pub async fn update_chat_session_fields(
+    service: State<'_, ChatService>,
+    id: i64,
+    summary: Option<String>,
+    title_auto_generated: Option<bool>,
+    summary_generated: Option<bool>,
+    title: Option<String>,
+) -> Result<crate::entity::chat_session::Model, String> {
+    service
+        .update_session_fields(id, summary, title_auto_generated, summary_generated, title)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 /// 创建节摘要
 #[tauri::command]
 pub async fn create_section_summary(

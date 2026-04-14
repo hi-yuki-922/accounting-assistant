@@ -25,6 +25,7 @@ import { MenuBar } from '@/pages/chatbot/components/menu-bar'
 import { PromptInput } from '@/pages/chatbot/components/prompt-input'
 import { SectionCard } from '@/pages/chatbot/components/section-card'
 import { SectionIndexDialog } from '@/pages/chatbot/components/section-index-dialog'
+import { SessionListSheet } from '@/pages/chatbot/components/session-list-sheet'
 import type { PromptSubmitPayload, SectionCardHandle } from '@/types/chatbot'
 
 export const ChatbotPage = () => {
@@ -34,6 +35,10 @@ export const ChatbotPage = () => {
     activeSessionId,
     loadTodayLastSession,
     isLoading: isSessionLoading,
+    createSession: createNewSession,
+    renameSession,
+    switchSession,
+    generateSummary,
   } = useSessionList()
 
   // 节列表管理
@@ -60,6 +65,9 @@ export const ChatbotPage = () => {
 
   // 是否有节正在流式
   const [streamingSection, setStreamingSection] = useState<string | null>(null)
+
+  // 会话列表 Sheet 状态
+  const [sessionSheetOpen, setSessionSheetOpen] = useState(false)
 
   // 确认模式
   const [confirmationMode, setConfirmMode] = useState<ConfirmationMode>(
@@ -110,7 +118,7 @@ export const ChatbotPage = () => {
         // 新建节模式
         const routeResult = await route(activeSessionId)
         targetSectionFile = routeResult.sectionFile
-        addSection(targetSectionFile)
+        addSection(targetSectionFile, payload.content)
       }
 
       setActive(targetSectionFile)
@@ -189,7 +197,16 @@ export const ChatbotPage = () => {
           <ResizablePanel defaultSize={40} minSize={20}>
             <div className="flex h-full flex-col overflow-hidden">
               {/* 菜单栏 */}
-              <MenuBar title={activeSession?.title} />
+              <MenuBar
+                title={activeSession?.title}
+                onCreateSession={() => createNewSession()}
+                onRenameSession={(newTitle) => {
+                  if (activeSessionId) {
+                    renameSession(activeSessionId, newTitle)
+                  }
+                }}
+                onOpenSessionList={() => setSessionSheetOpen(true)}
+              />
 
               {/* Section 列表 */}
               <ScrollArea className="min-h-0 min-w-0 flex-1">
@@ -229,6 +246,7 @@ export const ChatbotPage = () => {
                           section.sectionFile
                         )}
                         confirmationMode={confirmationMode}
+                        initialMessage={section.initialMessage}
                       />
                     </div>
                   ))}
@@ -262,6 +280,17 @@ export const ChatbotPage = () => {
         </ResizablePanelGroup>
       </div>
       <BottomNav />
+
+      {/* 会话列表 Sheet 抽屉 */}
+      <SessionListSheet
+        open={sessionSheetOpen}
+        onOpenChange={setSessionSheetOpen}
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSwitchSession={switchSession}
+        onRenameSession={renameSession}
+        onGenerateSummary={generateSummary}
+      />
     </AppLayout>
   )
 }
