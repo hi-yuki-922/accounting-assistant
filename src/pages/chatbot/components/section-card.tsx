@@ -13,7 +13,6 @@ import {
   MessageContent,
   MessageResponse,
 } from '@/components/ai-elements/message'
-import { Tool, ToolHeader } from '@/components/ai-elements/tool'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -31,11 +30,7 @@ import { OperationResultCard } from '@/pages/chatbot/components/generative/opera
 import { OrderDetailCard } from '@/pages/chatbot/components/generative/order-detail-card'
 import { OrderListCard } from '@/pages/chatbot/components/generative/order-list-card'
 import { RecordListCard } from '@/pages/chatbot/components/generative/record-list-card'
-import type {
-  DisplayMessagePart,
-  SectionCardHandle,
-  ToolCallState,
-} from '@/types/chatbot'
+import type { DisplayMessagePart, SectionCardHandle } from '@/types/chatbot'
 
 export type SectionCardProps = {
   /** 会话 ID */
@@ -62,73 +57,74 @@ export type SectionCardProps = {
   initialMessage?: string
 }
 
-// ─── 工具名称中文映射 ─────────────────────────────────────
+// ─── 展示工具源工具映射 ─────────────────────────────────
 
 /**
- * 工具名称中文映射
+ * 展示工具名 → 源工具名数组的映射表
+ * 用于在 parts 上下文中查找展示工具对应的源工具结果
  */
-const TOOL_DISPLAY_NAMES: Record<string, string> = {
-  search_orders: '搜索订单',
-  get_order_detail: '查询订单详情',
-  create_order: '创建订单',
-  settle_order: '结账',
-  search_records: '搜索记录',
-  create_record: '创建记录',
-  update_record: '更新记录',
-  create_write_off: '冲账',
-  search_books: '查询账本',
-  search_customers: '查询客户',
-  search_products: '查询商品',
-  search_categories: '查询分类',
-  get_product_detail: '查询商品详情',
+const DISPLAY_SOURCE_MAP: Record<string, string[]> = {
+  display_order_list: ['search_orders', 'create_order'],
+  display_order_detail: ['get_order_detail'],
+  display_record_list: ['search_records', 'create_record', 'update_record'],
+  display_operation_result: [
+    'settle_order',
+    'create_write_off',
+    'search_books',
+    'search_customers',
+    'search_products',
+    'search_categories',
+    'get_product_detail',
+  ],
 }
+
+/** 交互工具集合 */
+const INTERACTION_TOOLS = new Set([
+  'confirm_operation',
+  'collect_missing_fields',
+])
+
+/** 展示工具集合 */
+const DISPLAY_TOOLS = new Set(Object.keys(DISPLAY_SOURCE_MAP))
 
 // ─── Part 渲染组件 ─────────────────────────────────────
 
 /**
- * 工具调用状态指示器
- * 使用 ai-elements Tool 组件展示工具名称和状态
+ * 在 parts 数组中向前查找最近的匹配源工具结果
+ * 从当前 part 的索引向前遍历，返回第一个 toolName 匹配的 tool-result 的 result 数据
  */
-const toolCallStateMap: Record<ToolCallState, string> = {
-  calling: 'input-available',
-  completed: 'output-available',
-  error: 'output-error',
-}
-
-const ToolCallIndicator = ({
-  name,
-  state,
-}: {
-  name: string
-  state: ToolCallState
-}) => {
-  const displayName = TOOL_DISPLAY_NAMES[name] ?? name
-  return (
-    <Tool>
-      <ToolHeader
-        type="dynamic-tool"
-        state={toolCallStateMap[state] as 'input-available'}
-        toolName={displayName}
-      />
-    </Tool>
-  )
+function findSourceResult(
+  parts: DisplayMessagePart[],
+  currentIndex: number,
+  sourceToolNames: string[]
+): unknown {
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    const p = parts[i]
+    if (p.type === 'tool-result' && sourceToolNames.includes(p.toolName)) {
+      return p.result
+    }
+  }
+  return null
 }
 
 /**
  * 工具结果分发器
- * 按 toolName 分发到对应的生成式组件，未匹配时 fallback 为纯文本
+ * 仅处理展示工具和交互工具的 tool-result，其他返回 null
  */
 const ToolResultDispatcher = ({
   part,
-  send: _send,
+  parts,
+  partIndex,
   sendHidden,
 }: {
   part: Extract<DisplayMessagePart, { type: 'tool-result' }>
-  send: (content: string) => Promise<void>
+  parts: DisplayMessagePart[]
+  partIndex: number
   sendHidden: (content: string) => Promise<void>
 }) => {
   const result = part.result as Record<string, unknown> | undefined
 
+  // 交互工具：保持原有渲染不变
   switch (part.toolName) {
     case 'confirm_operation': {
       return (
@@ -148,60 +144,49 @@ const ToolResultDispatcher = ({
         />
       )
     }
+  }
 
-    // 订单工具
-    case 'search_orders':
-    case 'create_order': {
-      return <OrderListCard result={part.result} />
+  // 展示工具：从上下文查找源数据并渲染对应组件
+  const sourceToolNames = DISPLAY_SOURCE_MAP[part.toolName]
+  if (sourceToolNames) {
+    const sourceResult = findSourceResult(parts, partIndex, sourceToolNames)
+    if (sourceResult == null) {
+      return null
     }
 
-    case 'get_order_detail': {
-      return <OrderDetailCard result={part.result} />
-    }
-
-    // 记账工具
-    case 'search_records':
-    case 'create_record':
-    case 'update_record': {
-      return <RecordListCard result={part.result} />
-    }
-
-    // 通用操作结果
-    case 'settle_order':
-    case 'create_write_off':
-    case 'search_books':
-    case 'search_customers':
-    case 'search_products':
-    case 'search_categories':
-    case 'get_product_detail': {
-      return <OperationResultCard result={part.result} />
-    }
-
-    default: {
-      // Fallback: 纯文本展示
-      const text =
-        typeof part.result === 'string'
-          ? part.result
-          : JSON.stringify(part.result, null, 2)
-      return (
-        <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 text-xs">
-          {text}
-        </pre>
-      )
+    switch (part.toolName) {
+      case 'display_order_list': {
+        return <OrderListCard result={sourceResult} />
+      }
+      case 'display_order_detail': {
+        return <OrderDetailCard result={sourceResult} />
+      }
+      case 'display_record_list': {
+        return <RecordListCard result={sourceResult} />
+      }
+      case 'display_operation_result': {
+        return <OperationResultCard result={sourceResult} />
+      }
     }
   }
+
+  // 非展示/非交互工具：不渲染
+  return null
 }
 
 /**
  * 按 part 类型分发的渲染组件
+ * tool-call 统一不渲染，tool-result 仅处理展示工具和交互工具
  */
 const PartRenderer = ({
   part,
-  send,
+  parts,
+  partIndex,
   sendHidden,
 }: {
   part: DisplayMessagePart
-  send: (content: string) => Promise<void>
+  parts: DisplayMessagePart[]
+  partIndex: number
   sendHidden: (content: string) => Promise<void>
 }) => {
   switch (part.type) {
@@ -209,13 +194,26 @@ const PartRenderer = ({
       return <MessageResponse>{part.content}</MessageResponse>
     }
 
+    // tool-call 统一隐藏
     case 'tool-call': {
-      return <ToolCallIndicator name={part.toolName} state={part.state} />
+      return null
     }
 
     case 'tool-result': {
+      // 仅处理展示工具和交互工具
+      if (
+        !DISPLAY_TOOLS.has(part.toolName) &&
+        !INTERACTION_TOOLS.has(part.toolName)
+      ) {
+        return null
+      }
       return (
-        <ToolResultDispatcher part={part} send={send} sendHidden={sendHidden} />
+        <ToolResultDispatcher
+          part={part}
+          parts={parts}
+          partIndex={partIndex}
+          sendHidden={sendHidden}
+        />
       )
     }
 
@@ -304,7 +302,8 @@ const SectionChatContent = ({
                     <PartRenderer
                       key={`${msg.id}-${partIdx}`}
                       part={part}
-                      send={send}
+                      parts={msg.parts}
+                      partIndex={partIdx}
                       sendHidden={sendHidden}
                     />
                   ))}

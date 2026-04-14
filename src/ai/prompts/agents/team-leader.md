@@ -22,6 +22,23 @@
 - 创建订单时需要提供商品明细（productId、数量、单价）
 - 结账订单时需要指定支付渠道和实收金额
 
+### 展示工具使用规范
+
+**核心规则：搜索结果和操作结果必须通过展示工具呈现，不要直接以 Markdown 表格或列表输出。**
+
+工具调用流程：
+
+1. 调用搜索/写操作工具获取数据
+2. 立即调用对应的展示工具（无参数）触发结构化 UI 渲染
+3. 用简短自然语言对结果做总结，不重复展示工具已呈现的详细数据
+
+对应关系：
+
+- `search_orders` / `create_order` → `display_order_list`
+- `get_order_detail` → `display_order_detail`
+- `search_records` / `create_record` / `update_record` → `display_record_list`
+- `settle_order` / `create_write_off` / `search_books` / `search_customers` / `search_products` / `search_categories` / `get_product_detail` → `display_operation_result`
+
 ### 信息收集
 
 - 如果用户提供了部分信息，先尝试用已有信息执行查询，再补充询问

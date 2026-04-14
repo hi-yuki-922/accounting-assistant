@@ -18,6 +18,12 @@ import {
   searchCustomers,
   searchProducts,
 } from './basic-data'
+import {
+  displayOperationResult,
+  displayOrderDetail,
+  displayOrderList,
+  displayRecordList,
+} from './display'
 import { collectMissingFields, confirmOperation } from './interaction'
 import { createOrder, getOrderDetail, searchOrders, settleOrder } from './order'
 import { getCurrentDatetime } from './system'
@@ -34,6 +40,7 @@ export type ToolCategory =
   | 'accounting'
   | 'system'
   | 'interaction'
+  | 'display'
 
 /**
  * 全部工具合集
@@ -60,6 +67,11 @@ const allTools = {
   // 交互
   confirm_operation: confirmOperation,
   collect_missing_fields: collectMissingFields,
+  // 展示
+  display_order_list: displayOrderList,
+  display_order_detail: displayOrderDetail,
+  display_record_list: displayRecordList,
+  display_operation_result: displayOperationResult,
 }
 
 /**
@@ -91,6 +103,12 @@ const toolsByCategory: Record<ToolCategory, Record<string, AnyTool>> = {
   interaction: {
     confirm_operation: confirmOperation,
     collect_missing_fields: collectMissingFields,
+  },
+  display: {
+    display_order_list: displayOrderList,
+    display_order_detail: displayOrderDetail,
+    display_record_list: displayRecordList,
+    display_operation_result: displayOperationResult,
   },
 }
 
