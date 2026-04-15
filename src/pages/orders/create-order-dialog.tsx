@@ -47,6 +47,7 @@ export type CreateOrderDialogProps = {
   onConfirm: (data: {
     orderType: string
     customerId?: number
+    customerName?: string
     items: {
       productId: number
       productName: string
@@ -175,6 +176,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     onConfirm({
       orderType,
       customerId,
+      customerName: selectedCustomer?.name,
       remark: remark.trim() || undefined,
       items: extractValidItems(items),
       subType,

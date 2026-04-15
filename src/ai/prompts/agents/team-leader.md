@@ -56,6 +56,18 @@
 - `update_record` — 更新记账记录
 - `create_write_off` — 冲账
 
+### 看板通知规范
+
+**订单写操作成功后，必须调用 `notify_board_refresh` 通知看板刷新。**
+
+调用规则：
+
+- 创建/结账销售订单 → `notify_board_refresh({ orderType: 'Sales' })`
+- 创建/结账采购订单 → `notify_board_refresh({ orderType: 'Purchase' })`
+- 取消订单 → `notify_board_refresh({ orderType: 'All' })`
+
+注意：在写操作工具和展示工具都调用完成后，再调用通知工具。
+
 ### 隐藏消息处理
 
 当你收到包含用户确认或补充信息的 system message 时：

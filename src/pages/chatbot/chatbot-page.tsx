@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { route } from '@/ai/router'
+import type { Order } from '@/api/commands/order/type'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { BottomNav } from '@/components/layouts/bottom-nav'
 import {
@@ -22,10 +23,12 @@ import {
 } from '@/lib/confirmation-mode'
 import type { ConfirmationMode } from '@/lib/confirmation-mode'
 import { MenuBar } from '@/pages/chatbot/components/menu-bar'
+import { OrderTaskBoard } from '@/pages/chatbot/components/order-board/order-task-board'
 import { PromptInput } from '@/pages/chatbot/components/prompt-input'
 import { SectionCard } from '@/pages/chatbot/components/section-card'
 import { SectionIndexDialog } from '@/pages/chatbot/components/section-index-dialog'
 import { SessionListSheet } from '@/pages/chatbot/components/session-list-sheet'
+import { OrderDetailDialog } from '@/pages/orders/order-detail-dialog'
 import type { PromptSubmitPayload, SectionCardHandle } from '@/types/chatbot'
 
 export const ChatbotPage = () => {
@@ -180,14 +183,27 @@ export const ChatbotPage = () => {
   // 是否有节正在流式
   const isStreaming = streamingSection !== null
 
+  // 订单详情弹窗状态
+  const [detailOrderId, setDetailOrderId] = useState<number | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
+  const handleCardClick = useCallback((order: Order) => {
+    setDetailOrderId(order.id)
+    setDetailOpen(true)
+  }, [])
+
+  const handleDetailRefresh = useCallback(() => {
+    // 详情弹窗操作后，看板通过事件订阅自动刷新，无需额外处理
+  }, [])
+
   return (
     <AppLayout>
       <div className="-m-2 flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden pb-14 sm:-m-4 sm:h-[calc(100dvh-4rem)] md:-m-6 md:h-[calc(100dvh-4rem)] md:pb-0">
         <ResizablePanelGroup orientation="horizontal">
-          {/* 左侧：任务看板占位 */}
+          {/* 左侧：订单看板 */}
           <ResizablePanel defaultSize={60} minSize={30}>
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <p className="text-sm">任务看板（后续实现）</p>
+            <div className="h-full overflow-hidden">
+              <OrderTaskBoard onCardClick={handleCardClick} />
             </div>
           </ResizablePanel>
 
@@ -290,6 +306,16 @@ export const ChatbotPage = () => {
         onSwitchSession={switchSession}
         onRenameSession={renameSession}
         onGenerateSummary={generateSummary}
+      />
+
+      {/* 订单详情弹窗 */}
+      <OrderDetailDialog
+        open={detailOpen}
+        orderId={detailOrderId}
+        onClose={() => {
+          setDetailOpen(false)
+        }}
+        onRefresh={handleDetailRefresh}
       />
     </AppLayout>
   )

@@ -9,6 +9,8 @@ pub struct CreateOrderDto {
     pub order_type: String,
     /// 客户 ID（散客为 None）
     pub customer_id: Option<i64>,
+    /// 客户名称（冗余快照，与 customer_id 一同传入）
+    pub customer_name: Option<String>,
     /// 订单明细列表
     pub items: Vec<CreateOrderItemDto>,
     /// 备注

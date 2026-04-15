@@ -7,6 +7,7 @@ import { tool, zodSchema } from 'ai'
 import { z } from 'zod'
 
 import { orderApi } from '@/api/commands/order'
+import { orderBoardEmitter } from '@/lib/order-board-events'
 
 /**
  * 搜索订单
@@ -124,6 +125,10 @@ export const createOrder = tool({
         .enum(['Sales', 'Purchase'])
         .describe('订单类型：Sales=销售, Purchase=采购'),
       customerId: z.number().optional().describe('客户 ID'),
+      customerName: z
+        .string()
+        .optional()
+        .describe('客户名称，与 customerId 一同传入'),
       items: z
         .array(
           z.object({
@@ -147,6 +152,7 @@ export const createOrder = tool({
   execute: async (input: {
     orderType: string
     customerId?: number
+    customerName?: string
     items: {
       productId: number
       productName: string
@@ -163,6 +169,7 @@ export const createOrder = tool({
       const result = await orderApi.create({
         orderType: input.orderType,
         customerId: input.customerId,
+        customerName: input.customerName,
         items: input.items,
         remark: input.remark,
         actualAmount: input.actualAmount,
@@ -236,5 +243,27 @@ export const settleOrder = tool({
         error: error instanceof Error ? error.message : String(error),
       }
     }
+  },
+})
+
+/**
+ * 通知看板刷新
+ * AI 写操作成功后调用此工具，通知前端看板按订单类型刷新数据
+ */
+export const notifyBoardRefresh = tool({
+  description:
+    '在订单写操作（创建订单、结账订单、取消订单）成功后调用此工具通知看板刷新。创建/结账销售订单传 Sales，创建/结账采购订单传 Purchase，取消订单传 All。',
+  inputSchema: zodSchema(
+    z.object({
+      orderType: z
+        .enum(['Sales', 'Purchase', 'All'])
+        .describe('需要刷新的订单类型范围'),
+    })
+  ),
+  execute: async (input: { orderType: 'Sales' | 'Purchase' | 'All' }) => {
+    orderBoardEmitter.emit('order-board:refresh', {
+      orderType: input.orderType,
+    })
+    return { refreshed: true }
   },
 })

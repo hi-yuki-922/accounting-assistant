@@ -25,7 +25,13 @@ import {
   displayRecordList,
 } from './display'
 import { collectMissingFields, confirmOperation } from './interaction'
-import { createOrder, getOrderDetail, searchOrders, settleOrder } from './order'
+import {
+  createOrder,
+  getOrderDetail,
+  notifyBoardRefresh,
+  searchOrders,
+  settleOrder,
+} from './order'
 import { getCurrentDatetime } from './system'
 
 // oxlint-disable-next-line typescript/no-explicit-any
@@ -57,6 +63,7 @@ const allTools = {
   get_order_detail: getOrderDetail,
   create_order: createOrder,
   settle_order: settleOrder,
+  notify_board_refresh: notifyBoardRefresh,
   // 记账
   search_records: searchRecords,
   create_record: createRecord,
@@ -90,6 +97,7 @@ const toolsByCategory: Record<ToolCategory, Record<string, AnyTool>> = {
     get_order_detail: getOrderDetail,
     create_order: createOrder,
     settle_order: settleOrder,
+    notify_board_refresh: notifyBoardRefresh,
   },
   accounting: {
     search_records: searchRecords,
