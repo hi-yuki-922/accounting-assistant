@@ -12,30 +12,86 @@ Desktop Accounting Assistant Application — Tauri 2.0 + React 19 + Rust (Sea-OR
 - Technical documentation shall be formatted in Markdown with consistent Chinese terminology
 - Code comments shall prioritize Chinese, with detailed explanations for critical logic
 
+## Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
 ## Knowledge Base
 
-项目维护了一份 Obsidian 知识库（`.obsidian-lib/`），包含前后端架构、编码规范、设计上下文、技术栈等完整开发文档。
+The project maintains an Obsidian knowledge base (`.obsidian-lib/`) containing complete development documentation covering frontend and backend architecture, coding standards, design context, tech stack, and more.
 
-### 使用方式
+### Usage
 
-在探索项目、执行编码任务时，**优先使用 Obsidian MCP 工具调用知识库**获取必要的上下文：
+When exploring the project and performing coding tasks, **prioritize calling the knowledge base via the Obsidian MCP tool** to obtain the necessary context:
 
-- `mcp__obsidian__search_notes` — 按关键词搜索知识库文档
-- `mcp__obsidian__read_note` — 读取特定文档
-- `mcp__obsidian__read_multiple_notes` — 批量读取文档
+- `mcp__obsidian__search_notes` — Search knowledge base documents by keywords
+- `mcp__obsidian__read_note` — Read a specific document
+- `mcp__obsidian__read_multiple_notes` — Read documents in batches
 
-知识库的 README 文件，提供了资料索引，在查阅知识库时，优先读 README 文件确定查阅资料的范围。
+The README file of the knowledge base provides an index of materials. When consulting the knowledge base, first read the README file to determine the scope of materials to review.
 
-当知识库提供的内容无法满足需要时，再调用 Read、Glob、Grep 等工具对项目源码进行探索，或使用其他工具获取信息。
+When the content provided by the knowledge base is insufficient, use tools such as Read, Glob, and Grep to explore the project source code, or use other tools to obtain information.
 
-### 知识库结构
+### Knowledge Base Structure
 
-| 目录 | 内容 |
+| Directory | Content |
 |---|---|
-| `common/` | 重要注意事项、开发命令、初始化流程 |
-| `backend/` | Rust 后端架构、命名、错误处理、数据库、实体层、服务层等规范 |
-| `frontend/` | React 前端架构、TypeScript、组件、样式、路由、API 层等规范 |
-| `design/` | 用户画像、品牌个性、美学方向、设计原则 |
-| `tech-stack/` | 前后端技术栈清单 |
+| `common/` | Important notes, development commands, initialization processes |
+| `backend/` | Specifications for Rust backend architecture, naming, error handling, databases, entity layers, service layers, etc. |
+| `frontend/` | Specifications for React frontend architecture, TypeScript, components, styling, routing, API layers, etc. |
+| `design/` | User personas, brand personality, aesthetic direction, design principles |
+| `tech-stack/` | List of frontend and backend tech stacks |
 
-索引文件：`.obsidian-lib/README.md`
+Index file: `.obsidian-lib/README.md`
