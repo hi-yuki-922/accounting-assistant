@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import path from 'node:path'
 
 import tailwindcss from '@tailwindcss/vite'
@@ -37,6 +38,12 @@ export default defineConfig((_env) => ({
       // oxlint-disable-next-line unicorn/prefer-module
       '@': path.resolve(__dirname, './src'),
     },
+  },
+
+  // 测试配置
+  test: {
+    globals: true,
+    include: ['src/__tests__/**/*.test.ts'],
   },
 
   // 开发服务器配置
