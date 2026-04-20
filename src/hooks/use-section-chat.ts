@@ -336,6 +336,7 @@ const handleStreamEvent = (
  * @param sessionId - 会话 ID
  * @param sectionFile - 节文件名
  * @param onStreamComplete - 流式完成回调（用于刷新摘要等）
+ * @param confirmationMode - 操作确认模式 - on | off
  */
 export const useSectionChat = (
   sessionId: number | null,
@@ -347,7 +348,6 @@ export const useSectionChat = (
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const agentRef = useRef<Awaited<ReturnType<typeof createAgent>> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   // 用 ref 持有当前 jsonl 原始消息，避免闭包过期
