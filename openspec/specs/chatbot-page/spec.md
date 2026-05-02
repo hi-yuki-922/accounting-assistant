@@ -10,9 +10,13 @@ Chatbot 页面组件，负责路由注册、面板布局、首次加载会话、
 
 系统 SHALL 在 `/chatbot` 路由下渲染 Chatbot 页面组件，页面使用 Resizable 组件划分为左右两个面板：左侧为订单看板组件（OrderTaskBoard），右侧为 Section 对话区域。两个面板默认宽度比例为 6:4，右侧面板最小宽度为 320px。
 
-#### Scenario: 用户点击侧边栏"AI 助手"导航
-- **WHEN** 用户点击侧边栏或底栏的"AI 助手"入口
+#### Scenario: 用户点击顶部导航栏"AI 助手"导航
+- **WHEN** 用户点击顶部导航栏的"AI 助手"入口
 - **THEN** 系统导航到 `/chatbot` 路由并渲染 Chatbot 页面
+
+#### Scenario: AI助手页面在顶部导航布局下渲染
+- **WHEN** 用户通过顶部导航栏点击「AI助手」进入 AI 助手页面
+- **THEN** AI 助手页面在顶部导航栏下方的内容区域正常渲染，左右分栏布局获得完整水平宽度
 
 #### Scenario: 页面布局渲染
 - **WHEN** Chatbot 页面渲染完成

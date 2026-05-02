@@ -7,11 +7,11 @@
 ## Requirements
 
 ### Requirement: 品类管理路由
-系统 SHALL 在 `/categories` 路径下提供品类管理页面，使用 AppLayout 布局。侧边栏 SHALL 新增"品类管理"导航入口。
+系统 SHALL 在 `/categories` 路径下提供品类管理页面，使用 AppLayout 布局。顶部导航栏「基础资料」下拉菜单 SHALL 提供"品类管理"导航入口。
 
-#### Scenario: 导航到品类管理
-- **WHEN** 用户点击侧边栏"品类管理"
-- **THEN** 导航到 /categories 页面，展示品类管理界面
+#### Scenario: 通过基础资料下拉进入品类管理
+- **WHEN** 用户在顶部导航栏展开「基础资料」下拉并点击「品类管理」
+- **THEN** 系统跳转到 `/categories`，品类管理页面正常渲染和运行
 
 ### Requirement: 品类列表展示
 系统 SHALL 以卡片形式展示所有品类，每张卡片显示品类名称、关联的销售账本名称、进货账本名称、商品数量。列表中"未分类"品类 MUST 排在首位。

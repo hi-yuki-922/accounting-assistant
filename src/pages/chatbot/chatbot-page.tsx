@@ -8,7 +8,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { route } from '@/ai/router'
 import type { Order } from '@/api/commands/order/type'
 import { AppLayout } from '@/components/layouts/app-layout'
-import { BottomNav } from '@/components/layouts/bottom-nav'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -198,7 +197,7 @@ export const ChatbotPage = () => {
 
   return (
     <AppLayout>
-      <div className="-m-2 flex h-[calc(100svh-3.5rem)] flex-col overflow-hidden pb-14 sm:-m-4 sm:h-[calc(100svh-4rem)] md:-m-6 md:h-[calc(100svh-4rem)] md:pb-0">
+      <div className="-m-2 flex h-[calc(100svh-3.5rem)] flex-col overflow-hidden sm:-m-4 sm:h-[calc(100svh-4rem)] md:-m-6 md:h-[calc(100svh-4rem)]">
         <ResizablePanelGroup orientation="horizontal" className="min-w-0">
           {/* 左侧：订单看板 */}
           <ResizablePanel defaultSize={60} minSize={30}>
@@ -295,7 +294,6 @@ export const ChatbotPage = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      <BottomNav />
 
       {/* 会话列表 Sheet 抽屉 */}
       <SessionListSheet
