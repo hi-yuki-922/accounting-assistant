@@ -132,7 +132,7 @@ export const OrderTaskBoard: React.FC<OrderTaskBoardProps> = ({
       : `${formatDate(dateRange.from, 'short')} ~ ${formatDate(dateRange.to, 'short')}`
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="absolute inset-0 flex flex-col overflow-hidden">
       {/* 菜单栏 */}
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <div className="flex items-center gap-2">

@@ -198,11 +198,11 @@ export const ChatbotPage = () => {
 
   return (
     <AppLayout>
-      <div className="-m-2 flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden pb-14 sm:-m-4 sm:h-[calc(100dvh-4rem)] md:-m-6 md:h-[calc(100dvh-4rem)] md:pb-0">
-        <ResizablePanelGroup orientation="horizontal">
+      <div className="-m-2 flex h-[calc(100svh-3.5rem)] flex-col overflow-hidden pb-14 sm:-m-4 sm:h-[calc(100svh-4rem)] md:-m-6 md:h-[calc(100svh-4rem)] md:pb-0">
+        <ResizablePanelGroup orientation="horizontal" className="min-w-0">
           {/* 左侧：订单看板 */}
           <ResizablePanel defaultSize={60} minSize={30}>
-            <div className="h-full overflow-hidden">
+            <div className="relative h-full min-w-0 overflow-hidden">
               <OrderTaskBoard onCardClick={handleCardClick} />
             </div>
           </ResizablePanel>
@@ -211,7 +211,7 @@ export const ChatbotPage = () => {
 
           {/* 右侧：Section 对话区域 */}
           <ResizablePanel defaultSize={40} minSize={20}>
-            <div className="flex h-full flex-col overflow-hidden">
+            <div className="flex h-full min-w-0 flex-col overflow-hidden">
               {/* 菜单栏 */}
               <MenuBar
                 title={activeSession?.title}

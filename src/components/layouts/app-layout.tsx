@@ -196,7 +196,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             </Avatar>
           </div>
         </header>
-        <main className={cn('flex-1 p-2 sm:p-4 md:p-6')}>{children}</main>
+        <main className={cn('flex-1 overflow-hidden p-2 sm:p-4 md:p-6')}>
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
