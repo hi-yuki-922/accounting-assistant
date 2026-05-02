@@ -10,8 +10,7 @@ import {
   ACCOUNTING_CHANNEL_DISPLAY_TEXT,
 } from '@/api/commands/accounting/enums'
 import { orderApi } from '@/api/commands/order'
-import type { SettlePreview } from '@/api/commands/order/type'
-import type { Order } from '@/api/commands/order/type'
+import type { Order, SettlePreview } from '@/api/commands/order/type'
 import { Field, FieldError, FieldTitle } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -120,7 +119,9 @@ export const SettleOrderForm = ({
   }, [value.actualAmount, order.id])
 
   const hasDiscount =
-    preview?.discountAmount != null && preview.discountAmount !== 0
+    preview?.discountAmount !== null &&
+    preview?.discountAmount !== undefined &&
+    preview.discountAmount !== 0
 
   return (
     <div className="space-y-3 py-4">

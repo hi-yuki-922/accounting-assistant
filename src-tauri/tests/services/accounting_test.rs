@@ -1395,10 +1395,10 @@ async fn test_get_record_by_order_id_with_record() {
         assert_eq!(record.order_id, Some(2024010100001));
 
         // 根据 order_id 查询
-        let found = service.get_record_by_order_id(2024010100001).await?;
+        let found = service.get_records_by_order_id(2024010100001).await?;
 
-        assert!(found.is_some());
-        let found_record = found.unwrap();
+        assert!(!found.is_empty());
+        let found_record = found.into_iter().next().unwrap();
         assert_eq!(found_record.id, record.id);
         assert_eq!(found_record.order_id, Some(2024010100001));
         assert_eq!(found_record.title, "销售订单-#1");
@@ -1415,9 +1415,9 @@ async fn test_get_record_by_order_id_no_record() {
     run_in_transaction(|db| async move {
         let service = AccountingService::new(db.clone());
 
-        let found = service.get_record_by_order_id(999999).await?;
+        let found = service.get_records_by_order_id(999999).await?;
 
-        assert!(found.is_none());
+        assert!(found.is_empty());
 
         Ok(())
     })

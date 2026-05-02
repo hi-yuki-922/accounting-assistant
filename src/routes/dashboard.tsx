@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { AppLayout } from '@/components/layouts/app-layout'
-import { BottomNav } from '@/components/layouts/bottom-nav'
 import {
   mockStatsCards,
   mockChartData,
@@ -15,7 +14,7 @@ import { TransactionsTable } from '@/pages/dashboard/components/transactions-tab
 
 const DashboardRoute = () => (
   <AppLayout>
-    <div className="space-y-4 sm:space-y-6 pb-20 md:pb-0">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">仪表板</h1>
@@ -45,7 +44,6 @@ const DashboardRoute = () => (
         <TransactionsTable data={mockTransactions.slice(0, 10)} />
       </div>
     </div>
-    <BottomNav />
   </AppLayout>
 )
 

@@ -2,6 +2,7 @@
  * 商品列表页面
  * 展示商品卡片列表，支持搜索、新增/编辑/删除
  */
+/* eslint-disable eslint/no-void */
 
 import { Package, Plus, Search } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'

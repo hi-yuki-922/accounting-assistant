@@ -136,6 +136,7 @@ impl OrderService {
             order_no: Set(order_no.clone()),
             order_type: Set(order_type),
             customer_id: Set(input.customer_id),
+            customer_name: Set(input.customer_name),
             total_amount: Set(total_amount),
             actual_amount: Set(actual_amount),
             sub_type: Set(sub_type),

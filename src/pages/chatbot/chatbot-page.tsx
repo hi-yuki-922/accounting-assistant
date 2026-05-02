@@ -1,253 +1,320 @@
-import type { ChatStatus, ToolLoopAgent } from 'ai'
-import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
-
-import type { ChatSession } from '@/api'
-import { chat, MessageRole, MessageState } from '@/api'
-import type { PromptInputMessage } from '@/components/ai-elements/prompt-input.tsx'
-import { useMessages } from '@/hooks/use-messages.ts'
-import { useSessions } from '@/hooks/use-sessions.ts'
-import { createFinanceAgent, getModelName } from '@/lib/ai-provider.ts'
-import type { FinanceTools } from '@/lib/chat-tools.ts'
-
-import { ChatHeader } from './components/chat-header'
-import { MessageInput } from './components/message-input'
-import { MessageList } from './components/message-list'
-import { SessionDrawer } from './components/session-drawer'
-
 /**
- * 聊天页面组件（重构版）
+ * Chatbot 页面组件
+ * 协调 hooks 之间的数据流，管理布局和消息路由
  */
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { route } from '@/ai/router'
+import type { Order } from '@/api/commands/order/type'
+import { AppLayout } from '@/components/layouts/app-layout'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useSectionList } from '@/hooks/use-section-list'
+import { useSessionList } from '@/hooks/use-session-list'
+import {
+  getConfirmationMode,
+  setConfirmationMode,
+} from '@/lib/confirmation-mode'
+import type { ConfirmationMode } from '@/lib/confirmation-mode'
+import { MenuBar } from '@/pages/chatbot/components/menu-bar'
+import { OrderTaskBoard } from '@/pages/chatbot/components/order-board/order-task-board'
+import { PromptInput } from '@/pages/chatbot/components/prompt-input'
+import { SectionCard } from '@/pages/chatbot/components/section-card'
+import { SectionIndexDialog } from '@/pages/chatbot/components/section-index-dialog'
+import { SessionListSheet } from '@/pages/chatbot/components/session-list-sheet'
+import { OrderDetailDialog } from '@/pages/orders/order-detail-dialog'
+import type { PromptSubmitPayload, SectionCardHandle } from '@/types/chatbot'
+
 export const ChatbotPage = () => {
-  const [chatStatus, setChatStatus] = useState<ChatStatus>('submitted')
-
-  const [drawerVisible, setDrawerVisible] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [modelName, setModelName] = useState(getModelName())
-
-  const [userPrompt, setUserPrompt] = useState('')
-
-  const agentRef = useRef<ToolLoopAgent<never, FinanceTools> | null>(null)
-  useEffect(() => {
-    const result = createFinanceAgent(modelName)
-    result.match(
-      (agent) => {
-        agentRef.current = agent
-      },
-      (_) => {
-        agentRef.current = null
-      }
-    )
-  }, [modelName])
+  // 会话管理
   const {
     sessions,
-    currentSession,
-    editingSessionId,
-    editingTitle,
-    setSessions,
-    setCurrentSession,
-    setEditingTitle,
-    setEditingSessionId,
-    createSession,
-    generateSessionTitle,
-    deleteSession,
+    activeSessionId,
+    loadTodayLastSession,
+    isLoading: isSessionLoading,
+    createSession: createNewSession,
     renameSession,
-  } = useSessions()
+    switchSession,
+    generateSummary,
+  } = useSessionList()
 
-  const { messages, setMessages, createMessage, loadMessages } = useMessages()
+  // 节列表管理
+  const {
+    sections,
+    summaries,
+    activeSectionFile,
+    addSection,
+    setActive,
+    toggleCollapse,
+    refreshSummaries,
+  } = useSectionList(activeSessionId)
 
-  const onCreateNewSession = async () => {
-    setLoading(true)
-    const result = await createSession()
-    result.match(
-      (newSession) => {
-        setSessions([newSession, ...sessions])
-        setCurrentSession(newSession)
-        setMessages([])
-        setDrawerVisible(false)
-      },
-      (e) => {
-        toast.error(e.message)
-      }
-    )
-    setLoading(false)
-  }
+  // 引用状态
+  const [referenceSectionFile, setReferenceSectionFile] = useState<
+    string | null
+  >(null)
 
-  const onSendMessage = async (message: PromptInputMessage) => {
-    if (!agentRef.current) {
-      toast.error('Agent 加载失败')
-      return
+  // Section 卡片 ref 映射
+  const sectionRefs = useRef<Map<string, SectionCardHandle>>(new Map())
+
+  // 当前活跃会话
+  const activeSession = sessions.find((s) => s.id === activeSessionId)
+
+  // 是否有节正在流式
+  const [streamingSection, setStreamingSection] = useState<string | null>(null)
+
+  // 会话列表 Sheet 状态
+  const [sessionSheetOpen, setSessionSheetOpen] = useState(false)
+
+  // 确认模式
+  const [confirmationMode, setConfirmMode] = useState<ConfirmationMode>(
+    getConfirmationMode()
+  )
+  const handleToggleConfirmation = useCallback(() => {
+    const next = confirmationMode === 'on' ? 'off' : 'on'
+    setConfirmationMode(next)
+    setConfirmMode(next)
+  }, [confirmationMode])
+
+  // 首次进入自动加载
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true
+      loadTodayLastSession()
     }
-    const userContent = message.text
-    if (!userContent.trim()) {
-      return
-    }
-    setUserPrompt('')
-    let session = currentSession
-    if (!session) {
-      const newSession = await createSession('新会话')
-      if (newSession.isErr()) {
-        toast.error(newSession.error.message)
+  }, [loadTodayLastSession])
+
+  // 获取节摘要文本
+  const getSummaryText = useCallback(
+    (sectionFile: string) =>
+      summaries.find((s) => s.sectionFile === sectionFile)?.summary,
+    [summaries]
+  )
+
+  // 消息路由：处理 PromptInput 提交
+  const handleSubmit = useCallback(
+    async (payload: PromptSubmitPayload) => {
+      if (!activeSessionId) {
         return
       }
-      session = newSession.value
-      generateSessionTitle(session.id, userContent)
-    }
 
-    const userMessage = await createMessage({
-      content: userContent,
-      role: MessageRole.User,
-      sessionId: session.id,
-      state: MessageState.Completed,
-    })
+      let targetSectionFile: string
 
-    if (userMessage.isErr()) {
-      toast.error('保存用户消息失败')
-      return
-    }
-    const assistantMessage = await createMessage({
-      content: '',
-      role: MessageRole.Assistant,
-      sessionId: session.id,
-      state: MessageState.Sending,
-    })
-
-    if (assistantMessage.isErr()) {
-      toast.error('创建消息失败')
-      return
-    }
-
-    const inputMessages = messages.map((msg) => ({
-      content: msg.content,
-      role: msg.role,
-    }))
-
-    let aiResponse = ''
-    const result = await agentRef.current.stream({
-      messages: inputMessages,
-    })
-    // const [streamError, result] = await tryit(agentRef.current.stream)({
-    //   messages: inputMessages,
-    // })
-
-    // if (streamError) {
-    //   // TODO: 请求失败错误处理
-    //   console.log(streamError)
-    //   setLoading(false)
-    //   return
-    // }
-
-    for await (const chunk of result.textStream) {
-      aiResponse += chunk
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessage.value.id
-            ? { ...msg, content: aiResponse }
-            : msg
+      if (payload.referenceSectionFile) {
+        // 引用续接模式
+        targetSectionFile = payload.referenceSectionFile
+        // 确保目标节展开
+        const section = sections.find(
+          (s) => s.sectionFile === targetSectionFile
         )
-      )
-    }
-
-    await chat.updateMessageContent({
-      content: aiResponse,
-      id: assistantMessage.value.id,
-    })
-
-    await chat.updateMessageState(
-      assistantMessage.value.id,
-      MessageState.Completed
-    )
-
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === assistantMessage.value.id
-          ? { ...msg, content: aiResponse, state: MessageState.Completed }
-          : msg
-      )
-    )
-  }
-
-  const onSelectSession = async (session: ChatSession) => {
-    setCurrentSession(session)
-    const result = await loadMessages(session.id)
-    result.match(
-      () => {
-        setDrawerVisible(false)
-      },
-      () => {
-        toast.error('加载会话消息失败')
+        if (section?.collapsed) {
+          toggleCollapse(targetSectionFile)
+        }
+      } else {
+        // 新建节模式
+        const routeResult = await route(activeSessionId)
+        targetSectionFile = routeResult.sectionFile
+        addSection(targetSectionFile, payload.content)
       }
-    )
-  }
 
-  const onDeleteSession = async (sessionId: number) => {
-    const result = await deleteSession(sessionId)
-    if (result.isOk()) {
-      setMessages([])
+      setActive(targetSectionFile)
+      setStreamingSection(targetSectionFile)
+
+      // 等待 ref 就绪后发送消息
+      // 使用 requestAnimationFrame 确保 SectionCard 已渲染
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const handle = sectionRefs.current.get(targetSectionFile)
+          handle?.send(payload.content)
+        })
+      })
+
+      // 清除引用状态
+      setReferenceSectionFile(null)
+    },
+    [activeSessionId, sections, toggleCollapse, addSection, setActive]
+  )
+
+  // 停止流式
+  const handleStop = useCallback(() => {
+    if (streamingSection) {
+      sectionRefs.current.get(streamingSection)?.stop()
     }
-  }
+  }, [streamingSection])
 
-  const onStartRenameSession = (session: ChatSession) => {
-    setEditingSessionId(session.id)
-    setEditingTitle(session.title)
-  }
-  const onSaveSessionTitle = async (sessionId: number) => {
-    const result = await renameSession(sessionId, editingTitle)
-    if (result.isOk()) {
-      setEditingSessionId(null)
-      setEditingTitle('')
-    }
-  }
-  const onCancelRenameSession = () => {
-    setEditingSessionId(null)
-    setEditingTitle('')
-  }
+  // 引用节
+  const handleQuote = useCallback((sectionFile: string) => {
+    setReferenceSectionFile(sectionFile)
+  }, [])
 
-  // 渲染聊天界面
+  // 跳转到节（展开并滚动）
+  const handleJump = useCallback(
+    (sectionFile: string) => {
+      const section = sections.find((s) => s.sectionFile === sectionFile)
+      if (section?.collapsed) {
+        toggleCollapse(sectionFile)
+      }
+      setActive(sectionFile)
+      // 滚动到目标节
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`#section-${sectionFile}`)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+    },
+    [sections, toggleCollapse, setActive]
+  )
+
+  // 流式完成回调
+  const handleStreamComplete = useCallback(
+    (sectionFile: string) => () => {
+      setStreamingSection((prev) => (prev === sectionFile ? null : prev))
+      refreshSummaries()
+    },
+    [refreshSummaries]
+  )
+
+  // 是否有节正在流式
+  const isStreaming = streamingSection !== null
+
+  // 订单详情弹窗状态
+  const [detailOrderId, setDetailOrderId] = useState<number | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
+  const handleCardClick = useCallback((order: Order) => {
+    setDetailOrderId(order.id)
+    setDetailOpen(true)
+  }, [])
+
+  const handleDetailRefresh = useCallback(() => {
+    // 详情弹窗操作后，看板通过事件订阅自动刷新，无需额外处理
+  }, [])
+
   return (
-    <div className="flex h-screen bg-background">
-      {/* 主聊天区域 */}
-      <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-9rem)]">
-        {/* 聊天头部 */}
-        <ChatHeader
-          currentSession={currentSession}
-          isLoading={loading}
-          onToggleDrawer={() => setDrawerVisible((prev) => !prev)}
-          onCreateNewSession={onCreateNewSession}
-        />
+    <AppLayout>
+      <div className="-m-2 flex h-[calc(100svh-3.5rem)] flex-col overflow-hidden sm:-m-4 sm:h-[calc(100svh-4rem)] md:-m-6 md:h-[calc(100svh-4rem)]">
+        <ResizablePanelGroup orientation="horizontal" className="min-w-0">
+          {/* 左侧：订单看板 */}
+          <ResizablePanel defaultSize={60} minSize={30}>
+            <div className="relative h-full min-w-0 overflow-hidden">
+              <OrderTaskBoard onCardClick={handleCardClick} />
+            </div>
+          </ResizablePanel>
 
-        {/* 消息列表 */}
-        <MessageList messages={messages} />
+          <ResizableHandle withHandle />
 
-        {/* 消息输入框 */}
-        <div className="border-t p-4">
-          <MessageInput
-            inputValue={userPrompt}
-            onInputChange={setUserPrompt}
-            onSubmit={onSendMessage}
-            chatStatus={chatStatus}
-          />
-        </div>
+          {/* 右侧：Section 对话区域 */}
+          <ResizablePanel defaultSize={40} minSize={20}>
+            <div className="flex h-full min-w-0 flex-col overflow-hidden">
+              {/* 菜单栏 */}
+              <MenuBar
+                title={activeSession?.title}
+                onCreateSession={() => createNewSession()}
+                onRenameSession={(newTitle) => {
+                  if (activeSessionId) {
+                    renameSession(activeSessionId, newTitle)
+                  }
+                }}
+                onOpenSessionList={() => setSessionSheetOpen(true)}
+              />
+
+              {/* Section 列表 */}
+              <ScrollArea className="min-h-0 min-w-0 flex-1">
+                <div className="space-y-2 p-4">
+                  {sections.length === 0 && !isSessionLoading && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        你可以问我关于订单、记账、客户等问题
+                      </p>
+                    </div>
+                  )}
+
+                  {sections.map((section, idx) => (
+                    <div
+                      key={section.sectionFile}
+                      id={`section-${section.sectionFile}`}
+                    >
+                      <SectionCard
+                        ref={(el) => {
+                          if (el) {
+                            sectionRefs.current.set(section.sectionFile, el)
+                          } else {
+                            sectionRefs.current.delete(section.sectionFile)
+                          }
+                        }}
+                        sessionId={activeSessionId as number}
+                        sectionFile={section.sectionFile}
+                        index={idx + 1}
+                        summary={summaries.find(
+                          (s) => s.sectionFile === section.sectionFile
+                        )}
+                        collapsed={section.collapsed}
+                        isActive={activeSectionFile === section.sectionFile}
+                        onToggleCollapse={toggleCollapse}
+                        onQuote={handleQuote}
+                        onStreamComplete={handleStreamComplete(
+                          section.sectionFile
+                        )}
+                        confirmationMode={confirmationMode}
+                        initialMessage={section.initialMessage}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              {/* 底部输入框 */}
+              <PromptInput
+                isStreaming={isStreaming}
+                referenceSectionFile={referenceSectionFile}
+                referenceSummary={
+                  referenceSectionFile
+                    ? getSummaryText(referenceSectionFile)
+                    : undefined
+                }
+                onSubmit={handleSubmit}
+                onStop={handleStop}
+                onCancelReference={() => setReferenceSectionFile(null)}
+                sectionIndexSlot={
+                  <SectionIndexDialog
+                    summaries={summaries}
+                    onJump={handleJump}
+                    onQuote={handleQuote}
+                  />
+                }
+                confirmationMode={confirmationMode}
+                onToggleConfirmation={handleToggleConfirmation}
+              />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
-      {/* 会话抽屉 */}
-      <SessionDrawer
-        isOpen={drawerVisible}
-        onClose={() => setDrawerVisible(false)}
+      {/* 会话列表 Sheet 抽屉 */}
+      <SessionListSheet
+        open={sessionSheetOpen}
+        onOpenChange={setSessionSheetOpen}
         sessions={sessions}
-        currentSession={currentSession}
-        onSelectSession={onSelectSession}
-        onDeleteSession={onDeleteSession}
-        onStartRenameSession={onStartRenameSession}
-        onSaveSessionTitle={onSaveSessionTitle}
-        onCancelRenameSession={onCancelRenameSession}
-        onCreateNewSession={onCreateNewSession}
-        isLoading={loading}
-        editingSessionId={editingSessionId}
-        editingTitle={editingTitle}
-        setEditingTitle={setEditingTitle}
+        activeSessionId={activeSessionId}
+        onSwitchSession={switchSession}
+        onRenameSession={renameSession}
+        onGenerateSummary={generateSummary}
       />
-    </div>
+
+      {/* 订单详情弹窗 */}
+      <OrderDetailDialog
+        open={detailOpen}
+        orderId={detailOrderId}
+        onClose={() => {
+          setDetailOpen(false)
+        }}
+        onRefresh={handleDetailRefresh}
+      />
+    </AppLayout>
   )
 }

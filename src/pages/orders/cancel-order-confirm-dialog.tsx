@@ -3,6 +3,7 @@
  */
 
 import { AlertTriangle } from 'lucide-react'
+import React from 'react'
 
 import type { Order } from '@/api/commands/order/type'
 import { ORDER_TYPE_DISPLAY_TEXT } from '@/api/commands/order/type'
@@ -44,8 +45,10 @@ export const CancelOrderConfirmDialog: React.FC<
 
       <div className="py-4">
         <DialogDescription className="text-base">
-          确定要取消{ORDER_TYPE_DISPLAY_TEXT[order?.orderType ?? 'Sales']}订单 "
-          <strong className="text-foreground">{order?.orderNo}</strong>" 吗？
+          确定要取消{ORDER_TYPE_DISPLAY_TEXT[order?.orderType ?? 'Sales']}订单
+          &ldquo;
+          <strong className="text-foreground">{order?.orderNo}</strong>&rdquo;
+          吗？
         </DialogDescription>
         <DialogDescription className="text-sm mt-3 text-orange-600 dark:text-orange-400">
           取消后订单不可恢复，也不能再结账。

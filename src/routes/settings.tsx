@@ -19,7 +19,6 @@ const SettingsPage = () => {
   const [apiKey, setApiKey] = useState(
     () => localStorage.getItem('zhipu_api_key') || ''
   )
-  const [isValidating, setIsValidating] = useState(false)
   const [validationResult, setValidationResult] = useState<{
     valid: boolean
     message: string
@@ -36,40 +35,6 @@ const SettingsPage = () => {
     })
     setTimeout(() => setValidationResult(null), 3000)
   }
-
-  const handleValidateApiKey = async () => {
-    if (!apiKey.trim()) {
-      setValidationResult({
-        message: '请输入 API Key',
-        valid: false,
-      })
-      return
-    }
-
-    setIsValidating(true)
-    setValidationResult(null)
-
-    try {
-      // 模拟 API Key 验证（实际使用时需要调用智谱 AI 的验证接口）
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 1000)
-      })
-
-      // 模拟验证成功
-      setValidationResult({
-        message: 'API Key 验证成功',
-        valid: true,
-      })
-    } catch {
-      setValidationResult({
-        message: 'API Key 验证失败，请检查输入',
-        valid: false,
-      })
-    } finally {
-      setIsValidating(false)
-    }
-  }
-
   const handleToggleNotifications = (checked: boolean) => {
     setEnableNotifications(checked)
     localStorage.setItem('enable_notifications', String(checked))
@@ -118,14 +83,9 @@ const SettingsPage = () => {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setApiKey(e.target.value)
                   }
-                  disabled={isValidating}
                 />
                 {apiKey && (
-                  <Button
-                    variant="outline"
-                    onClick={handleClearApiKey}
-                    disabled={isValidating}
-                  >
+                  <Button variant="outline" onClick={handleClearApiKey}>
                     <X className="h-4 w-4" />
                   </Button>
                 )}
@@ -136,13 +96,6 @@ const SettingsPage = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleValidateApiKey}
-                disabled={isValidating || !apiKey.trim()}
-              >
-                {isValidating ? '验证中...' : '验证'}
-              </Button>
               <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
                 保存
               </Button>

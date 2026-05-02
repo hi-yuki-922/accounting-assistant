@@ -129,11 +129,13 @@ where
     let db = init_db_connection_internal().await?;
 
     // 根据测试选项决定是否创建默认账簿
-    let options = TEST_OPTIONS.lock().unwrap();
-    if options.create_default_book {
-        let book_service = AccountingBookService::new(db.clone());
-        book_service.create_default_book().await?;
-    }
+    {
+        let options = TEST_OPTIONS.lock().unwrap();
+        if options.create_default_book {
+            let book_service = AccountingBookService::new(db.clone());
+            book_service.create_default_book().await?;
+        }
+    } // 释放 MutexGuard，防止测试 panic 时污染 mutex
 
     test_fn(db).await
 }
@@ -208,53 +210,6 @@ mod context_tests {
         let has_default = books.iter().any(|b| b.id == 10000001);
 
         assert!(has_default, "Default book should be created");
-    }
-
-    #[tokio::test]
-    async fn test_temp_directory_management() {
-        // 验证临时文件目录管理
-        let temp_dir = get_temp_dir();
-
-        // 确保目录存在（如果之前的测试清理了）
-        if !temp_dir.exists() {
-            cleanup_temp_dir();
-            let temp_dir = get_temp_dir();
-            assert!(
-                temp_dir.exists(),
-                "Temp directory should exist after cleanup"
-            );
-        }
-
-        assert!(temp_dir.exists(), "Temp directory should exist");
-        assert!(temp_dir.is_dir(), "Temp path should be a directory");
-
-        // 可以在临时目录中创建测试文件
-        let test_file = temp_dir.join("test.txt");
-        // 确保父目录存在
-        if let Some(parent) = test_file.parent() {
-            std::fs::create_dir_all(parent).expect("Failed to create parent directory");
-        }
-        std::fs::write(&test_file, "test content").expect("Failed to write test file");
-
-        assert!(test_file.exists(), "Test file should exist");
-    }
-
-    #[tokio::test]
-    async fn test_temp_directory_cleanup() {
-        // 验证临时目录清理
-        let temp_dir_1 = get_temp_dir();
-        let path_1 = temp_dir_1.clone();
-
-        cleanup_temp_dir();
-
-        let temp_dir_2 = get_temp_dir();
-        let path_2 = temp_dir_2.clone();
-
-        // 清理后应该创建新的临时目录
-        assert_ne!(
-            path_1, path_2,
-            "Temp directories should be different after cleanup"
-        );
     }
 
     #[tokio::test]

@@ -3,6 +3,8 @@
  * 提供预设图标选项供用户选择
  */
 
+import React from 'react'
+
 import { BOOK_ICONS } from '@/config/book-icons'
 import type { BookIcon } from '@/config/book-icons'
 import { cn } from '@/lib/utils'

@@ -259,21 +259,18 @@
 - **THEN** 系统 MUST 更新页码显示
 
 ### Requirement: Add book navigation entry
-系统 MUST 在导航栏中添加账本入口。
+系统 MUST 在顶部导航栏中添加账本入口。
 
-#### Scenario: Display book entry in sidebar
-- **WHEN** 用户查看侧边栏导航
+#### Scenario: Display book entry in top nav
+- **WHEN** 用户查看顶部导航栏
 - **THEN** 系统 MUST 显示"账本"导航项
 - **THEN** "账本"导航项 MUST 有对应图标
 - **THEN** 点击"账本"导航项 MUST 导航到 `/books` 页面
 - **THEN** 当前在账本页面时，"账本"导航项 MUST 高亮显示
 
-#### Scenario: Display book entry in bottom nav
-- **WHEN** 用户在移动端查看底部导航
-- **THEN** 系统 MUST 显示"账本"导航项
-- **THEN** "账本"导航项 MUST 有对应图标
-- **THEN** 点击"账本"导航项 MUST 导航到 `/books` 页面
-- **THEN** 当前在账本页面时，"账本"导航项 MUST 高亮显示
+#### Scenario: 账本页面在顶部导航布局下渲染
+- **WHEN** 用户通过顶部导航栏点击「账本」进入账本页面
+- **THEN** 账本页面在顶部导航栏下方的内容区域正常渲染，所有功能正常工作
 
 ### Requirement: Navigate back from book detail
 系统 MUST 支持从账本详情页返回列表。

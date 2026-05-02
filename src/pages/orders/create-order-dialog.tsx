@@ -5,7 +5,7 @@
  */
 
 import { X } from 'lucide-react'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 
 import { customerApi } from '@/api/commands/customer'
 import type { Customer } from '@/api/commands/customer/type'
@@ -47,6 +47,7 @@ export type CreateOrderDialogProps = {
   onConfirm: (data: {
     orderType: string
     customerId?: number
+    customerName?: string
     items: {
       productId: number
       productName: string
@@ -60,14 +61,6 @@ export type CreateOrderDialogProps = {
     subType?: string
   }) => void
   loading?: boolean
-}
-
-/** 根据 order_type 和 customer_id 获取默认 sub_type */
-const getDefaultSubType = (orderType: string, customerId?: number): string => {
-  if (orderType === 'Sales') {
-    return customerId ? 'Wholesale' : 'Retail'
-  }
-  return 'WholesalePurchase'
 }
 
 export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
@@ -183,6 +176,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
     onConfirm({
       orderType,
       customerId,
+      customerName: selectedCustomer?.name,
       remark: remark.trim() || undefined,
       items: extractValidItems(items),
       subType,

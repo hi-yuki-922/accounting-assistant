@@ -13,6 +13,7 @@ src/api/commands/
 │   └── type.ts          # 类型定义（对齐 Rust 后端）
 ├── accounting-book/
 ├── attachment/
+├── category/            # 商品分类
 ├── chat/
 ├── customer/
 ├── order/
@@ -36,21 +37,27 @@ export type Customer = {
   id: number
   name: string
   category: CustomerCategory
-  phone: string | null
-  address: string | null
-  remark: string | null
-  create_at: string
+  phone: string // 必填字段
+  wechat?: string // 微信号
+  address?: string
+  bankAccount?: string // 银行账号
+  remark?: string
+  createAt: string // camelCase（后端 serde rename_all）
 }
 
 /** 创建客户 DTO */
 export type CreateCustomerDto = {
   name: string
-  category: string
-  phone?: string
+  category: CustomerCategory // 枚举类型，非 string
+  phone: string // 必填字段
+  wechat?: string
   address?: string
+  bankAccount?: string
   remark?: string
 }
 ```
+
+> **注意**：后端 DTO 使用 `#[serde(rename_all = "camelCase")]`，因此前端字段名为 camelCase（如 `createAt` 而非 `create_at`）。
 
 ### 跨模块共用类型
 
@@ -92,7 +99,7 @@ export const ACCOUNTING_TYPE_DISPLAY_TEXT = {
   [AccountingType.Expenditure]: '支出',
   [AccountingType.InvestmentIncome]: '投资收益',
   [AccountingType.InvestmentLoss]: '投资亏损',
-  [AccountingType.WriteOff]: '核销',
+  [AccountingType.WriteOff]: '冲账',
 } as const
 ```
 
@@ -151,6 +158,7 @@ export const customerApi = { ... }
 export const productApi = { ... }
 export const orderApi = { ... }
 export const accountingBookApi = { ... }
+export const categoryApi = { ... }
 ```
 
 ## 统一导出
@@ -161,8 +169,22 @@ export const accountingBookApi = { ... }
 export * from './accounting'
 export * from './accounting-book'
 export * from './attachment'
+export * from './category'
 export * from './chat'
 export * from './customer'
 export * from './order'
 export * from './product'
+
+// 便捷导入
+export { chat } from './chat'
+export { accounting } from './accounting'
+export { accountingBook } from './accounting-book'
+export { attachment } from './attachment'
+export { categoryApi } from './category'
+export { customerApi } from './customer'
+export { productApi } from './product'
+export { orderApi } from './order'
+
+// 重新导出 tryCMD
+export { tryCMD } from '@/lib'
 ```

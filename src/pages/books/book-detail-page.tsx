@@ -2,6 +2,7 @@
  * 账本详情页面
  * 展示账本信息和记账记录，支持增删改查、批量入账、冲账等操作
  */
+/* eslint-disable eslint/no-void */
 
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { format } from 'date-fns'
@@ -33,9 +34,9 @@ import {
 } from '@/components/ui/pagination'
 import { Spinner } from '@/components/ui/spinner'
 
+import { AccountingBookDialog } from './components/accounting-book-dialog.tsx'
+import { AccountingRecordDialog } from './components/accounting-record-dialog.tsx'
 import { BatchPostConfirmDialog } from './components/batch-post-confirm-dialog'
-import { CreateEditBookDialog } from './components/create-edit-book-dialog'
-import { CreateEditRecordDialog } from './components/create-edit-record-dialog'
 import { DeleteBookConfirmDialog } from './components/delete-book-confirm-dialog'
 import { DeleteRecordConfirmDialog } from './components/delete-record-confirm-dialog'
 import { RecordFilter } from './components/record-filter'
@@ -96,7 +97,7 @@ export const BookDetailPage = () => {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [sortField, setSortField] = useState<string>('recordTime')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
-  const [refreshCounter, setRefreshCounter] = useState(0)
+  const [_refreshCounter, setRefreshCounter] = useState(0)
 
   // 加载账本详情
   const loadBookDetail = useCallback(async () => {
@@ -125,7 +126,7 @@ export const BookDetailPage = () => {
 
     const formatDateTime = (date: Date, isEndTime = false) => {
       const time = isEndTime ? '23:59:59' : '00:00:00'
-      return format(date, 'yyyy-MM-dd') + 'T' + time
+      return `${format(date, 'yyyy-MM-dd')}T${time}`
     }
 
     const result = await accountingBook.getRecordsByBookId({
@@ -159,14 +160,7 @@ export const BookDetailPage = () => {
         setLoading(false)
       }
     )
-  }, [
-    bookId,
-    numericBookId,
-    pagination.page,
-    pagination.pageSize,
-    filters,
-    refreshCounter,
-  ])
+  }, [bookId, numericBookId, pagination.page, pagination.pageSize, filters])
 
   useEffect(() => {
     loadBookDetail()
@@ -375,31 +369,29 @@ export const BookDetailPage = () => {
     const pages: (number | string)[] = []
 
     if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 1; i <= totalPages; i += 1) {
+        pages.push(i)
+      }
+    } else if (page <= 4) {
+      for (let i = 1; i <= 5; i += 1) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(totalPages)
+    } else if (page >= totalPages - 3) {
+      pages.push(1)
+      pages.push('...')
+      for (let i = totalPages - 4; i <= totalPages; i += 1) {
         pages.push(i)
       }
     } else {
-      if (page <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          pages.push(i)
-        }
-        pages.push('...')
-        pages.push(totalPages)
-      } else if (page >= totalPages - 3) {
-        pages.push(1)
-        pages.push('...')
-        for (let i = totalPages - 4; i <= totalPages; i++) {
-          pages.push(i)
-        }
-      } else {
-        pages.push(1)
-        pages.push('...')
-        for (let i = page - 1; i <= page + 1; i++) {
-          pages.push(i)
-        }
-        pages.push('...')
-        pages.push(totalPages)
+      pages.push(1)
+      pages.push('...')
+      for (let i = page - 1; i <= page + 1; i += 1) {
+        pages.push(i)
       }
+      pages.push('...')
+      pages.push(totalPages)
     }
 
     return pages
@@ -516,7 +508,7 @@ export const BookDetailPage = () => {
           </div>
           <p className="text-muted-foreground mb-2">暂无记账记录</p>
           <p className="text-sm text-muted-foreground">
-            点击"记一笔"添加第一条记录
+            点击&ldquo;记一笔&rdquo;添加第一条记录
           </p>
         </div>
       ) : (
@@ -554,17 +546,17 @@ export const BookDetailPage = () => {
                   上一页
                 </PaginationPrevious>
               </PaginationItem>
-              {getPageNumbers().map((page, index) => (
-                <PaginationItem key={index}>
-                  {page === '...' ? (
+              {getPageNumbers().map((p) => (
+                <PaginationItem key={`page-${p}`}>
+                  {p === '...' ? (
                     <PaginationEllipsis />
                   ) : (
                     <PaginationLink
-                      isActive={page === pagination.page}
-                      onClick={() => handlePageChange(page as number)}
+                      isActive={p === pagination.page}
+                      onClick={() => handlePageChange(p as number)}
                       className="cursor-pointer"
                     >
-                      {page}
+                      {p}
                     </PaginationLink>
                   )}
                 </PaginationItem>
@@ -590,7 +582,7 @@ export const BookDetailPage = () => {
       )}
 
       {/* 记录对话框（新增/编辑） */}
-      <CreateEditRecordDialog
+      <AccountingRecordDialog
         open={recordDialogOpen}
         onClose={() => {
           setRecordDialogOpen(false)
@@ -637,7 +629,7 @@ export const BookDetailPage = () => {
 
       {/* 编辑账本对话框 */}
       {book && (
-        <CreateEditBookDialog
+        <AccountingBookDialog
           open={editDialogOpen}
           book={book}
           onClose={() => setEditDialogOpen(false)}

@@ -17,6 +17,8 @@ pub struct Model {
     pub order_type: OrderType,
     /// 关联客户 ID（散客为 None）
     pub customer_id: Option<i64>,
+    /// 客户名称（冗余快照，创建时写入）
+    pub customer_name: Option<String>,
     /// 应收/应付总额
     #[sea_orm(column_type = "Decimal(Some((19, 4)))")]
     pub total_amount: Decimal,
@@ -50,6 +52,7 @@ impl ActiveModelBehavior for ActiveModel {
             order_no: sea_orm::ActiveValue::NotSet,
             order_type: sea_orm::ActiveValue::NotSet,
             customer_id: sea_orm::ActiveValue::NotSet,
+            customer_name: sea_orm::ActiveValue::NotSet,
             total_amount: sea_orm::ActiveValue::NotSet,
             actual_amount: sea_orm::ActiveValue::NotSet,
             sub_type: sea_orm::ActiveValue::NotSet,

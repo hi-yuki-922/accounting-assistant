@@ -4,12 +4,11 @@ use sea_orm::{
 };
 
 use crate::entity::{
-    chat_message::{self, ActiveModel as MessageActiveModel, Model as MessageModel},
     chat_session::{self, ActiveModel as SessionActiveModel, Model as SessionModel},
+    section_summary::{self, ActiveModel as SummaryActiveModel, Model as SummaryModel},
 };
-use crate::enums::MessageState;
 
-use super::dto::{CreateMessageDto, CreateSessionDto};
+use super::dto::CreateSessionDto;
 
 /// 聊天服务
 #[derive(Debug, Clone)]
@@ -32,10 +31,11 @@ impl ChatService {
         let new_session = SessionActiveModel {
             id: Set(id),
             title: Set(input.title),
-            model: Set(input.model.unwrap_or_else(|| "glm-4-plus".to_string())),
-            system_prompt: Set(input.system_prompt),
             created_at: Set(chrono::Local::now().naive_local()),
             updated_at: Set(chrono::Local::now().naive_local()),
+            summary: Set(None),
+            title_auto_generated: Set(true),
+            summary_generated: Set(false),
         };
 
         let inserted_session = new_session.insert(&self.db).await?;
@@ -79,14 +79,48 @@ impl ChatService {
         Ok(updated_session)
     }
 
-    /// 删除会话（级联删除该会话的所有消息）
+    /// 批量更新会话字段（summary、title_auto_generated、summary_generated、title）
+    pub async fn update_session_fields(
+        &self,
+        id: i64,
+        summary: Option<String>,
+        title_auto_generated: Option<bool>,
+        summary_generated: Option<bool>,
+        title: Option<String>,
+    ) -> Result<SessionModel, Box<dyn std::error::Error>> {
+        let session = chat_session::Entity::find_by_id(id)
+            .one(&self.db)
+            .await?
+            .ok_or("会话不存在")?;
+
+        let mut active_model: SessionActiveModel = session.into();
+
+        if let Some(s) = summary {
+            active_model.summary = Set(Some(s));
+        }
+        if let Some(flag) = title_auto_generated {
+            active_model.title_auto_generated = Set(flag);
+        }
+        if let Some(flag) = summary_generated {
+            active_model.summary_generated = Set(flag);
+        }
+        if let Some(t) = title {
+            active_model.title = Set(t);
+        }
+        active_model.updated_at = Set(chrono::Local::now().naive_local());
+
+        let updated_session = active_model.update(&self.db).await?;
+        Ok(updated_session)
+    }
+
+    /// 删除会话（级联删除该会话的所有节摘要）
     pub async fn delete_session(
         &self,
         id: i64,
     ) -> Result<DeleteResult, Box<dyn std::error::Error>> {
-        // 先删除该会话的所有消息
-        let _ = chat_message::Entity::delete_many()
-            .filter(chat_message::Column::SessionId.eq(id))
+        // 先删除该会话的所有节摘要
+        let _ = section_summary::Entity::delete_many()
+            .filter(section_summary::Column::SessionId.eq(id))
             .exec(&self.db)
             .await?;
 
@@ -97,76 +131,56 @@ impl ChatService {
         Ok(result)
     }
 
-    /// 创建消息
-    pub async fn create_message(
-        &self,
-        input: CreateMessageDto,
-    ) -> Result<MessageModel, Box<dyn std::error::Error>> {
-        let id = MessageModel::generate_id(&self.db).await?;
-
-        let new_message = MessageActiveModel {
-            id: Set(id),
-            session_id: Set(input.session_id),
-            role: Set(input.role),
-            content: Set(input.content),
-            tokens: Set(input.tokens),
-            created_at: Set(chrono::Local::now().naive_local()),
-            state: Set(input.state.unwrap_or(MessageState::Sending)),
-        };
-
-        let inserted_message = new_message.insert(&self.db).await?;
-        Ok(inserted_message)
-    }
-
-    /// 获取会话的所有消息，按创建时间正序排列
-    pub async fn get_messages_by_session(
+    /// 创建或更新节摘要（同一 session_id + section_file 只保留一条）
+    pub async fn create_section_summary(
         &self,
         session_id: i64,
-    ) -> Result<Vec<MessageModel>, Box<dyn std::error::Error>> {
-        let messages = chat_message::Entity::find()
-            .filter(chat_message::Column::SessionId.eq(session_id))
-            .order_by_asc(chat_message::Column::CreatedAt)
+        section_file: String,
+        title: Option<String>,
+        summary: String,
+    ) -> Result<SummaryModel, Box<dyn std::error::Error>> {
+        // 查找是否已存在同一 (session_id, section_file) 的摘要
+        let existing = section_summary::Entity::find()
+            .filter(section_summary::Column::SessionId.eq(session_id))
+            .filter(section_summary::Column::SectionFile.eq(&section_file))
+            .one(&self.db)
+            .await?;
+
+        if let Some(model) = existing {
+            // 已存在，更新摘要内容和标题
+            let mut active_model: SummaryActiveModel = model.into();
+            active_model.title = Set(title);
+            active_model.summary = Set(summary);
+            let updated = active_model.update(&self.db).await?;
+            Ok(updated)
+        } else {
+            // 不存在，新建
+            let id = SummaryModel::generate_id(&self.db).await?;
+
+            let new_summary = SummaryActiveModel {
+                id: Set(id),
+                session_id: Set(session_id),
+                section_file: Set(section_file),
+                title: Set(title),
+                summary: Set(summary),
+                created_at: Set(chrono::Local::now().naive_local()),
+            };
+
+            let inserted = new_summary.insert(&self.db).await?;
+            Ok(inserted)
+        }
+    }
+
+    /// 获取指定会话的所有节摘要，按创建时间正序
+    pub async fn get_summaries_by_session(
+        &self,
+        session_id: i64,
+    ) -> Result<Vec<SummaryModel>, Box<dyn std::error::Error>> {
+        let summaries = section_summary::Entity::find()
+            .filter(section_summary::Column::SessionId.eq(session_id))
+            .order_by_asc(section_summary::Column::CreatedAt)
             .all(&self.db)
             .await?;
-        Ok(messages)
-    }
-
-    /// 更新消息状态
-    pub async fn update_message_state(
-        &self,
-        id: i64,
-        state: MessageState,
-    ) -> Result<MessageModel, Box<dyn std::error::Error>> {
-        let message = chat_message::Entity::find_by_id(id)
-            .one(&self.db)
-            .await?
-            .ok_or("消息不存在")?;
-
-        let mut active_model: MessageActiveModel = message.into();
-        active_model.state = Set(state);
-
-        let updated_message = active_model.update(&self.db).await?;
-        Ok(updated_message)
-    }
-
-    /// 更新消息内容和 Token 数量
-    pub async fn update_message_content(
-        &self,
-        id: i64,
-        content: String,
-        tokens: Option<i32>,
-    ) -> Result<MessageModel, Box<dyn std::error::Error>> {
-        let message = chat_message::Entity::find_by_id(id)
-            .one(&self.db)
-            .await?
-            .ok_or("消息不存在")?;
-
-        let mut active_model: MessageActiveModel = message.into();
-        active_model.content = Set(content);
-        active_model.tokens = Set(tokens);
-        active_model.state = Set(MessageState::Completed);
-
-        let updated_message = active_model.update(&self.db).await?;
-        Ok(updated_message)
+        Ok(summaries)
     }
 }

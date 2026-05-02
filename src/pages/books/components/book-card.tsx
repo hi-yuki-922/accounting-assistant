@@ -6,6 +6,7 @@
 import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import { Folder, MoreHorizontal } from 'lucide-react'
+import React from 'react'
 
 import type { AccountingBook } from '@/api/commands/accounting-book/type'
 import { Button } from '@/components/ui/button'

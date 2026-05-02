@@ -5,7 +5,6 @@ pub mod accounting_record_seq;
 pub mod attachment;
 pub mod category;
 pub mod category_seq;
-pub mod chat_message;
 pub mod chat_message_seq;
 pub mod chat_session;
 pub mod customer;
@@ -16,6 +15,7 @@ pub mod order_seq;
 mod prelude;
 pub mod product;
 pub mod product_seq;
+pub mod section_summary;
 
 pub async fn with_install_entities(
     db: &sea_orm::DatabaseConnection,
@@ -29,7 +29,6 @@ pub async fn with_install_entities(
         .register(category::Entity)
         .register(category_seq::Entity)
         .register(chat_session::Entity)
-        .register(chat_message::Entity)
         .register(chat_message_seq::Entity)
         .register(customer::Entity)
         .register(customer_seq::Entity)
@@ -38,6 +37,7 @@ pub async fn with_install_entities(
         .register(order::Entity)
         .register(order_item::Entity)
         .register(order_seq::Entity)
+        .register(section_summary::Entity)
         .sync(db)
         .await?;
 

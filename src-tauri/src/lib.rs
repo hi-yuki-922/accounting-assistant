@@ -13,6 +13,7 @@ use db::connection;
 pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             // 获取应用数据目录路径
             let app_data_dir = app

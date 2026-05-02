@@ -81,9 +81,10 @@ export type Order = {
   orderNo: string
   orderType: OrderType
   customerId?: number
+  customerName?: string
   totalAmount: number
   actualAmount: number
-  subType: string
+  subType: OrderSubType
   status: OrderStatus
   channel: string
   remark?: string
@@ -134,6 +135,7 @@ export type CreateOrderItemDto = {
 export type CreateOrderDto = {
   orderType: string
   customerId?: number
+  customerName?: string
   items: CreateOrderItemDto[]
   remark?: string
   actualAmount?: number

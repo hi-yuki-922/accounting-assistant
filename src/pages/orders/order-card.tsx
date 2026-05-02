@@ -4,6 +4,8 @@
  * 点击卡片弹出详情 Dialog
  */
 
+import React from 'react'
+
 import { ACCOUNTING_CHANNEL_DISPLAY_TEXT } from '@/api/commands/accounting/enums'
 import type { Order } from '@/api/commands/order/type'
 import {

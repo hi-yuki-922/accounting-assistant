@@ -245,7 +245,7 @@ export const RecordForm = ({
               mode="single"
               selected={value.date}
               onSelect={(selected) => selected && updateField('date', selected)}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>
