@@ -45,6 +45,8 @@
 - 可选输入 actual_amount
 - 输入备注
 
+创建订单时 MUST 同时传递客户 ID 和客户名称（如有选择客户），customer_name 从选中的客户信息中获取。
+
 订单业务类型 MUST 根据订单类型和客户选择自动填充默认值，用户可手动更改。默认规则：
 - 销售订单 + 有客户 → 批发
 - 销售订单 + 无客户 → 零售
@@ -66,8 +68,12 @@
 - **WHEN** 用户填写有效信息并提交
 - **THEN** 创建订单，关闭弹窗，刷新列表
 
+#### Scenario: 选择客户时传递客户名称
+- **WHEN** 用户选择了客户并提交创建订单
+- **THEN** 提交的 DTO 中同时包含 customerId 和 customerName
+
 ### Requirement: 编辑订单弹窗
-系统 SHALL 提供编辑 Pending 订单弹窗，允许修改订单项和备注。业务类型 MUST 不可修改。
+系统 SHALL 提供编辑 Pending 订单弹窗，允许修改订单项和备注。业务类型 MUST 不可修改。customer_name 不可修改（创建时快照）。
 
 #### Scenario: 编辑时业务类型禁用
 - **WHEN** 用户打开编辑订单弹窗
